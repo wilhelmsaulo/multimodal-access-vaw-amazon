@@ -115,6 +115,7 @@ def build_sector_origins(
 
     geometry = gpd.read_file(geometry_path)
     feature_count = len(geometry)
+    geometry = geometry.drop(columns=["id"], errors="ignore")
     unique_sector_count = int(geometry["CD_SETOR"].nunique())
     duplicate_features = feature_count - unique_sector_count
 
