@@ -26,15 +26,16 @@ Initial project scaffold. Data inventories, network construction, routing, valid
 
 ## Planned workflow
 
-1. Audit the three methodological reference studies and their reusable data/code.
-2. Inventory and geocode service destinations.
-3. Build intra-municipal female-population origins.
-4. Construct connected road–river multimodal networks.
-5. Implement door-to-door travel-time scenarios.
-6. Run and validate a pilot study.
-7. Scale the validated workflow to Pará.
-8. Estimate accessibility and intra-municipal inequality.
-9. Publish reproducible data products, code, figures, and documentation.
+1. Audit and selectively reuse infrastructure from the two preceding VAW repositories.
+2. Build census-sector origins and attach female population from the 2022 Census.
+3. Audit the three methodological reference studies and their reusable data/code.
+4. Inventory and geocode service destinations.
+5. Construct connected road–river multimodal networks.
+6. Implement door-to-door travel-time scenarios.
+7. Run and validate a pilot study.
+8. Scale the validated workflow to Pará.
+9. Estimate accessibility and intra-municipal inequality.
+10. Publish reproducible data products, code, figures, and documentation.
 
 ## Data policy
 
@@ -46,7 +47,7 @@ Raw third-party and restricted data are not committed. Each source must be docum
 - `data/`: documented raw, external, interim, and processed data zones.
 - `docs/`: project scope, methods, data inventory, and decisions.
 - `notebooks/`: exploratory analyses only.
-- `references/`: bibliographic metadata and reading notes.
+- `references/`: bibliographic metadata, reading notes, and immutable legacy-source audit snapshots.
 - `results/`: generated figures and tables.
 - `src/`: reusable data, network, accessibility, and validation code.
 - `tests/`: automated checks.
@@ -58,3 +59,7 @@ Create the environment with `conda env create -f environment.yml`, activate it w
 ## License
 
 Licensing is pending a review of third-party datasets and reused code. No license is granted for repository contents until an explicit license file is added.
+
+## Reuse audit
+
+Reusable acquisition, provenance, harmonization, and transport-source components from the two preceding VAW repositories were selectively incorporated. Municipal rankings, MCDA code, police processing, aggregate accessibility indicators, approximate geocoding, and previous results were excluded. See [`docs/previous_repository_audit.md`](docs/previous_repository_audit.md).
