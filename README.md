@@ -22,7 +22,7 @@ This project measures territorial accessibility. Its outputs must not be interpr
 
 ## Repository status
 
-Initial project scaffold. Data inventories, network construction, routing, validation, and analytical outputs are not yet complete.
+Initial project scaffold with previous-repository reuse audit and an implemented IBGE 2022 census-sector acquisition workflow. Network construction, routing, destination validation, and analytical outputs are not yet complete.
 
 ## Planned workflow
 
@@ -63,3 +63,7 @@ Licensing is pending a review of third-party datasets and reused code. No licens
 ## Reuse audit
 
 Reusable acquisition, provenance, harmonization, and transport-source components from the two preceding VAW repositories were selectively incorporated. Municipal rankings, MCDA code, police processing, aggregate accessibility indicators, approximate geocoding, and previous results were excluded. See [`docs/previous_repository_audit.md`](docs/previous_repository_audit.md).
+
+## Census-sector origins
+
+Official IBGE 2022 sector geometry, demography, and dictionary inputs are declared in [`config/ibge_census2022_sectors.yml`](config/ibge_census2022_sectors.yml). The reproducible acquisition and preprocessing entry point is `python src/data/ibge_census2022_sectors.py`. See [`docs/ibge_census2022_sector_audit.md`](docs/ibge_census2022_sector_audit.md) for the observed Pará structure and missing-data rules.
