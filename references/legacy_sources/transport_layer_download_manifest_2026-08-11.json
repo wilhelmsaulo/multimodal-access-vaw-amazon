@@ -1,0 +1,286 @@
+{
+  "generated_at_utc": "2026-08-11T18:43:27.385761+00:00",
+  "sources": {
+    "mapbiomas_state_roads": {
+      "agency": "MapBiomas",
+      "official_page": "https://brasil.mapbiomas.org/dados-de-infraestrutura/",
+      "discovery_policy": "registered_direct_urls_only",
+      "discovered": [
+        "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/rodovia-estadual.zip"
+      ],
+      "downloads": [
+        {
+          "url": "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/rodovia-estadual.zip",
+          "resolved_url": "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/rodovia-estadual.zip",
+          "path": "data/raw/transport/mapbiomas_state_roads/rodovia-estadual.zip",
+          "bytes": 11870908,
+          "sha256": "364a070e9394a812b8eab3956c6056203decfde66d7771c679854d28d8b4fe05",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "rodovia-estadual.dbf",
+            "rodovia-estadual.prj",
+            "rodovia-estadual.shp",
+            "rodovia-estadual.shx"
+          ],
+          "attempt": 1
+        }
+      ],
+      "preserved": [],
+      "errors": []
+    },
+    "mapbiomas_federal_roads": {
+      "agency": "MapBiomas",
+      "official_page": "https://brasil.mapbiomas.org/dados-de-infraestrutura/",
+      "discovery_policy": "registered_direct_urls_only",
+      "discovered": [
+        "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/rodovia-federal.zip"
+      ],
+      "downloads": [
+        {
+          "url": "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/rodovia-federal.zip",
+          "resolved_url": "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/rodovia-federal.zip",
+          "path": "data/raw/transport/mapbiomas_federal_roads/rodovia-federal.zip",
+          "bytes": 4256367,
+          "sha256": "f507e9c2bdca50c1ee6814c07cd220c88e686c0aae2b88ca8baef0280d01ba94",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "rodovia-federal.dbf",
+            "rodovia-federal.prj",
+            "rodovia-federal.shp",
+            "rodovia-federal.shx"
+          ],
+          "attempt": 1
+        }
+      ],
+      "preserved": [],
+      "errors": []
+    },
+    "mapbiomas_other_roads": {
+      "agency": "MapBiomas",
+      "official_page": "https://brasil.mapbiomas.org/dados-de-infraestrutura/",
+      "discovery_policy": "registered_direct_urls_only",
+      "discovered": [
+        "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/outros-trechos.zip"
+      ],
+      "downloads": [
+        {
+          "url": "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/outros-trechos.zip",
+          "resolved_url": "https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/outros-trechos.zip",
+          "path": "data/raw/transport/mapbiomas_other_roads/outros-trechos.zip",
+          "bytes": 31596135,
+          "sha256": "7df6c217fe2ea6bbfd556863fe21a426003042ad774ac7c73bf38e41d58d1585",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "outros-trechos.dbf",
+            "outros-trechos.prj",
+            "outros-trechos.shp",
+            "outros-trechos.shx"
+          ],
+          "attempt": 1
+        }
+      ],
+      "preserved": [],
+      "errors": []
+    },
+    "antaq_ports": {
+      "agency": "ANTAQ",
+      "official_page": "https://www.gov.br/antaq/pt-br/central-de-conteudos/informacoes-geograficas",
+      "discovery_policy": "official_page_plus_registered_urls",
+      "discovered": [
+        "https://www.gov.br/antaq/pt-br/central-de-conteudos/Instalacoes_Portuarias_20212.zip",
+        "https://www.gov.br/antaq/pt-br/central-de-conteudos/Instalaesporturias06052025.zip",
+        "https://www.gov.br/antaq/pt-br/central-de-conteudos/Linhasdetravessias06052025.zip"
+      ],
+      "downloads": [
+        {
+          "url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/Instalacoes_Portuarias_20212.zip",
+          "resolved_url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/Instalacoes_Portuarias_20212.zip",
+          "path": "data/raw/transport/antaq_ports/Instalacoes_Portuarias_20212.zip",
+          "bytes": 3028070,
+          "sha256": "0ac4c2ed8cada9348eb5057a43efe084336c1e66eeaca51bf43ac0d8d8547e2e",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "Metadados_InstalaçΣes Portuárias.pdf",
+            "SHP-Instalaçoes Portuárias 2021/",
+            "SHP-Instalaçoes Portuárias 2021/Instalacoes portuarias.cpg",
+            "SHP-Instalaçoes Portuárias 2021/Instalacoes portuarias.dbf",
+            "SHP-Instalaçoes Portuárias 2021/Instalacoes portuarias.prj",
+            "SHP-Instalaçoes Portuárias 2021/Instalacoes portuarias.shp",
+            "SHP-Instalaçoes Portuárias 2021/Instalacoes portuarias.shx",
+            "Mapa Instalaçoes Portuarias-2021.pdf"
+          ],
+          "attempt": 1
+        },
+        {
+          "url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/Instalaesporturias06052025.zip",
+          "resolved_url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/Instalaesporturias06052025.zip",
+          "path": "data/raw/transport/antaq_ports/Instalaesporturias06052025.zip",
+          "bytes": 518623,
+          "sha256": "79e28332bdd031388a6f2305e4f1e2e741c057a64a63724ea4278f78a040fb63",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "InstalaçΣes portuárias-06-05-2025/Portos.dbf",
+            "InstalaçΣes portuárias-06-05-2025/Portos.kml",
+            "InstalaçΣes portuárias-06-05-2025/Portos.prj",
+            "InstalaçΣes portuárias-06-05-2025/Portos.qmd",
+            "InstalaçΣes portuárias-06-05-2025/Portos.shp",
+            "InstalaçΣes portuárias-06-05-2025/Portos.shx",
+            "InstalaçΣes portuárias-06-05-2025/Portos.xlsx"
+          ],
+          "attempt": 1
+        },
+        {
+          "url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/Linhasdetravessias06052025.zip",
+          "resolved_url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/Linhasdetravessias06052025.zip",
+          "path": "data/raw/transport/antaq_ports/Linhasdetravessias06052025.zip",
+          "bytes": 47307,
+          "sha256": "13a72f45a311168f8d57c50d261a3aa4b39c3188ee069617e572a76cd502d215",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "Linhas de travessias - 06-05-2025/LinhasTravessia.dbf",
+            "Linhas de travessias - 06-05-2025/LinhasTravessia.kml",
+            "Linhas de travessias - 06-05-2025/LinhasTravessia.prj",
+            "Linhas de travessias - 06-05-2025/LinhasTravessia.qmd",
+            "Linhas de travessias - 06-05-2025/LinhasTravessia.shp",
+            "Linhas de travessias - 06-05-2025/LinhasTravessia.shx",
+            "Linhas de travessias - 06-05-2025/LinhasTravessia.xlsx"
+          ],
+          "attempt": 1
+        }
+      ],
+      "preserved": [],
+      "errors": []
+    },
+    "antaq_waterways": {
+      "agency": "ANTAQ",
+      "official_page": "https://www.gov.br/antaq/pt-br/central-de-conteudos/informacoes-geograficas",
+      "discovery_policy": "official_page_plus_registered_urls",
+      "discovered": [
+        "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHPTKU2023cabotagem.zip",
+        "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHPTKUinterior2023.zip",
+        "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHP_VEN2022completo.zip"
+      ],
+      "downloads": [
+        {
+          "url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHPTKU2023cabotagem.zip",
+          "resolved_url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHPTKU2023cabotagem.zip",
+          "path": "data/raw/transport/antaq_waterways/SHPTKU2023cabotagem.zip",
+          "bytes": 2415007,
+          "sha256": "95e5e338ec69fcb3bb7cafa18b58bc5638b56fb0f5174ed3c647d989531a2425",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "SHP-TKU-2023-cabotagem/mapa TKU-cabotagem-2023 v2.png",
+            "SHP-TKU-2023-cabotagem/TKU-2023-cabotagem.cpg",
+            "SHP-TKU-2023-cabotagem/TKU-2023-cabotagem.dbf",
+            "SHP-TKU-2023-cabotagem/TKU-2023-cabotagem.prj",
+            "SHP-TKU-2023-cabotagem/TKU-2023-cabotagem.qmd",
+            "SHP-TKU-2023-cabotagem/TKU-2023-cabotagem.shp",
+            "SHP-TKU-2023-cabotagem/TKU-2023-cabotagem.shx"
+          ],
+          "attempt": 1
+        },
+        {
+          "url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHPTKUinterior2023.zip",
+          "resolved_url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHPTKUinterior2023.zip",
+          "path": "data/raw/transport/antaq_waterways/SHPTKUinterior2023.zip",
+          "bytes": 3243886,
+          "sha256": "af92772b30616367b9e2b5798b9a87d4e81405014bd8cba4ff401f55a6dd65e5",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "SHP-TKU-interior-2023/Mapa - TKU-interior-2023 v2.png",
+            "SHP-TKU-interior-2023/TKU-interior-2023.cpg",
+            "SHP-TKU-interior-2023/TKU-interior-2023.dbf",
+            "SHP-TKU-interior-2023/TKU-interior-2023.prj",
+            "SHP-TKU-interior-2023/TKU-interior-2023.qmd",
+            "SHP-TKU-interior-2023/TKU-interior-2023.shp",
+            "SHP-TKU-interior-2023/TKU-interior-2023.shx"
+          ],
+          "attempt": 1
+        },
+        {
+          "url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHP_VEN2022completo.zip",
+          "resolved_url": "https://www.gov.br/antaq/pt-br/central-de-conteudos/SHP_VEN2022completo.zip",
+          "path": "data/raw/transport/antaq_waterways/SHP_VEN2022completo.zip",
+          "bytes": 710326,
+          "sha256": "a324b2af08d9fdea9ee45fcd20116a95851f39223efca97d4fb9b5d9c8738a2b",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "SHP_VEN-2022-completo/VEN-2022-completo.cpg",
+            "SHP_VEN-2022-completo/VEN-2022-completo.dbf",
+            "SHP_VEN-2022-completo/VEN-2022-completo.kml",
+            "SHP_VEN-2022-completo/VEN-2022-completo.prj",
+            "SHP_VEN-2022-completo/VEN-2022-completo.qmd",
+            "SHP_VEN-2022-completo/VEN-2022-completo.shp",
+            "SHP_VEN-2022-completo/VEN-2022-completo.shx",
+            "SHP_VEN-2022-completo/VEN-2022-completo.xlsx"
+          ],
+          "attempt": 1
+        }
+      ],
+      "preserved": [],
+      "errors": []
+    },
+    "decea_airports": {
+      "agency": "DECEA/ICA",
+      "official_page": "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=2.0.0&request=GetCapabilities",
+      "discovery_policy": "official_page_plus_registered_urls",
+      "discovered": [
+        "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ICA:airport&outputFormat=SHAPE-ZIP",
+        "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=ICA:airport&outputFormat=SHAPE-ZIP",
+        "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=ICA:airport&outputFormat=application/json"
+      ],
+      "downloads": [
+        {
+          "url": "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ICA:airport&outputFormat=SHAPE-ZIP",
+          "resolved_url": "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=ICA:airport&outputFormat=SHAPE-ZIP",
+          "path": "data/raw/transport/decea_airports/candidate_1.zip",
+          "bytes": 728363,
+          "sha256": "8159ee77d52d0d0a7b46f544f8a36549da644671277889be45eba255d6275c79",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "airport.dbf",
+            "airport.shx",
+            "airport.prj",
+            "airport.shp",
+            "airport.cst"
+          ],
+          "attempt": 1
+        },
+        {
+          "url": "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=ICA:airport&outputFormat=SHAPE-ZIP",
+          "resolved_url": "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=ICA:airport&outputFormat=SHAPE-ZIP",
+          "path": "data/raw/transport/decea_airports/candidate_2.zip",
+          "bytes": 728824,
+          "sha256": "7ea03743b291742ea884d576b97e49556a5a4c8d42da3b3384c4d25baaebe9f5",
+          "content_type": "application/zip",
+          "zip_inventory": [
+            "airport.dbf",
+            "airport.shx",
+            "airport.prj",
+            "airport.shp",
+            "airport.cst"
+          ],
+          "attempt": 1
+        },
+        {
+          "url": "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=ICA:airport&outputFormat=application/json",
+          "resolved_url": "https://geoaisweb.decea.gov.br/geoserver/ICA/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=ICA:airport&outputFormat=application/json",
+          "path": "data/raw/transport/decea_airports/candidate_3.geojson",
+          "bytes": 3115559,
+          "sha256": "737478fc426415f29e3758f783b5eef4a4ee0a3c48939b7c0f241f966bfc74a3",
+          "content_type": "application/json;charset=UTF-8",
+          "zip_inventory": [],
+          "attempt": 1
+        }
+      ],
+      "preserved": [],
+      "errors": []
+    }
+  },
+  "policy": {
+    "max_candidates_per_source": 3,
+    "max_bytes_per_file": 80000000,
+    "download_attempts": 3,
+    "note": "Raw layers are cached artifacts; manifests are committed for provenance."
+  }
+}
