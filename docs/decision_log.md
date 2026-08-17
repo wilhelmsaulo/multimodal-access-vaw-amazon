@@ -33,3 +33,15 @@ Use one entry for every methodological decision that can change the interpretati
 **Decision:** keep air transport disabled in the ordinary-access baseline.
 
 **Reason:** an aerodrome does not imply an affordable, frequent, or publicly accessible connection.
+
+## 2026-08-17 — Selective reuse from preceding repositories
+
+**Decision:** reuse only generic acquisition, provenance, harmonization, and source-catalog infrastructure.
+
+**Included:** SIDRA connector, collection metadata, data-source registry, IBGE-code and numeric harmonization, transport catalog/downloader, and historical source manifests.
+
+**Excluded:** police processing, MCDA, rankings, previous results, municipal aggregate accessibility indicators, simplified visualization geometry, and approximate service geocoding.
+
+**Reason:** the new outcome and unit of analysis are intra-municipal travel-time accessibility; municipal indicators and representative points are not valid substitutes for routable origins, destinations, and networks.
+
+**Next action:** construct and validate 2022 census-sector origins with female population before building the multimodal routing graph.
