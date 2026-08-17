@@ -158,6 +158,25 @@ def build_sector_origins(
         output_path, layer="pa_census_sectors_2022", driver="GPKG"
     )
 
+    summary_columns = [
+        "CD_SETOR",
+        "CD_MUN",
+        "NM_MUN",
+        "SITUACAO",
+        "CD_SIT",
+        "CD_TIPO",
+        "AREA_KM2",
+        "total_population",
+        "V01007",
+        "female_population",
+        "population_data_status",
+    ]
+    merged[summary_columns].to_csv(
+        output_path.with_name("pa_census_sectors_2022_summary.csv"),
+        index=False,
+        encoding="utf-8",
+    )
+
     audit = {
         "source_features": int(feature_count),
         "unique_geometry_sectors": unique_sector_count,
