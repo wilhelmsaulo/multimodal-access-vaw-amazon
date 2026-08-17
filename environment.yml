@@ -5,6 +5,7 @@ dependencies:
   - python=3.12
   - geopandas
   - pandas
+  - httpx
   - numpy
   - scipy
   - shapely
