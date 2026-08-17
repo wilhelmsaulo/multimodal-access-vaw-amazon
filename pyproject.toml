@@ -7,6 +7,10 @@ name = "multimodal-access-vaw"
 version = "0.1.0"
 description = "Multimodal travel-time accessibility to VAW response services in the Brazilian Amazon"
 requires-python = ">=3.12"
+dependencies = [
+  "httpx>=0.27,<1",
+  "pandas>=2.2,<3",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
