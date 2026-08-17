@@ -45,3 +45,13 @@ Use one entry for every methodological decision that can change the interpretati
 **Reason:** the new outcome and unit of analysis are intra-municipal travel-time accessibility; municipal indicators and representative points are not valid substitutes for routable origins, destinations, and networks.
 
 **Next action:** construct and validate 2022 census-sector origins with female population before building the multimodal routing graph.
+
+## 2026-08-17 — IBGE sector population rules
+
+**Decision:** use `V01008` directly as the female-population weight and dissolve multipart geometries by `CD_SETOR`.
+
+**Missingness:** assign zero only to geometry sectors absent from the demographic file when official basic population `v0001` is zero. Preserve all other unavailable female values; do not infer them from total minus male population.
+
+**Reason:** age-group cells are incomplete for some sectors, and missing sex values may reflect confidentiality or special-sector treatment rather than zero population.
+
+**Consequence:** sector coverage and female-population coverage will be reported separately in every subsequent analysis.
