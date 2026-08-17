@@ -1,0 +1,98 @@
+name: build-ibge-census-sectors
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - agent/repository-bootstrap
+    paths:
+      - ".github/workflows/build-ibge-census-sectors.yml"
+      - "config/ibge_census2022_sectors.yml"
+      - "src/data/ibge_census2022_sectors.py"
+      - "tests/test_ibge_census2022_sectors.py"
+      - "pyproject.toml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-ibge-census-sectors.yml"
+      - "config/ibge_census2022_sectors.yml"
+      - "src/data/ibge_census2022_sectors.py"
+      - "tests/test_ibge_census2022_sectors.py"
+      - "pyproject.toml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ibge-census-sectors-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install project and geospatial dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .             "geopandas>=1.0,<2"             "pyogrio>=0.10,<1"             "openpyxl>=3.1,<4"             "PyYAML>=6,<7"             "pytest>=8,<9"
+
+      - name: Run automated tests
+        run: pytest
+
+      - name: Build Pará census-sector origins
+        run: python src/data/ibge_census2022_sectors.py
+
+      - name: Validate generated GeoPackage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          import geopandas as gpd
+          import pandas as pd
+
+          output = Path("data/processed/ibge/pa_census_sectors_2022.gpkg")
+          audit_path = output.with_suffix(".audit.json")
+          summary_path = output.with_name("pa_census_sectors_2022_summary.csv")
+
+          sectors = gpd.read_file(output, layer="pa_census_sectors_2022")
+          audit = json.loads(audit_path.read_text(encoding="utf-8"))
+          summary = pd.read_csv(summary_path, dtype={"CD_SETOR": str, "CD_MUN": str})
+
+          assert len(sectors) == 16_714
+          assert sectors["CD_SETOR"].nunique() == 16_714
+          assert sectors["CD_MUN"].nunique() == 144
+          assert not sectors.geometry.is_empty.any()
+          assert sectors.geometry.notna().all()
+          assert sectors.crs.to_epsg() == 4674
+          assert audit["geometry_only_zero_population_sectors"] == 649
+          assert audit["female_population_unavailable_sectors"] == 486
+          assert audit["female_population_observed"] == 4_065_139
+          assert len(summary) == 16_714
+          assert summary["CD_SETOR"].nunique() == 16_714
+          print(json.dumps(audit, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload processed census-sector artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-census-sectors-2022
+          path: |
+            data/processed/ibge/pa_census_sectors_2022.gpkg
+            data/processed/ibge/pa_census_sectors_2022.audit.json
+            data/processed/ibge/pa_census_sectors_2022_summary.csv
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 6
