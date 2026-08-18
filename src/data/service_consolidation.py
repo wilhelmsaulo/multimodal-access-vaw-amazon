@@ -91,6 +91,36 @@ def normalize_cnes_candidates(frame: pd.DataFrame, reference_date: str) -> pd.Da
     return out[STANDARD_COLUMNS]
 
 
+def apply_cnes_bed_capacity(inventory: pd.DataFrame, beds: pd.DataFrame) -> pd.DataFrame:
+    """Attach registered-bed capacity to CNES health candidates by exact CNES identifier."""
+    if inventory.empty or beds.empty:
+        return inventory.copy()
+    required = {"codigo_cnes", "capacity", "capacity_type", "capacity_source"}
+    missing = required.difference(beds.columns)
+    if missing:
+        raise ValueError(f"Bed-capacity table missing columns: {sorted(missing)}")
+    out = inventory.copy()
+    bedmap = beds.copy()
+    bedmap["service_id"] = (
+        "CNES-"
+        + bedmap["codigo_cnes"].astype("string").str.replace(r"\.0$", "", regex=True).map(_slug)
+    )
+    bedmap = bedmap[["service_id", "capacity", "capacity_type", "capacity_source"]].drop_duplicates("service_id")
+    out = out.merge(bedmap, on="service_id", how="left", suffixes=("", "_beds"), validate="one_to_one")
+    health = out["service_type"].eq("health")
+    for col in ["capacity", "capacity_type", "capacity_source"]:
+        bed_col = f"{col}_beds"
+        if col == "capacity":
+            current = pd.to_numeric(out[col], errors="coerce")
+            replacement = pd.to_numeric(out[bed_col], errors="coerce")
+            out.loc[health & current.isna() & replacement.notna(), col] = replacement
+        else:
+            mask = health & out[col].isna() & out[bed_col].notna()
+            out.loc[mask, col] = out.loc[mask, bed_col]
+        out = out.drop(columns=[bed_col])
+    return out
+
+
 def normalize_tjpa(frame: pd.DataFrame, reference_date: str) -> pd.DataFrame:
     if frame.empty:
         return pd.DataFrame(columns=STANDARD_COLUMNS)
@@ -126,32 +156,17 @@ def normalize_manual_standard(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def infer_creas_units(frame: pd.DataFrame, reference_date: str) -> pd.DataFrame:
-    """Conservatively extract CREAS unit-level rows from heterogeneous Censo SUAS sheets.
-
-    Only rows with a recognizable unit identifier/name are emitted. Staffing/attendance fields
-    are not aggregated here; capacity remains missing until a documented unit-level mapping is
-    explicitly implemented and validated.
-    """
     if frame.empty:
         return pd.DataFrame(columns=STANDARD_COLUMNS)
     name = _first_existing(
         frame,
-        [
-            "Nome da Unidade",
-            "Nome Unidade",
-            "nome_unidade",
-            "NO_UNIDADE",
-            "Identificação da Unidade",
-        ],
+        ["Nome da Unidade", "Nome Unidade", "nome_unidade", "NO_UNIDADE", "Identificação da Unidade"],
     )
     code = _first_existing(
         frame,
         ["ID CREAS", "id_creas", "codigo_unidade", "Código da Unidade", "NU_IDENTIFICADOR"],
     )
-    city = _first_existing(
-        frame,
-        ["Município", "municipio", "Nome do Município", "NO_MUNICIPIO"],
-    )
+    city = _first_existing(frame, ["Município", "municipio", "Nome do Município", "NO_MUNICIPIO"])
     city_code = _first_existing(
         frame,
         ["IBGE", "Código IBGE", "codigo_ibge", "Código do Município", "CODMUNICIPIO"],
@@ -168,9 +183,7 @@ def infer_creas_units(frame: pd.DataFrame, reference_date: str) -> pd.DataFrame:
     address = _clean_text(address[recognized])
 
     out = pd.DataFrame(index=name.index)
-    out["service_id"] = [
-        f"CREAS-{_slug(c if pd.notna(c) else n)}" for c, n in zip(code, name)
-    ]
+    out["service_id"] = [f"CREAS-{_slug(c if pd.notna(c) else n)}" for c, n in zip(code, name)]
     out["service_name"] = name.fillna("CREAS")
     out["service_type"] = "creas"
     out["provider_source"] = "Censo SUAS"
@@ -210,11 +223,7 @@ def validate_consolidated_inventory(frame: pd.DataFrame) -> None:
 
 def consolidate_service_frames(frames: Iterable[pd.DataFrame]) -> tuple[pd.DataFrame, ConsolidationAudit]:
     valid = [normalize_manual_standard(f) for f in frames if f is not None and len(f)]
-    inventory = (
-        pd.concat(valid, ignore_index=True, sort=False)
-        if valid
-        else pd.DataFrame(columns=STANDARD_COLUMNS)
-    )
+    inventory = pd.concat(valid, ignore_index=True, sort=False) if valid else pd.DataFrame(columns=STANDARD_COLUMNS)
     inventory["service_name"] = _clean_text(inventory["service_name"])
     inventory["municipality_name"] = _clean_text(inventory["municipality_name"])
     inventory = inventory.drop_duplicates(subset=["service_id"], keep="first").reset_index(drop=True)
@@ -232,9 +241,14 @@ def consolidate_service_frames(frames: Iterable[pd.DataFrame]) -> tuple[pd.DataF
 
 def load_and_consolidate_artifact(artifact_dir: Path, reference_date: str) -> tuple[pd.DataFrame, ConsolidationAudit]:
     frames: list[pd.DataFrame] = []
+    cnes_frame: pd.DataFrame | None = None
     cnes = artifact_dir / "cnes_pa_vaw_health_candidates.csv"
     if cnes.exists():
-        frames.append(normalize_cnes_candidates(pd.read_csv(cnes), reference_date))
+        cnes_frame = normalize_cnes_candidates(pd.read_csv(cnes), reference_date)
+        beds_path = artifact_dir / "hospital_beds_pa_by_cnes.csv"
+        if beds_path.exists():
+            cnes_frame = apply_cnes_bed_capacity(cnes_frame, pd.read_csv(beds_path))
+        frames.append(cnes_frame)
     tjpa = artifact_dir / "tjpa_specialized_vaw_units.csv"
     if tjpa.exists():
         frames.append(normalize_tjpa(pd.read_csv(tjpa), reference_date))
