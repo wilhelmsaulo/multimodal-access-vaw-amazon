@@ -1,0 +1,29 @@
+schema_version: 1
+state: PA
+status: pending_schema_audit
+reference: Censo Demografico 2022
+
+source:
+  provider: IBGE
+  product: Cadastro Nacional de Enderecos para Fins Estatisticos - CNEFE
+  coordinate_url: https://ftp.ibge.gov.br/Cadastro_Nacional_de_Enderecos_para_Fins_Estatisticos/Censo_Demografico_2022/Coordenadas_enderecos/UF/15_PA.zip
+
+rules:
+  preserve_one_demand_total_per_sector: true
+  publish_raw_address_coordinates: false
+  allow_unvalidated_rural_centroid: false
+  representative_point_method: residential_address_medoid
+  residential_species_values: []
+  accepted_nv_geo_coord_values: []
+
+finalization_gate:
+  required_before_use:
+    - identify_real_species_field_and_values_from_official_file
+    - identify_nv_geo_coord_field_and_quality_levels
+    - define_residential_species_filter
+    - define_accepted_coordinate_quality_levels
+    - audit_sectors_without_eligible_residential_coordinates
+    - compare_representative_points_with_ibge_localities
+  note: >-
+    Empty species and geocoding-level lists are intentional. They must be filled from the
+    privacy-preserving CNEFE audit artifact and must never be guessed from undocumented codes.
