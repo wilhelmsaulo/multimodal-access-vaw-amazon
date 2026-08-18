@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from src.data.service_consolidation import (
+    apply_cnes_bed_capacity,
     consolidate_service_frames,
     infer_creas_units,
     normalize_cnes_candidates,
@@ -44,6 +45,27 @@ def test_normalize_and_consolidate_sources():
     assert set(inventory["service_type"]) == {"health", "specialized_justice", "creas"}
     assert audit.duplicate_service_ids == 0
     assert audit.rows_total == 3
+
+
+def test_exact_cnes_match_attaches_registered_beds():
+    cnes = pd.DataFrame(
+        {"codigo_cnes": [12345, 67890], "nome_fantasia": ["Hospital A", "Hospital B"]}
+    )
+    inventory = normalize_cnes_candidates(cnes, "2026-08-18")
+    beds = pd.DataFrame(
+        {
+            "codigo_cnes": ["12345"],
+            "capacity": [42.0],
+            "capacity_type": ["registered_beds"],
+            "capacity_source": ["DEMAS hospitais-e-leitos"],
+        }
+    )
+    out = apply_cnes_bed_capacity(inventory, beds)
+    matched = out.loc[out["service_id"] == "CNES-12345"].iloc[0]
+    unmatched = out.loc[out["service_id"] == "CNES-67890"].iloc[0]
+    assert matched["capacity"] == 42.0
+    assert matched["capacity_type"] == "registered_beds"
+    assert pd.isna(unmatched["capacity"])
 
 
 def test_invalid_capacity_is_rejected():
