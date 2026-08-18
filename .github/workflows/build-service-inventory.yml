@@ -7,7 +7,10 @@ on:
     paths:
       - "scripts/build_service_inventory_sources.py"
       - "scripts/build_specialized_service_sources.py"
+      - "scripts/consolidate_service_inventory.py"
       - "src/data/service_inventory.py"
+      - "src/data/service_consolidation.py"
+      - "tests/test_service_consolidation.py"
       - ".github/workflows/build-service-inventory.yml"
       - "pyproject.toml"
   push:
@@ -16,7 +19,10 @@ on:
     paths:
       - "scripts/build_service_inventory_sources.py"
       - "scripts/build_specialized_service_sources.py"
+      - "scripts/consolidate_service_inventory.py"
       - "src/data/service_inventory.py"
+      - "src/data/service_consolidation.py"
+      - "tests/test_service_consolidation.py"
       - ".github/workflows/build-service-inventory.yml"
       - "pyproject.toml"
   workflow_dispatch:
@@ -37,15 +43,20 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e . "openpyxl>=3.1,<4" "xlrd>=2,<3"
+          python -m pip install -e . "openpyxl>=3.1,<4" "xlrd>=2,<3" "pytest>=8,<9"
+      - name: Test service consolidation
+        run: pytest tests/test_service_consolidation.py
       - name: Build CNES and CREAS extracts
         run: python scripts/build_service_inventory_sources.py --output-dir artifacts/service_inventory
       - name: Build TJPA and Ligue 180 source audit
         run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
+      - name: Consolidate service inventory
+        run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
       - name: Show build summaries
         run: |
           cat artifacts/service_inventory/build_summary.json
           cat artifacts/service_inventory/specialized_sources_summary.json
+          cat artifacts/service_inventory/services_consolidation_audit.json
       - name: Upload inventory artifact
         uses: actions/upload-artifact@v4
         with:
