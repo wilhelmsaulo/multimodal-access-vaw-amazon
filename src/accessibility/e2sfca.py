@@ -99,7 +99,7 @@ def e2sfca(
     demand = pairs.groupby(group, as_index=False)["weighted_demand"].sum()
     service_meta = services[[service_col, capacity_col, service_type_col]].drop_duplicates()
     service_ratios = demand.merge(
-        service_meta, on=[service_type_col, service_col], how="left", validate="one_to_one"
+        service_meta, on=[service_type_col, service_col], how="left", validate="many_to_one"
     )
     service_ratios["supply_demand_ratio"] = np.where(
         service_ratios["weighted_demand"] > 0,
