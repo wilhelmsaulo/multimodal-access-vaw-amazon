@@ -12,6 +12,7 @@ from urllib.parse import urljoin
 import httpx
 import pandas as pd
 
+from src.data.health_capacity import fetch_hospital_beds_pa, summarize_beds_by_cnes
 from src.data.service_inventory import fetch_cnes_establishments_pa, filter_cnes_vaw_relevant
 
 CENSO_SUAS_INDEX = "https://aplicacoes.mds.gov.br/sagi/snas/vigilancia/index2.php"
@@ -22,11 +23,6 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def discover_creas_2024_links(html: str) -> list[str]:
-    """Discover official CREAS 2024 file links from the Censo SUAS index page.
-
-    The page groups resources by year. We isolate the 2024 block (before the 2023
-    heading) and retain hrefs whose anchor/context mentions CREAS.
-    """
     upper = html.upper()
     start = upper.find("CENSO SUAS 2024")
     end = upper.find("CENSO SUAS 2023", start + 1) if start >= 0 else -1
@@ -83,7 +79,6 @@ def filter_para_rows(frame: pd.DataFrame) -> pd.DataFrame:
         mask = s.isin({"PA", "PARA", "PARÁ", "15"})
         if mask.any():
             return frame.loc[mask].copy()
-    # Some Censo SUAS sheets encode IBGE municipality codes. Pará codes start with 15.
     for col in frame.columns:
         n = _norm_text(col)
         if "IBGE" in n or n in {"CODMUNICIPIO", "CODMUNICIPIOIBGE", "CDMUNICIPIO"}:
@@ -152,14 +147,25 @@ def build_cnes(out_dir: Path) -> dict:
     raw.to_csv(out_dir / "cnes_pa_active_raw.csv", index=False)
     candidates = filter_cnes_vaw_relevant(raw)
     candidates.to_csv(out_dir / "cnes_pa_vaw_health_candidates.csv", index=False)
+
+    beds_raw = fetch_hospital_beds_pa(page_size=1000)
+    beds_raw.to_csv(out_dir / "hospital_beds_pa_raw.csv", index=False)
+    beds_summary = summarize_beds_by_cnes(beds_raw)
+    beds_summary.to_csv(out_dir / "hospital_beds_pa_by_cnes.csv", index=False)
+
     manifest = {
-        "source": "DEMAS CNES API",
-        "endpoint": "https://apidadosabertos.saude.gov.br/cnes/estabelecimentos",
+        "source": "DEMAS CNES API + hospitais-e-leitos",
+        "establishments_endpoint": "https://apidadosabertos.saude.gov.br/cnes/estabelecimentos",
+        "beds_endpoint": "https://apidadosabertos.saude.gov.br/assistencia-a-saude/hospitais-e-leitos",
         "uf_code": 15,
         "status": 1,
         "rows_active_para": int(len(raw)),
         "rows_vaw_health_candidates": int(len(candidates)),
+        "rows_hospital_beds_raw": int(len(beds_raw)),
+        "rows_hospital_beds_cnes_summary": int(len(beds_summary)),
         "raw_columns": [str(c) for c in raw.columns],
+        "beds_raw_columns": [str(c) for c in beds_raw.columns],
+        "capacity_rule": "registered beds only when CNES key and bed-count field are explicit",
     }
     (out_dir / "cnes_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
