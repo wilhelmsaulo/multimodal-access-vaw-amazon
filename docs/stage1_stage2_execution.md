@@ -29,6 +29,15 @@ Columns:
 - `origin_id`: census-sector or other defensible population-origin identifier;
 - `female_population`: female resident population.
 
+The final origin point must represent inhabited space. Rural polygon centroids are not accepted as final origins without independent validation.
+
+Two official IBGE 2022 evidence layers are now integrated into the origin workflow:
+
+1. **Localidades do Brasil**, which provides named permanent inhabited localities and official coordinates. Pará has 4,837 localities. Every locality is spatially assigned to a census sector and the workflow audits sectors with zero, one or multiple localities.
+2. **CNEFE 2022 georeferenced addresses**, used to investigate a single residentially anchored representative point per sector. A privacy-preserving workflow audits the Pará file schema, species fields and `NV_GEO_COORD` quality levels without publishing raw address-level coordinates.
+
+The preferred final rule is to retain one female-population demand total per census sector and derive one representative inhabited origin from residential evidence, rather than duplicating a sector population across multiple locality points.
+
 ### Services
 
 Columns:
@@ -36,6 +45,8 @@ Columns:
 - `service_id`: validated service identifier;
 - `service_type`: functional category; different service types are not assumed to be substitutes;
 - `capacity`: observed capacity or a documented proxy. A unit-presence proxy must be explicitly labelled as such.
+
+The service reconstruction pipeline covers CNES/DEMAS, hospital beds, Censo SUAS/CREAS, TJPA specialized units and the official Ligue 180 network publication. Missing capacity or coordinates are preserved as blockers, not silently imputed.
 
 ### Multimodal travel matrix
 
@@ -46,7 +57,9 @@ Columns:
 - `scenario` (at minimum `flood_season` and `dry_season` when seasonal comparison is claimed);
 - `travel_time_min`.
 
-Travel time must come from the validated multimodal routing workflow. It must not be back-filled with arbitrary river speeds.
+Travel time must come from the validated multimodal routing workflow. It must not be back-filled with arbitrary river speeds or straight-line distance.
+
+The origin-destination contract in `src/network/od_matrix.py` materializes candidate pairs only after origin and destination readiness checks. It deliberately leaves `travel_time_min` empty until the validated network solver produces the value.
 
 ## E2SFCA outputs
 
@@ -58,4 +71,4 @@ Global Moran and Local Moran/LISA require a spatial-neighbor edge list with `sou
 
 ## Current execution status
 
-As of the Stage 1/Stage 2 branch creation, the public repository contains the analysis code, documentation, census-sector workflow, and source inventories, but it does not contain the validated post-routing travel-time matrix, validated service-capacity table, or final Stage 1 indicator matrix. Therefore numerical Stage 1 and E2SFCA results must not be reported until those generated analytical inputs are recovered or rebuilt and added as redistributable derived products.
+The public repository now contains the complete analysis code, service-source reconstruction pipeline, census-sector workflow, official-locality origin audit, CNEFE schema/quality audit workflow, OD input contract and scientific safeguards. Numerical Stage 1 and E2SFCA results remain conditional on materializing the validated service artifact, final sector representative origins and the post-routing multimodal travel-time matrix. No numerical result is reported before those real inputs exist.
