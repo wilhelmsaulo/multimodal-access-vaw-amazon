@@ -8,9 +8,11 @@ on:
       - "src/analysis/**"
       - "src/accessibility/**"
       - "src/network/od_matrix.py"
+      - "src/data/cnefe_origins.py"
       - "tests/test_structural_audit.py"
       - "tests/test_e2sfca.py"
       - "tests/test_od_matrix.py"
+      - "tests/test_cnefe_origins.py"
       - "pyproject.toml"
       - ".github/workflows/stage1-stage2-tests.yml"
   push:
@@ -20,9 +22,11 @@ on:
       - "src/analysis/**"
       - "src/accessibility/**"
       - "src/network/od_matrix.py"
+      - "src/data/cnefe_origins.py"
       - "tests/test_structural_audit.py"
       - "tests/test_e2sfca.py"
       - "tests/test_od_matrix.py"
+      - "tests/test_cnefe_origins.py"
       - "pyproject.toml"
       - ".github/workflows/stage1-stage2-tests.yml"
 
@@ -40,4 +44,4 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e . "pytest>=8,<9"
-      - run: pytest tests/test_structural_audit.py tests/test_e2sfca.py tests/test_od_matrix.py
+      - run: pytest tests/test_structural_audit.py tests/test_e2sfca.py tests/test_od_matrix.py tests/test_cnefe_origins.py
