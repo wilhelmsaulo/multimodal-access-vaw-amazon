@@ -110,10 +110,11 @@ jobs:
           counts = pd.read_csv(root / "pa_sector_locality_counts_2022.csv", dtype={"CD_SETOR": str})
           localities = gpd.read_file(gpkg, layer="pa_localities_by_sector")
 
-          assert audit["localities_para"] == 4_837
+          assert audit["localities_para"] == 4_838
           assert audit["sectors_total"] == 16_714
-          assert len(localities) == 4_837
-          assert localities["CD_LOCALIDADE"].nunique() == 4_837
+          assert len(localities) == 4_838
+          assert "LOCALITY_RECORD_ID" in localities.columns
+          assert localities["LOCALITY_RECORD_ID"].nunique() == 4_838
           assert localities["CD_SETOR"].notna().all()
           assert len(counts) == 16_714
           assert (
