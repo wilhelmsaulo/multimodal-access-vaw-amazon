@@ -1,6 +1,6 @@
 schema_version: 1
 state: PA
-status: pending_schema_audit
+status: primary_rules_defined
 reference: Censo Demografico 2022
 
 source:
@@ -12,18 +12,33 @@ rules:
   preserve_one_demand_total_per_sector: true
   publish_raw_address_coordinates: false
   allow_unvalidated_rural_centroid: false
-  representative_point_method: residential_address_medoid
-  residential_species_values: []
-  accepted_nv_geo_coord_values: []
+  representative_point_method: residential_address_median_anchored_observed_point
+  residential_species_values: [1]
+  accepted_nv_geo_coord_values: [1, 2]
+  fallback_nv_geo_coord_values: [3]
+  rejected_nv_geo_coord_values: [4, 5, 6]
+  sector_assignment_method: spatial_join_coordinates_to_2022_sector_polygons
+
+rationale:
+  cod_especie_1: domicilio_particular
+  nv_geo_coord_1: endereco_coordenada_original_censo_2022
+  nv_geo_coord_2: endereco_coordenada_modificada_mesmo_numero_logradouro
+  nv_geo_coord_3: endereco_coordenada_estimada_use_only_as_fallback_or_sensitivity
+  nv_geo_coord_4_6: not_primary_address_coordinates_face_locality_or_sector
 
 finalization_gate:
-  required_before_use:
+  completed:
     - identify_real_species_field_and_values_from_official_file
     - identify_nv_geo_coord_field_and_quality_levels
     - define_residential_species_filter
     - define_accepted_coordinate_quality_levels
+  remaining:
+    - spatially_assign_eligible_addresses_to_census_sectors
     - audit_sectors_without_eligible_residential_coordinates
     - compare_representative_points_with_ibge_localities
+    - document_level_3_fallback_coverage
   note: >-
-    Empty species and geocoding-level lists are intentional. They must be filled from the
-    privacy-preserving CNEFE audit artifact and must never be guessed from undocumented codes.
+    Primary origins use only private-dwelling addresses with NV_GEO_COORD 1 or 2.
+    Level 3 is reserved for explicit fallback/sensitivity analysis. Levels 4-6 are
+    not accepted for the primary origin because they represent face, locality, or
+    census-sector level geocoding rather than a primary address coordinate.
