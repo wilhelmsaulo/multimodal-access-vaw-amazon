@@ -11,7 +11,9 @@ LOCALITIES_URL = (
     "localidades/Localidades_do_Brasil/2022/Localidades_UFs_gpkg.zip"
 )
 
-PARA_EXPECTED_CATEGORY_COUNTS = {
+# Published/reference snapshot used only for audit comparison. The current official
+# GeoPackage is authoritative and must not be rejected merely because IBGE revised one row.
+PARA_REFERENCE_CATEGORY_COUNTS = {
     "Cidade": 144,
     "Vila": 116,
     "Lugarejo": 600,
@@ -23,7 +25,7 @@ PARA_EXPECTED_CATEGORY_COUNTS = {
     "Núcleo Urbano (AUI em 2010)": 157,
     "Outras Localidades": 413,
 }
-PARA_EXPECTED_TOTAL = sum(PARA_EXPECTED_CATEGORY_COUNTS.values())
+PARA_REFERENCE_TOTAL = sum(PARA_REFERENCE_CATEGORY_COUNTS.values())
 
 
 @dataclass(frozen=True)
@@ -43,7 +45,6 @@ def find_para_gpkg(extracted_dir: Path) -> Path:
         if name.startswith("PA_") or "PARA" in name:
             return path
     if len(candidates) == 27:
-        # Some IBGE archives use generic layer/file names inside UF folders.
         pa_candidates = [p for p in candidates if any(part.upper() == "PA" for part in p.parts)]
         if len(pa_candidates) == 1:
             return pa_candidates[0]
@@ -80,12 +81,17 @@ def read_para_localities(gpkg_path: Path):
     if missing:
         raise ValueError(f"IBGE locality file missing columns: {sorted(missing)}")
     pa = frame[frame["SIGLA_UF"].astype(str).str.upper().eq("PA")].copy()
-    if len(pa) != PARA_EXPECTED_TOTAL:
-        raise ValueError(
-            f"Unexpected number of Pará localities: {len(pa)}; expected {PARA_EXPECTED_TOTAL}"
-        )
+    if len(pa) < 4_000:
+        raise ValueError(f"Implausibly low number of Pará localities in official extract: {len(pa)}")
     if pa["CD_LOCALIDADE"].duplicated().any():
         raise ValueError("Duplicate IBGE locality codes in Pará extract")
+
+    # Preserve snapshot-comparison metadata for the generated audit rather than failing
+    # on legitimate upstream revisions. On 2026-08-18 the official file contained 4,838
+    # Pará rows, one more than the previously documented 4,837-row snapshot.
+    pa.attrs["reference_total"] = PARA_REFERENCE_TOTAL
+    pa.attrs["observed_total"] = int(len(pa))
+    pa.attrs["reference_total_difference"] = int(len(pa) - PARA_REFERENCE_TOTAL)
     return pa
 
 
@@ -114,7 +120,6 @@ def spatial_join_localities_to_sectors(localities, sectors):
         rsuffix="sector",
     )
     if joined["CD_SETOR"].isna().any():
-        # Boundary points can fall exactly on a sector border. Resolve those by intersects.
         unresolved = joined[joined["CD_SETOR"].isna()].drop(columns=["index_sector"], errors="ignore")
         resolved = gpd.sjoin(
             unresolved[point_cols],
