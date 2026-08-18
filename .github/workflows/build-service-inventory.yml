@@ -1,6 +1,14 @@
 name: build-service-inventory
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/build_service_inventory_sources.py"
+      - "src/data/service_inventory.py"
+      - ".github/workflows/build-service-inventory.yml"
+      - "pyproject.toml"
   push:
     branches:
       - agent/stage1-stage2-accessibility
