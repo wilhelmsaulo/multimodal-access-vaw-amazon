@@ -27,6 +27,59 @@ def _require_nonempty(values: Iterable[object], label: str) -> set[str]:
     return normalized
 
 
+def assign_cnefe_addresses_to_sectors(
+    addresses: pd.DataFrame,
+    sectors,
+    *,
+    latitude_col: str = "LATITUDE",
+    longitude_col: str = "LONGITUDE",
+    sector_id_col: str = "CD_SETOR",
+):
+    """Assign CNEFE coordinate records to 2022 census sectors by spatial containment.
+
+    The official coordinate-only CNEFE state file does not include a census-sector identifier.
+    This helper therefore performs an explicit point-in-polygon join to the official 2022 sector
+    geometry. Boundary points are retried with `intersects`; unresolved or multiply matched points
+    are retained only when a unique deterministic sector can be established.
+    """
+    import geopandas as gpd
+
+    required = {latitude_col, longitude_col}
+    missing = required.difference(addresses.columns)
+    if missing:
+        raise ValueError(f"CNEFE table missing coordinate columns: {sorted(missing)}")
+    if sector_id_col not in sectors.columns:
+        raise ValueError(f"Sector table missing {sector_id_col}")
+    if sectors.crs is None:
+        raise ValueError("Sector geometry must have a CRS")
+
+    x = addresses.copy()
+    x[latitude_col] = pd.to_numeric(x[latitude_col], errors="coerce")
+    x[longitude_col] = pd.to_numeric(x[longitude_col], errors="coerce")
+    x = x[
+        x[latitude_col].between(-90, 90)
+        & x[longitude_col].between(-180, 180)
+    ].copy()
+    points = gpd.GeoDataFrame(
+        x,
+        geometry=gpd.points_from_xy(x[longitude_col], x[latitude_col]),
+        crs="EPSG:4674",
+    ).to_crs(sectors.crs)
+
+    sector_geom = sectors[[sector_id_col, sectors.geometry.name]].copy()
+    joined = gpd.sjoin(points, sector_geom, how="left", predicate="within")
+
+    unresolved_mask = joined[sector_id_col].isna()
+    if unresolved_mask.any():
+        unresolved = points.loc[joined.loc[unresolved_mask].index].copy()
+        retry = gpd.sjoin(unresolved, sector_geom, how="left", predicate="intersects")
+        retry = retry.sort_values([sector_id_col], na_position="last")
+        retry = retry[~retry.index.duplicated(keep="first")]
+        joined.loc[retry.index, sector_id_col] = retry[sector_id_col]
+
+    return joined.drop(columns=["index_right"], errors="ignore")
+
+
 def build_cnefe_sector_origins(
     addresses: pd.DataFrame,
     sectors: pd.DataFrame,
@@ -92,8 +145,6 @@ def build_cnefe_sector_origins(
     for sector_id, group in x.groupby(sector_col, sort=True):
         median_lat = float(group[latitude_col].median())
         median_lon = float(group[longitude_col].median())
-        # For points inside one sector, squared degrees are sufficient only for selecting the
-        # nearest observed address to the local median; no travel metric is derived here.
         distance2 = (
             (group[latitude_col].astype(float) - median_lat) ** 2
             + (group[longitude_col].astype(float) - median_lon) ** 2
