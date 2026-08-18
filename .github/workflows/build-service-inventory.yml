@@ -8,8 +8,10 @@ on:
       - "scripts/build_service_inventory_sources.py"
       - "scripts/build_specialized_service_sources.py"
       - "scripts/consolidate_service_inventory.py"
+      - "scripts/audit_service_readiness.py"
       - "src/data/service_inventory.py"
       - "src/data/service_consolidation.py"
+      - "src/data/service_readiness.py"
       - "src/data/health_capacity.py"
       - "tests/test_service_consolidation.py"
       - ".github/workflows/build-service-inventory.yml"
@@ -21,8 +23,10 @@ on:
       - "scripts/build_service_inventory_sources.py"
       - "scripts/build_specialized_service_sources.py"
       - "scripts/consolidate_service_inventory.py"
+      - "scripts/audit_service_readiness.py"
       - "src/data/service_inventory.py"
       - "src/data/service_consolidation.py"
+      - "src/data/service_readiness.py"
       - "src/data/health_capacity.py"
       - "tests/test_service_consolidation.py"
       - ".github/workflows/build-service-inventory.yml"
@@ -54,11 +58,14 @@ jobs:
         run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
       - name: Consolidate service inventory
         run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
+      - name: Audit service readiness
+        run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
       - name: Show build summaries
         run: |
           cat artifacts/service_inventory/build_summary.json
           cat artifacts/service_inventory/specialized_sources_summary.json
           cat artifacts/service_inventory/services_consolidation_audit.json
+          cat artifacts/service_inventory/services_readiness_audit.json
       - name: Upload inventory artifact
         uses: actions/upload-artifact@v4
         with:
