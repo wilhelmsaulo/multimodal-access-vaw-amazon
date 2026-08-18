@@ -83,15 +83,26 @@ def read_para_localities(gpkg_path: Path):
     pa = frame[frame["SIGLA_UF"].astype(str).str.upper().eq("PA")].copy()
     if len(pa) < 4_000:
         raise ValueError(f"Implausibly low number of Pará localities in official extract: {len(pa)}")
-    if pa["CD_LOCALIDADE"].duplicated().any():
-        raise ValueError("Duplicate IBGE locality codes in Pará extract")
 
-    # Preserve snapshot-comparison metadata for the generated audit rather than failing
-    # on legitimate upstream revisions. On 2026-08-18 the official file contained 4,838
-    # Pará rows, one more than the previously documented 4,837-row snapshot.
+    # The current official file may contain repeated CD_LOCALIDADE values. Preserve every
+    # official record and create a stable record identifier for spatial operations rather than
+    # silently dropping one row. CD_LOCALIDADE remains unchanged as a source attribute.
+    occurrence = pa.groupby("CD_LOCALIDADE", dropna=False).cumcount().astype(int)
+    pa["LOCALITY_RECORD_ID"] = (
+        pa["CD_LOCALIDADE"].astype("string").fillna("MISSING")
+        + "#"
+        + occurrence.astype("string")
+    )
+    if pa["LOCALITY_RECORD_ID"].duplicated().any():
+        raise ValueError("Could not construct unique locality record identifiers")
+
     pa.attrs["reference_total"] = PARA_REFERENCE_TOTAL
     pa.attrs["observed_total"] = int(len(pa))
     pa.attrs["reference_total_difference"] = int(len(pa) - PARA_REFERENCE_TOTAL)
+    pa.attrs["duplicate_locality_code_rows"] = int(pa["CD_LOCALIDADE"].duplicated(keep=False).sum())
+    pa.attrs["duplicate_locality_code_values"] = int(
+        pa.loc[pa["CD_LOCALIDADE"].duplicated(keep=False), "CD_LOCALIDADE"].nunique(dropna=True)
+    )
     return pa
 
 
@@ -102,6 +113,7 @@ def spatial_join_localities_to_sectors(localities, sectors):
         raise ValueError("Both localities and sectors must have CRS")
     localities = localities.to_crs(sectors.crs)
     point_cols = [
+        "LOCALITY_RECORD_ID",
         "CD_LOCALIDADE",
         "NM_LOCALIDADE",
         "CT_LOCALIDADE",
@@ -129,13 +141,15 @@ def spatial_join_localities_to_sectors(localities, sectors):
             lsuffix="locality",
             rsuffix="sector",
         )
-        resolved = resolved.sort_values(["CD_LOCALIDADE", "CD_SETOR"]).drop_duplicates(
-            "CD_LOCALIDADE", keep="first"
+        resolved = resolved.sort_values(["LOCALITY_RECORD_ID", "CD_SETOR"]).drop_duplicates(
+            "LOCALITY_RECORD_ID", keep="first"
         )
         joined = joined[joined["CD_SETOR"].notna()].copy()
         joined = pd.concat([joined, resolved], ignore_index=True)
     if joined["CD_SETOR"].isna().any():
         raise ValueError("Some IBGE localities could not be assigned to a census sector")
+    if joined["LOCALITY_RECORD_ID"].duplicated().any():
+        raise ValueError("A locality record was assigned to more than one sector")
     return gpd.GeoDataFrame(joined, geometry=localities.geometry.name, crs=sectors.crs)
 
 
