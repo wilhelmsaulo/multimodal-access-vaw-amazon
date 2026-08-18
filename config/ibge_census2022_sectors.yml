@@ -1,0 +1,51 @@
+schema_version: 1
+source: IBGE Census 2022 aggregated census sectors
+state_code: "15"
+state_abbreviation: PA
+
+files:
+  geometry:
+    filename: PA_setores_CD2022.gpkg
+    url: https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/malha_com_atributos/setores/gpkg/UF/PA/PA_setores_CD2022.gpkg
+    sha256: de6fd053e6705285895e7f8f4583fcdc4a8d97a355495e86fa9474175c39568e
+    reference_date: "2024-11-13"
+  demography:
+    filename: Agregados_por_setores_demografia_BR.zip
+    member: Agregados_por_setores_demografia_BR.csv
+    url: https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/Agregados_por_Setor_csv/Agregados_por_setores_demografia_BR.zip
+    sha256: f8486233ce2f6559de76299390577c58d05f35cad07c46098e6e565949c8b269
+    reference_date: "2024-11-12"
+  dictionary:
+    filename: dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx
+    url: https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/dicionario_de_dados_agregados_por_setores_censitarios_20260520.xlsx
+    sha256: 0b8aedece57f6125d785b6aa2234cfd587e92dfb6ce5ca6ace8c67f140831344
+    reference_date: "2026-05-20"
+
+keys:
+  geometry: CD_SETOR
+  demography: CD_setor
+  municipality: CD_MUN
+
+variables:
+  population_total: V01006
+  population_male: V01007
+  population_female: V01008
+  female_age_groups:
+    - V01020
+    - V01021
+    - V01022
+    - V01023
+    - V01024
+    - V01025
+    - V01026
+    - V01027
+    - V01028
+    - V01029
+    - V01030
+
+processing_rules:
+  dissolve_geometry_by_sector: true
+  female_population_source: V01008
+  do_not_infer_suppressed_female_values: true
+  fill_geometry_only_zero_population_sectors_with_zero: true
+  preserve_other_missing_values: true

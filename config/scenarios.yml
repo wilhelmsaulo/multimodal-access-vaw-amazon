@@ -1,0 +1,55 @@
+schema_version: 1
+status: draft
+
+travel_time_components:
+  - access
+  - waiting
+  - in_vehicle
+  - transfer
+  - egress
+
+modes:
+  walking:
+    enabled: true
+  road:
+    enabled: true
+  river:
+    enabled: true
+  air:
+    enabled: false
+    note: Enable only in an explicitly justified emergency or regional-access scenario.
+
+scenarios:
+  theoretical_minimum:
+    status: planned
+    includes_waiting: false
+    includes_transfers: true
+  local_access:
+    status: planned
+    includes_waiting: false
+    includes_transfers: true
+  motorized:
+    status: planned
+    includes_waiting: false
+    includes_transfers: true
+  operational:
+    status: planned
+    includes_waiting: true
+    includes_transfers: true
+  emergency:
+    status: planned
+    includes_waiting: scenario_specific
+    includes_transfers: true
+  flood_season:
+    status: planned
+    includes_waiting: true
+    includes_transfers: true
+  dry_season:
+    status: planned
+    includes_waiting: true
+    includes_transfers: true
+
+thresholds_minutes:
+  status: provisional
+  values: [30, 60, 120, 180, 240]
+  note: Must be justified using literature, empirical distributions, and Amazonian context.

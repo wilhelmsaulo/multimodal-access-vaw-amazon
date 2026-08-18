@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Raw, restricted, and generated data
+data/raw/**
+data/external/**
+data/interim/**
+data/processed/**
+!data/raw/README.md
+!data/external/README.md
+!data/interim/README.md
+!data/processed/README.md
+
+# Generated outputs
+results/figures/**
+results/tables/**
+!results/figures/.gitkeep
+!results/tables/.gitkeep
+
+# Geospatial temporary and database files
+*.gpkg-wal
+*.gpkg-shm
+*.qmd
+*.qpj
+*.aux.xml
+
+# Logs and caches
+logs/
+cache/
+*.log
