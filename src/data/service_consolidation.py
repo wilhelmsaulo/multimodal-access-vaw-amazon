@@ -1,0 +1,247 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+import re
+from typing import Iterable
+
+import numpy as np
+import pandas as pd
+
+
+STANDARD_COLUMNS = [
+    "service_id",
+    "service_name",
+    "service_type",
+    "provider_source",
+    "municipality_code",
+    "municipality_name",
+    "address_public",
+    "latitude",
+    "longitude",
+    "capacity",
+    "capacity_type",
+    "capacity_source",
+    "reference_date",
+    "validation_status",
+    "redistribution_status",
+]
+
+
+@dataclass(frozen=True)
+class ConsolidationAudit:
+    rows_total: int
+    rows_by_source: pd.Series
+    rows_by_type: pd.Series
+    missing_coordinates: int
+    missing_capacity: int
+    duplicate_service_ids: int
+
+
+def _first_existing(frame: pd.DataFrame, candidates: Iterable[str]) -> pd.Series:
+    for col in candidates:
+        if col in frame.columns:
+            return frame[col]
+    return pd.Series(pd.NA, index=frame.index, dtype="object")
+
+
+def _clean_text(series: pd.Series) -> pd.Series:
+    return (
+        series.astype("string")
+        .str.replace(r"\s+", " ", regex=True)
+        .str.strip()
+        .replace({"": pd.NA, "NAN": pd.NA, "<NA>": pd.NA})
+    )
+
+
+def _slug(value: object) -> str:
+    text = str(value or "").upper()
+    text = re.sub(r"[^A-Z0-9]+", "-", text).strip("-")
+    return text or "UNKNOWN"
+
+
+def normalize_cnes_candidates(frame: pd.DataFrame, reference_date: str) -> pd.DataFrame:
+    if frame.empty:
+        return pd.DataFrame(columns=STANDARD_COLUMNS)
+    out = pd.DataFrame(index=frame.index)
+    cnes = _first_existing(frame, ["codigo_cnes", "cnes", "CO_CNES", "codigo_estabelecimento"])
+    name = _first_existing(frame, ["nome_fantasia", "nome_empresarial", "NO_FANTASIA", "nome"])
+    muni_code = _first_existing(frame, ["codigo_municipio", "codigo_municipio_ibge", "CO_MUNICIPIO_GESTOR"])
+    muni_name = _first_existing(frame, ["nome_municipio", "municipio", "NO_MUNICIPIO"])
+    address = _first_existing(frame, ["logradouro", "endereco", "NO_LOGRADOURO"])
+    number = _first_existing(frame, ["numero_endereco", "numero", "NU_ENDERECO"])
+    lat = _first_existing(frame, ["latitude", "nu_latitude", "LATITUDE"])
+    lon = _first_existing(frame, ["longitude", "nu_longitude", "LONGITUDE"])
+
+    out["service_id"] = [f"CNES-{_slug(v)}" for v in cnes]
+    out["service_name"] = _clean_text(name)
+    out["service_type"] = "health"
+    out["provider_source"] = "CNES"
+    out["municipality_code"] = _clean_text(muni_code)
+    out["municipality_name"] = _clean_text(muni_name)
+    out["address_public"] = _clean_text(address.astype("string") + ", " + number.astype("string"))
+    out["latitude"] = pd.to_numeric(lat, errors="coerce")
+    out["longitude"] = pd.to_numeric(lon, errors="coerce")
+    out["capacity"] = np.nan
+    out["capacity_type"] = pd.NA
+    out["capacity_source"] = pd.NA
+    out["reference_date"] = reference_date
+    out["validation_status"] = "candidate_requires_function_validation"
+    out["redistribution_status"] = "review_required"
+    return out[STANDARD_COLUMNS]
+
+
+def normalize_tjpa(frame: pd.DataFrame, reference_date: str) -> pd.DataFrame:
+    if frame.empty:
+        return pd.DataFrame(columns=STANDARD_COLUMNS)
+    out = pd.DataFrame(index=frame.index)
+    name = _clean_text(_first_existing(frame, ["service_name", "name"]))
+    city = _clean_text(_first_existing(frame, ["municipality_name", "city"]))
+    out["service_id"] = [f"TJPA-{_slug(n)}-{_slug(c)}" for n, c in zip(name, city)]
+    out["service_name"] = name
+    out["service_type"] = "specialized_justice"
+    out["provider_source"] = "TJPA"
+    out["municipality_code"] = pd.NA
+    out["municipality_name"] = city
+    out["address_public"] = pd.NA
+    out["latitude"] = np.nan
+    out["longitude"] = np.nan
+    out["capacity"] = np.nan
+    out["capacity_type"] = pd.NA
+    out["capacity_source"] = pd.NA
+    out["reference_date"] = reference_date
+    out["validation_status"] = _first_existing(frame, ["validation_status"]).fillna(
+        "official_directory_candidate"
+    )
+    out["redistribution_status"] = "review_required"
+    return out[STANDARD_COLUMNS]
+
+
+def normalize_manual_standard(frame: pd.DataFrame) -> pd.DataFrame:
+    out = frame.copy()
+    for col in STANDARD_COLUMNS:
+        if col not in out.columns:
+            out[col] = pd.NA
+    return out[STANDARD_COLUMNS]
+
+
+def infer_creas_units(frame: pd.DataFrame, reference_date: str) -> pd.DataFrame:
+    """Conservatively extract CREAS unit-level rows from heterogeneous Censo SUAS sheets.
+
+    Only rows with a recognizable unit identifier/name are emitted. Staffing/attendance fields
+    are not aggregated here; capacity remains missing until a documented unit-level mapping is
+    explicitly implemented and validated.
+    """
+    if frame.empty:
+        return pd.DataFrame(columns=STANDARD_COLUMNS)
+    name = _first_existing(
+        frame,
+        [
+            "Nome da Unidade",
+            "Nome Unidade",
+            "nome_unidade",
+            "NO_UNIDADE",
+            "Identificação da Unidade",
+        ],
+    )
+    code = _first_existing(
+        frame,
+        ["ID CREAS", "id_creas", "codigo_unidade", "Código da Unidade", "NU_IDENTIFICADOR"],
+    )
+    city = _first_existing(
+        frame,
+        ["Município", "municipio", "Nome do Município", "NO_MUNICIPIO"],
+    )
+    city_code = _first_existing(
+        frame,
+        ["IBGE", "Código IBGE", "codigo_ibge", "Código do Município", "CODMUNICIPIO"],
+    )
+    address = _first_existing(frame, ["Endereço", "endereco", "Logradouro", "NO_LOGRADOURO"])
+
+    recognized = name.notna() | code.notna()
+    if not recognized.any():
+        return pd.DataFrame(columns=STANDARD_COLUMNS)
+    name = _clean_text(name[recognized])
+    code = code[recognized]
+    city = _clean_text(city[recognized])
+    city_code = _clean_text(city_code[recognized])
+    address = _clean_text(address[recognized])
+
+    out = pd.DataFrame(index=name.index)
+    out["service_id"] = [
+        f"CREAS-{_slug(c if pd.notna(c) else n)}" for c, n in zip(code, name)
+    ]
+    out["service_name"] = name.fillna("CREAS")
+    out["service_type"] = "creas"
+    out["provider_source"] = "Censo SUAS"
+    out["municipality_code"] = city_code
+    out["municipality_name"] = city
+    out["address_public"] = address
+    out["latitude"] = np.nan
+    out["longitude"] = np.nan
+    out["capacity"] = np.nan
+    out["capacity_type"] = pd.NA
+    out["capacity_source"] = pd.NA
+    out["reference_date"] = reference_date
+    out["validation_status"] = "official_extract_needs_unit_validation"
+    out["redistribution_status"] = "review_required"
+    return out[STANDARD_COLUMNS]
+
+
+def validate_consolidated_inventory(frame: pd.DataFrame) -> None:
+    missing = set(STANDARD_COLUMNS).difference(frame.columns)
+    if missing:
+        raise ValueError(f"Consolidated inventory missing columns: {sorted(missing)}")
+    if frame["service_id"].isna().any():
+        raise ValueError("service_id cannot be missing")
+    if frame["service_id"].duplicated().any():
+        dup = frame.loc[frame["service_id"].duplicated(keep=False), "service_id"].tolist()
+        raise ValueError(f"Duplicate service_id values: {dup[:10]}")
+    cap = pd.to_numeric(frame["capacity"], errors="coerce")
+    if (cap.dropna() < 0).any():
+        raise ValueError("capacity cannot be negative")
+    lat = pd.to_numeric(frame["latitude"], errors="coerce")
+    lon = pd.to_numeric(frame["longitude"], errors="coerce")
+    if ((lat.dropna() < -90) | (lat.dropna() > 90)).any():
+        raise ValueError("Invalid latitude")
+    if ((lon.dropna() < -180) | (lon.dropna() > 180)).any():
+        raise ValueError("Invalid longitude")
+
+
+def consolidate_service_frames(frames: Iterable[pd.DataFrame]) -> tuple[pd.DataFrame, ConsolidationAudit]:
+    valid = [normalize_manual_standard(f) for f in frames if f is not None and len(f)]
+    inventory = (
+        pd.concat(valid, ignore_index=True, sort=False)
+        if valid
+        else pd.DataFrame(columns=STANDARD_COLUMNS)
+    )
+    inventory["service_name"] = _clean_text(inventory["service_name"])
+    inventory["municipality_name"] = _clean_text(inventory["municipality_name"])
+    inventory = inventory.drop_duplicates(subset=["service_id"], keep="first").reset_index(drop=True)
+    validate_consolidated_inventory(inventory)
+    audit = ConsolidationAudit(
+        rows_total=int(len(inventory)),
+        rows_by_source=inventory["provider_source"].value_counts(dropna=False),
+        rows_by_type=inventory["service_type"].value_counts(dropna=False),
+        missing_coordinates=int(inventory[["latitude", "longitude"]].isna().any(axis=1).sum()),
+        missing_capacity=int(pd.to_numeric(inventory["capacity"], errors="coerce").isna().sum()),
+        duplicate_service_ids=int(inventory["service_id"].duplicated().sum()),
+    )
+    return inventory, audit
+
+
+def load_and_consolidate_artifact(artifact_dir: Path, reference_date: str) -> tuple[pd.DataFrame, ConsolidationAudit]:
+    frames: list[pd.DataFrame] = []
+    cnes = artifact_dir / "cnes_pa_vaw_health_candidates.csv"
+    if cnes.exists():
+        frames.append(normalize_cnes_candidates(pd.read_csv(cnes), reference_date))
+    tjpa = artifact_dir / "tjpa_specialized_vaw_units.csv"
+    if tjpa.exists():
+        frames.append(normalize_tjpa(pd.read_csv(tjpa), reference_date))
+    creas = artifact_dir / "creas_2024_para_extracted.csv"
+    if creas.exists():
+        frames.append(infer_creas_units(pd.read_csv(creas, low_memory=False), "Censo SUAS 2024"))
+    manual = artifact_dir / "ligue180_services_curated.csv"
+    if manual.exists():
+        frames.append(normalize_manual_standard(pd.read_csv(manual)))
+    return consolidate_service_frames(frames)
