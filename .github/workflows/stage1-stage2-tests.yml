@@ -1,0 +1,39 @@
+name: stage1-stage2-tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "src/analysis/**"
+      - "src/accessibility/**"
+      - "tests/test_structural_audit.py"
+      - "tests/test_e2sfca.py"
+      - "pyproject.toml"
+      - ".github/workflows/stage1-stage2-tests.yml"
+  push:
+    branches:
+      - agent/stage1-stage2-accessibility
+    paths:
+      - "src/analysis/**"
+      - "src/accessibility/**"
+      - "tests/test_structural_audit.py"
+      - "tests/test_e2sfca.py"
+      - "pyproject.toml"
+      - ".github/workflows/stage1-stage2-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -e . "pytest>=8,<9"
+      - run: pytest tests/test_structural_audit.py tests/test_e2sfca.py
