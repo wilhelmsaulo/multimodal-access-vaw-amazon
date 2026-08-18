@@ -1,0 +1,144 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Iterable
+
+import numpy as np
+import pandas as pd
+
+
+ORIGIN_COLUMNS = [
+    "origin_id",
+    "municipality_code",
+    "municipality_name",
+    "female_population",
+    "latitude",
+    "longitude",
+    "origin_method",
+    "origin_validation_status",
+]
+
+DESTINATION_COLUMNS = [
+    "service_id",
+    "service_type",
+    "municipality_code",
+    "municipality_name",
+    "latitude",
+    "longitude",
+    "capacity",
+    "capacity_type",
+    "validation_status",
+]
+
+
+@dataclass(frozen=True)
+class ODAudit:
+    origins_total: int
+    origins_ready: int
+    destinations_total: int
+    destinations_ready_routing: int
+    destinations_ready_e2sfca: int
+    candidate_pairs_routing: int
+    candidate_pairs_e2sfca: int
+
+
+def validate_origin_points(origins: pd.DataFrame) -> None:
+    missing = set(ORIGIN_COLUMNS).difference(origins.columns)
+    if missing:
+        raise ValueError(f"Origin table missing columns: {sorted(missing)}")
+    if origins["origin_id"].isna().any() or origins["origin_id"].duplicated().any():
+        raise ValueError("origin_id must be non-missing and unique")
+    lat = pd.to_numeric(origins["latitude"], errors="coerce")
+    lon = pd.to_numeric(origins["longitude"], errors="coerce")
+    bad_lat = lat.notna() & ((lat < -90) | (lat > 90))
+    bad_lon = lon.notna() & ((lon < -180) | (lon > 180))
+    if bad_lat.any() or bad_lon.any():
+        raise ValueError("Invalid origin coordinates")
+    pop = pd.to_numeric(origins["female_population"], errors="coerce")
+    if (pop.dropna() < 0).any():
+        raise ValueError("female_population cannot be negative")
+
+    # Explicitly reject unvalidated rural centroids as final analytical origins.
+    method = origins["origin_method"].astype("string").str.lower().fillna("")
+    status = origins["origin_validation_status"].astype("string").str.lower().fillna("")
+    rural_centroid = method.str.contains("centroid") & method.str.contains("rural")
+    if (rural_centroid & ~status.eq("validated_inhabited_location")).any():
+        raise ValueError(
+            "Unvalidated rural centroids cannot be used as final accessibility origins."
+        )
+
+
+def ready_origins(origins: pd.DataFrame) -> pd.DataFrame:
+    validate_origin_points(origins)
+    lat = pd.to_numeric(origins["latitude"], errors="coerce")
+    lon = pd.to_numeric(origins["longitude"], errors="coerce")
+    status = origins["origin_validation_status"].astype("string")
+    mask = lat.notna() & lon.notna() & status.isin(
+        ["validated", "validated_inhabited_location", "official_locality", "urban_representative_point"]
+    )
+    return origins.loc[mask, ORIGIN_COLUMNS].copy()
+
+
+def ready_destinations(services: pd.DataFrame, *, require_capacity: bool) -> pd.DataFrame:
+    missing = set(DESTINATION_COLUMNS).difference(services.columns)
+    if missing:
+        raise ValueError(f"Service table missing columns: {sorted(missing)}")
+    lat = pd.to_numeric(services["latitude"], errors="coerce")
+    lon = pd.to_numeric(services["longitude"], errors="coerce")
+    status = services["validation_status"].astype("string")
+    validated = status.isin(
+        [
+            "validated",
+            "official_geocoded_validated",
+            "official_directory_validated",
+            "function_validated",
+        ]
+    )
+    mask = lat.notna() & lon.notna() & validated
+    if require_capacity:
+        capacity = pd.to_numeric(services["capacity"], errors="coerce")
+        mask &= capacity.notna() & (capacity >= 0)
+    return services.loc[mask, DESTINATION_COLUMNS].copy()
+
+
+def build_candidate_pairs(
+    origins: pd.DataFrame,
+    destinations: pd.DataFrame,
+    *,
+    scenarios: Iterable[str] = ("flood_season", "dry_season"),
+) -> pd.DataFrame:
+    """Create origin-service pairs to be solved by the multimodal routing engine.
+
+    This function deliberately does not estimate travel time or straight-line access. It only
+    materializes the candidate OD pairs and scenario labels. Real travel times must be produced
+    by the validated multimodal network workflow.
+    """
+    o = ready_origins(origins)
+    d = destinations.copy()
+    if o.empty or d.empty:
+        return pd.DataFrame(
+            columns=["origin_id", "service_id", "service_type", "scenario", "travel_time_min"]
+        )
+    o = o[["origin_id"]].assign(_key=1)
+    d = d[["service_id", "service_type"]].assign(_key=1)
+    pairs = o.merge(d, on="_key", how="inner").drop(columns="_key")
+    scenario_frame = pd.DataFrame({"scenario": list(scenarios)}).assign(_key=1)
+    pairs = pairs.assign(_key=1).merge(scenario_frame, on="_key", how="inner").drop(columns="_key")
+    pairs["travel_time_min"] = np.nan
+    return pairs
+
+
+def audit_od_inputs(origins: pd.DataFrame, services: pd.DataFrame) -> ODAudit:
+    o_ready = ready_origins(origins)
+    d_route = ready_destinations(services, require_capacity=False)
+    d_e2 = ready_destinations(services, require_capacity=True)
+    scenarios = 2
+    return ODAudit(
+        origins_total=int(len(origins)),
+        origins_ready=int(len(o_ready)),
+        destinations_total=int(len(services)),
+        destinations_ready_routing=int(len(d_route)),
+        destinations_ready_e2sfca=int(len(d_e2)),
+        candidate_pairs_routing=int(len(o_ready) * len(d_route) * scenarios),
+        candidate_pairs_e2sfca=int(len(o_ready) * len(d_e2) * scenarios),
+    )
