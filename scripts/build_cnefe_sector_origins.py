@@ -33,7 +33,7 @@ def _read_filtered_joined_addresses(
     sectors: gpd.GeoDataFrame,
     *,
     residential_species: set[str],
-    accepted_quality: set[str],
+    retained_quality: set[str],
     chunksize: int = 250_000,
 ) -> pd.DataFrame:
     joined_parts: list[pd.DataFrame] = []
@@ -54,7 +54,7 @@ def _read_filtered_joined_addresses(
                 species = chunk["COD_ESPECIE"].astype("string").str.strip()
                 quality = chunk["NV_GEO_COORD"].astype("string").str.strip()
                 selected = chunk[
-                    species.isin(residential_species) & quality.isin(accepted_quality)
+                    species.isin(residential_species) & quality.isin(retained_quality)
                 ].copy()
                 if selected.empty:
                     continue
@@ -78,6 +78,27 @@ def _read_filtered_joined_addresses(
     return pd.concat(joined_parts, ignore_index=True)
 
 
+def _build_for_quality(
+    joined: pd.DataFrame,
+    sectors: gpd.GeoDataFrame,
+    *,
+    residential: set[str],
+    quality: set[str],
+):
+    subset = joined[joined["NV_GEO_COORD"].astype("string").isin(quality)].copy()
+    return build_cnefe_sector_origins(
+        subset,
+        sectors,
+        sector_col="CD_SETOR",
+        species_col="COD_ESPECIE",
+        geo_quality_col="NV_GEO_COORD",
+        latitude_col="LATITUDE",
+        longitude_col="LONGITUDE",
+        residential_species_values=residential,
+        accepted_geo_quality_values=quality,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
@@ -89,6 +110,7 @@ def main() -> None:
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     residential = {str(v) for v in cfg["rules"]["residential_species_values"]}
     accepted = {str(v) for v in cfg["rules"]["accepted_nv_geo_coord_values"]}
+    fallback = {str(v) for v in cfg["rules"].get("fallback_nv_geo_coord_values", [])}
     if not residential or not accepted:
         raise ValueError("CNEFE origin rules are not finalized")
 
@@ -100,28 +122,59 @@ def main() -> None:
             archive,
             sectors,
             residential_species=residential,
-            accepted_quality=accepted,
+            retained_quality=accepted | fallback,
             chunksize=args.chunksize,
         )
 
-    origins, audit = build_cnefe_sector_origins(
-        joined,
-        sectors,
-        sector_col="CD_SETOR",
-        species_col="COD_ESPECIE",
-        geo_quality_col="NV_GEO_COORD",
-        latitude_col="LATITUDE",
-        longitude_col="LONGITUDE",
-        residential_species_values=residential,
-        accepted_geo_quality_values=accepted,
+    origins, primary_audit = _build_for_quality(
+        joined, sectors, residential=residential, quality=accepted
     )
+
+    fallback_filled = 0
+    fallback_eligible_addresses = 0
+    if fallback:
+        fallback_origins, fallback_audit = _build_for_quality(
+            joined, sectors, residential=residential, quality=fallback
+        )
+        fallback_eligible_addresses = int(fallback_audit.eligible_addresses)
+        missing_primary = origins["latitude"].isna() & fallback_origins["latitude"].notna()
+        fallback_filled = int(missing_primary.sum())
+        origins.loc[missing_primary, "latitude"] = fallback_origins.loc[missing_primary, "latitude"]
+        origins.loc[missing_primary, "longitude"] = fallback_origins.loc[missing_primary, "longitude"]
+        origins.loc[missing_primary, "eligible_residential_address_count"] = fallback_origins.loc[
+            missing_primary, "eligible_residential_address_count"
+        ]
+        origins.loc[missing_primary, "origin_method"] = "cnefe_level3_estimated_address_fallback"
+        origins.loc[missing_primary, "origin_validation_status"] = "accepted_estimated_address_fallback"
+
+    status_cols = [c for c in ["CD_SETOR", "population_data_status", "total_population"] if c in sectors.columns]
+    if "CD_SETOR" in status_cols:
+        status = sectors[status_cols].drop_duplicates("CD_SETOR").copy()
+        status["CD_SETOR"] = status["CD_SETOR"].astype("string")
+        origins = origins.merge(status, left_on="origin_id", right_on="CD_SETOR", how="left", validate="one_to_one")
+        origins = origins.drop(columns=["CD_SETOR"], errors="ignore")
+
+    origins["analysis_eligibility"] = "eligible"
+    origins.loc[origins["female_population"].isna(), "analysis_eligibility"] = "excluded_missing_female_population"
+    origins.loc[origins["latitude"].isna() & origins["female_population"].notna(), "analysis_eligibility"] = "needs_locality_fallback"
+
+    remaining_no_origin = int(origins["latitude"].isna().sum())
+    remaining_observed_female_population = float(
+        origins.loc[origins["latitude"].isna(), "female_population"].sum(skipna=True)
+    )
+
     args.output.parent.mkdir(parents=True, exist_ok=True)
     origins.to_csv(args.output, index=False)
 
     audit_dict = {
-        **audit.__dict__,
+        **primary_audit.__dict__,
         "residential_species_values": sorted(residential),
         "accepted_nv_geo_coord_values": sorted(accepted),
+        "fallback_nv_geo_coord_values": sorted(fallback),
+        "fallback_eligible_addresses": fallback_eligible_addresses,
+        "sectors_filled_by_level3_fallback": fallback_filled,
+        "sectors_remaining_without_origin_after_level3": remaining_no_origin,
+        "observed_female_population_remaining_without_origin": remaining_observed_female_population,
         "coordinate_source_rows_audited_previously": 3_911_170,
         "method": "spatial_join_then_residential_median_anchored_observed_point",
         "raw_address_coordinates_committed": False,
