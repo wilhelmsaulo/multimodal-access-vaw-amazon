@@ -8,7 +8,7 @@ Stage 2 requires one defensible population origin for each analytical census sec
 
 ### IBGE Censo Demográfico 2022 — Localidades do Brasil
 
-The 2025 release identifies named permanent inhabited localities and provides category, municipality, unique locality code, latitude and longitude. Pará contains 4,837 localities across cities, villages, settlements, rural nuclei, `Agrovilas do PA`, Indigenous localities, Quilombola localities, urban nuclei and other localities.
+The 2025 release identifies named permanent inhabited localities and provides category, municipality, unique locality code, latitude and longitude. A previously documented Pará snapshot contained 4,837 localities. On 2026-08-18, however, the official GeoPackage retrieved by the reproducible workflow contained **4,838 Pará locality records**. The current official file is treated as authoritative, and the one-row difference is retained as source-version drift rather than rejected as an error.
 
 The project spatially assigns every Pará locality to its 2022 census sector and audits sectors containing zero, one or multiple official localities. Locality points are evidence of inhabited places; they are not automatically assigned the whole sector population when multiple localities occur in one sector.
 
