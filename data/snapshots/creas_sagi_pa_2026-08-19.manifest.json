@@ -1,0 +1,33 @@
+{
+  "source": "MDS/SAGI equipment registry",
+  "source_url": "https://aplicacoes.mds.gov.br/sagi/servicos/equipamentos?q=tipo_equipamento:CREAS&wt=csv&fl=id_equipamento,ibge,uf,cidade,nome,responsavel,telefone,endereco,numero,complemento,referencia,bairro,cep,georef_location,data_atualizacao&rows=999999999",
+  "download_date": "2026-08-19",
+  "raw_file_name": "creas.csv",
+  "raw_sha256": "7df3c4953224408793feb195f41aa4e546d43d73d99f44c49c89e73f6d7133cb",
+  "raw_rows": 3038,
+  "para_rows": 138,
+  "para_unique_equipment_ids": 138,
+  "para_rows_with_georef": 136,
+  "para_rows_without_georef": 2,
+  "para_snapshot_sha256": "a13e256073ea9d62721607cb15a9ae931b5019d5b15328edbe6eaa67203aad96",
+  "snapshot_storage": "gzip-compressed UTF-8 CSV encoded as base64 text",
+  "snapshot_file": "creas_sagi_pa_2026-08-19.csv.gz.b64",
+  "retained_columns": [
+    "id_equipamento",
+    "ibge",
+    "uf",
+    "cidade",
+    "nome",
+    "endereco",
+    "numero",
+    "complemento",
+    "referencia",
+    "bairro",
+    "cep",
+    "georef_location",
+    "data_atualizacao"
+  ],
+  "excluded_from_repository": ["responsavel", "telefone"],
+  "primary_supply_rule": "One validated physical CREAS unit equals one supply opportunity within the CREAS category.",
+  "capacity_rule": "Capacity is not required for the primary accessibility analysis."
+}
