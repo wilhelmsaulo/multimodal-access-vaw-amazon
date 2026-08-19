@@ -5,18 +5,16 @@ on:
     branches:
       - main
     paths:
-      - "scripts/build_service_inventory_sources.py"
-      - "scripts/apply_cnes_vaw_service_evidence.py"
+      - "scripts/build_service_inventory_from_snapshots.py"
       - "scripts/build_specialized_service_sources.py"
       - "scripts/consolidate_service_inventory.py"
       - "scripts/audit_service_readiness.py"
-      - "src/data/service_inventory.py"
       - "src/data/cnes_service_evidence.py"
       - "src/data/service_consolidation.py"
       - "src/data/service_readiness.py"
-      - "src/data/health_capacity.py"
       - "data/snapshots/creas_sagi_pa_*"
       - "data/snapshots/cnes_pa_vaw_service_relations_202607*"
+      - "data/snapshots/cnes_pa_service165_core_attributes_2026-08-19.csv"
       - "tests/test_service_consolidation.py"
       - ".github/workflows/build-service-inventory.yml"
       - "pyproject.toml"
@@ -24,18 +22,16 @@ on:
     branches:
       - agent/stage1-stage2-accessibility
     paths:
-      - "scripts/build_service_inventory_sources.py"
-      - "scripts/apply_cnes_vaw_service_evidence.py"
+      - "scripts/build_service_inventory_from_snapshots.py"
       - "scripts/build_specialized_service_sources.py"
       - "scripts/consolidate_service_inventory.py"
       - "scripts/audit_service_readiness.py"
-      - "src/data/service_inventory.py"
       - "src/data/cnes_service_evidence.py"
       - "src/data/service_consolidation.py"
       - "src/data/service_readiness.py"
-      - "src/data/health_capacity.py"
       - "data/snapshots/creas_sagi_pa_*"
       - "data/snapshots/cnes_pa_vaw_service_relations_202607*"
+      - "data/snapshots/cnes_pa_service165_core_attributes_2026-08-19.csv"
       - "tests/test_service_consolidation.py"
       - ".github/workflows/build-service-inventory.yml"
       - "pyproject.toml"
@@ -47,7 +43,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -60,10 +56,8 @@ jobs:
           python -m pip install -e . "openpyxl>=3.1,<4" "xlrd>=2,<3" "pytest>=8,<9"
       - name: Test service consolidation
         run: pytest tests/test_service_consolidation.py
-      - name: Build CNES and CREAS extracts
-        run: python scripts/build_service_inventory_sources.py --output-dir artifacts/service_inventory
-      - name: Apply CNES VAW service evidence
-        run: python scripts/apply_cnes_vaw_service_evidence.py --artifact-dir artifacts/service_inventory
+      - name: Build CNES and CREAS from versioned snapshots
+        run: python scripts/build_service_inventory_from_snapshots.py
       - name: Build TJPA and Ligue 180 source audit
         run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
       - name: Consolidate service inventory
