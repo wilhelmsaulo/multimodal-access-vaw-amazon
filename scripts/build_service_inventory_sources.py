@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import gzip
 import hashlib
 import json
 import time
@@ -25,6 +27,9 @@ CREAS_SAGI_URL = (
     "complemento,referencia,bairro,cep,georef_location,data_atualizacao"
     "&rows=999999999"
 )
+CREAS_SNAPSHOT = Path("data/snapshots/creas_sagi_pa_2026-08-19.csv.gz.b64")
+CREAS_SNAPSHOT_MANIFEST = Path("data/snapshots/creas_sagi_pa_2026-08-19.manifest.json")
+CREAS_SNAPSHOT_SHA256 = "a13e256073ea9d62721607cb15a9ae931b5019d5b15328edbe6eaa67203aad96"
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -64,9 +69,67 @@ def _read_csv_bytes(data: bytes) -> pd.DataFrame:
     raise ValueError(f"Could not parse SAGI CREAS CSV: {last_error}")
 
 
+def _load_creas_snapshot() -> tuple[pd.DataFrame, dict]:
+    """Load the versioned Pará-only SAGI snapshot and verify its decoded CSV hash."""
+    if not CREAS_SNAPSHOT.exists() or not CREAS_SNAPSHOT_MANIFEST.exists():
+        raise FileNotFoundError("Versioned CREAS snapshot or manifest is missing")
+
+    encoded = CREAS_SNAPSHOT.read_text(encoding="utf-8").strip()
+    csv_bytes = gzip.decompress(base64.b64decode(encoded))
+    digest = sha256_bytes(csv_bytes)
+    if digest != CREAS_SNAPSHOT_SHA256:
+        raise ValueError(
+            f"CREAS snapshot SHA-256 mismatch: expected {CREAS_SNAPSHOT_SHA256}, got {digest}"
+        )
+
+    frame = _read_csv_bytes(csv_bytes)
+    manifest = json.loads(CREAS_SNAPSHOT_MANIFEST.read_text(encoding="utf-8"))
+    return frame, manifest
+
+
+def build_creas_from_snapshot(out_dir: Path) -> dict:
+    pa, source_manifest = _load_creas_snapshot()
+    required = {"id_equipamento", "ibge", "uf", "cidade", "nome", "georef_location", "data_atualizacao"}
+    missing = required.difference(pa.columns)
+    if missing:
+        raise ValueError(f"Versioned CREAS snapshot missing expected columns: {sorted(missing)}")
+    if not pa["uf"].astype(str).str.strip().str.upper().eq("PA").all():
+        raise ValueError("Versioned CREAS snapshot contains records outside Pará")
+    if pa["id_equipamento"].duplicated().any():
+        raise ValueError("Versioned CREAS snapshot contains duplicate equipment IDs")
+
+    pa.to_csv(out_dir / "creas_sagi_pa.csv", index=False)
+    georef = pa["georef_location"].astype("string").str.strip()
+    manifest = {
+        "source": "MDS/SAGI equipment registry",
+        "source_mode": "versioned_official_snapshot",
+        "endpoint": CREAS_SAGI_URL,
+        "download_date": source_manifest.get("download_date"),
+        "raw_sha256": source_manifest.get("raw_sha256"),
+        "snapshot_sha256": CREAS_SNAPSHOT_SHA256,
+        "source_status": "snapshot_available",
+        "source_error": None,
+        "rows_total_original_download": int(source_manifest.get("raw_rows", 0)),
+        "rows_para": int(len(pa)),
+        "rows_para_with_georef": int(georef.notna().sum()),
+        "rows_para_without_georef": int(georef.isna().sum()),
+        "unique_equipment_ids": int(pa["id_equipamento"].nunique()),
+        "columns": [str(c) for c in pa.columns],
+        "primary_supply_rule": "One validated CREAS physical unit equals one supply opportunity within the CREAS category.",
+        "capacity_rule": "Observed capacity is optional and is not required for the primary accessibility analysis.",
+        "privacy_minimization": "responsavel and telefone were excluded from the versioned research snapshot because they are not required for routing or accessibility analysis.",
+    }
+    (out_dir / "creas_sagi_manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    return manifest
+
+
 def download_creas_sagi_pa(out_dir: Path, client: httpx.Client) -> dict:
+    """Fallback live retrieval used only when no validated versioned snapshot is available."""
     manifest: dict[str, object] = {
         "source": "MDS/SAGI equipment registry",
+        "source_mode": "live_endpoint_fallback",
         "endpoint": CREAS_SAGI_URL,
         "query": "tipo_equipamento:CREAS",
         "source_status": "available",
@@ -186,6 +249,7 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/service_inventory"))
     parser.add_argument("--skip-cnes", action="store_true")
     parser.add_argument("--skip-creas", action="store_true")
+    parser.add_argument("--force-live-creas", action="store_true")
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -193,13 +257,16 @@ def main() -> None:
     if not args.skip_cnes:
         summary["cnes"] = build_cnes(args.output_dir)
     if not args.skip_creas:
-        timeout = httpx.Timeout(connect=30.0, read=180.0, write=30.0, pool=30.0)
-        headers = {
-            "User-Agent": "multimodal-access-vaw-amazon/1.0 (research data retrieval)",
-            "Accept": "text/csv,text/plain;q=0.9,*/*;q=0.8",
-        }
-        with httpx.Client(timeout=timeout, follow_redirects=True, headers=headers) as client:
-            summary["creas"] = download_creas_sagi_pa(args.output_dir, client)
+        if not args.force_live_creas and CREAS_SNAPSHOT.exists() and CREAS_SNAPSHOT_MANIFEST.exists():
+            summary["creas"] = build_creas_from_snapshot(args.output_dir)
+        else:
+            timeout = httpx.Timeout(connect=30.0, read=180.0, write=30.0, pool=30.0)
+            headers = {
+                "User-Agent": "multimodal-access-vaw-amazon/1.0 (research data retrieval)",
+                "Accept": "text/csv,text/plain;q=0.9,*/*;q=0.8",
+            }
+            with httpx.Client(timeout=timeout, follow_redirects=True, headers=headers) as client:
+                summary["creas"] = download_creas_sagi_pa(args.output_dir, client)
     (args.output_dir / "build_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
