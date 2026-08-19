@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterable
+import time
 
 import httpx
 import pandas as pd
@@ -19,31 +20,64 @@ def _payload_rows(payload: object) -> list[dict]:
     return []
 
 
+def _get_with_retries(
+    client: httpx.Client,
+    *,
+    params: dict[str, object],
+    retries: int,
+    backoff_seconds: float,
+) -> httpx.Response:
+    last_error: Exception | None = None
+    for attempt in range(retries + 1):
+        try:
+            response = client.get(
+                HOSPITAL_BEDS_API,
+                params=params,
+                headers={"Accept": "application/json"},
+            )
+            response.raise_for_status()
+            return response
+        except (httpx.HTTPError, httpx.TimeoutException) as exc:
+            last_error = exc
+            if attempt >= retries:
+                break
+            time.sleep(backoff_seconds * (2**attempt))
+    assert last_error is not None
+    raise last_error
+
+
 def fetch_hospital_beds_pa(
     *,
     client: httpx.Client | None = None,
-    page_size: int = 1000,
+    page_size: int = 250,
     max_pages: int | None = None,
+    retries: int = 4,
+    backoff_seconds: float = 2.0,
 ) -> pd.DataFrame:
     """Fetch official hospital/bed records for Pará from DEMAS.
 
     The official Swagger documents `uf`, `limit` (<=1000) and zero-based `offset`.
     The raw schema is preserved because field names may evolve independently of this project.
+    Transient HTTP/server failures are retried with exponential backoff. If retries are
+    exhausted, the caller receives the exception and may explicitly mark capacity unavailable.
     """
     if not 1 <= page_size <= 1000:
         raise ValueError("page_size must be between 1 and 1000")
+    if retries < 0:
+        raise ValueError("retries must be non-negative")
     own_client = client is None
     client = client or httpx.Client(timeout=120.0, follow_redirects=True)
     frames: list[pd.DataFrame] = []
     try:
         offset = 0
-        while max_pages is None or offset < max_pages:
-            response = client.get(
-                HOSPITAL_BEDS_API,
+        page_number = 0
+        while max_pages is None or page_number < max_pages:
+            response = _get_with_retries(
+                client,
                 params={"uf": "PA", "limit": page_size, "offset": offset},
-                headers={"Accept": "application/json"},
+                retries=retries,
+                backoff_seconds=backoff_seconds,
             )
-            response.raise_for_status()
             rows = _payload_rows(response.json())
             if not rows:
                 break
@@ -51,7 +85,8 @@ def fetch_hospital_beds_pa(
             frames.append(page)
             if len(page) < page_size:
                 break
-            offset += 1
+            offset += page_size
+            page_number += 1
     finally:
         if own_client:
             client.close()
