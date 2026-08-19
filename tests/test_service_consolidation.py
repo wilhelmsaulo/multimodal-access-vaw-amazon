@@ -47,6 +47,26 @@ def test_normalize_and_consolidate_sources():
     assert audit.rows_total == 3
 
 
+def test_demas_cnes_field_aliases_are_preserved():
+    cnes = pd.DataFrame(
+        {
+            "codigo_cnes": [9633758],
+            "nome_fantasia": ["Hospital Geral"],
+            "codigo_municipio": [150345],
+            "endereco_estabelecimento": ["Av. Principal"],
+            "numero_estabelecimento": ["123"],
+            "latitude_estabelecimento_decimo_grau": [-2.559786],
+            "longitude_estabelecimento_decimo_grau": [-47.498322],
+        }
+    )
+    out = normalize_cnes_candidates(cnes, "2026-08-18")
+    row = out.iloc[0]
+    assert row["latitude"] == pytest.approx(-2.559786)
+    assert row["longitude"] == pytest.approx(-47.498322)
+    assert row["address_public"] == "Av. Principal, 123"
+    assert str(row["municipality_code"]) == "150345"
+
+
 def test_exact_cnes_match_attaches_registered_beds():
     cnes = pd.DataFrame(
         {"codigo_cnes": [12345, 67890], "nome_fantasia": ["Hospital A", "Hospital B"]}
