@@ -9,6 +9,7 @@ from src.data.service_consolidation import (
     normalize_tjpa,
     validate_consolidated_inventory,
 )
+from src.data.service_readiness import audit_service_readiness
 
 
 def test_normalize_and_consolidate_sources():
@@ -89,6 +90,32 @@ def test_sagi_creas_georeference_is_preserved_without_inventing_capacity():
     assert row["longitude"] == pytest.approx(-54.721895634702385)
     assert pd.isna(row["capacity"])
     assert row["validation_status"] == "official_sagi_georeference_requires_routing_validation"
+
+
+def test_primary_readiness_uses_unit_supply_not_capacity():
+    inventory = pd.DataFrame(
+        {
+            "service_id": ["S-1"],
+            "service_name": ["Validated service"],
+            "service_type": ["creas"],
+            "provider_source": ["official"],
+            "municipality_name": ["Santarém"],
+            "address_public": ["Rua A, 1"],
+            "latitude": [-2.43],
+            "longitude": [-54.70],
+            "capacity": [pd.NA],
+            "capacity_type": [pd.NA],
+            "validation_status": ["validated"],
+        }
+    )
+    readiness, audit = audit_service_readiness(inventory)
+    row = readiness.iloc[0]
+    assert bool(row["ready_for_routing"])
+    assert bool(row["ready_for_e2sfca_primary"])
+    assert row["primary_supply_weight"] == 1.0
+    assert "capacity" not in row["readiness_blockers"]
+    assert audit.missing_capacity == 1
+    assert audit.ready_for_e2sfca_primary == 1
 
 
 def test_exact_cnes_match_attaches_registered_beds():
