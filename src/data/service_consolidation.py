@@ -167,23 +167,38 @@ def normalize_manual_standard(frame: pd.DataFrame) -> pd.DataFrame:
     return out[STANDARD_COLUMNS]
 
 
+def _parse_sagi_georef(series: pd.Series) -> tuple[pd.Series, pd.Series]:
+    text = series.astype("string").str.strip().str.replace(r"\\,", ",", regex=True)
+    parts = text.str.split(",", n=1, expand=True)
+    if parts.shape[1] < 2:
+        return (
+            pd.Series(np.nan, index=series.index, dtype="float64"),
+            pd.Series(np.nan, index=series.index, dtype="float64"),
+        )
+    lat = pd.to_numeric(parts[0], errors="coerce")
+    lon = pd.to_numeric(parts[1], errors="coerce")
+    return lat, lon
+
+
 def infer_creas_units(frame: pd.DataFrame, reference_date: str) -> pd.DataFrame:
     if frame.empty:
         return pd.DataFrame(columns=STANDARD_COLUMNS)
     name = _first_existing(
         frame,
-        ["Nome da Unidade", "Nome Unidade", "nome_unidade", "NO_UNIDADE", "Identificação da Unidade"],
+        ["nome", "Nome da Unidade", "Nome Unidade", "nome_unidade", "NO_UNIDADE", "Identificação da Unidade"],
     )
     code = _first_existing(
         frame,
-        ["ID CREAS", "id_creas", "codigo_unidade", "Código da Unidade", "NU_IDENTIFICADOR"],
+        ["id_equipamento", "ID CREAS", "id_creas", "codigo_unidade", "Código da Unidade", "NU_IDENTIFICADOR"],
     )
-    city = _first_existing(frame, ["Município", "municipio", "Nome do Município", "NO_MUNICIPIO"])
+    city = _first_existing(frame, ["cidade", "Município", "municipio", "Nome do Município", "NO_MUNICIPIO"])
     city_code = _first_existing(
         frame,
-        ["IBGE", "Código IBGE", "codigo_ibge", "Código do Município", "CODMUNICIPIO"],
+        ["ibge", "IBGE", "Código IBGE", "codigo_ibge", "Código do Município", "CODMUNICIPIO"],
     )
-    address = _first_existing(frame, ["Endereço", "endereco", "Logradouro", "NO_LOGRADOURO"])
+    address = _first_existing(frame, ["endereco", "Endereço", "Logradouro", "NO_LOGRADOURO"])
+    georef = _first_existing(frame, ["georef_location"])
+    source_date = _first_existing(frame, ["data_atualizacao"])
 
     recognized = name.notna() | code.notna()
     if not recognized.any():
@@ -193,22 +208,30 @@ def infer_creas_units(frame: pd.DataFrame, reference_date: str) -> pd.DataFrame:
     city = _clean_text(city[recognized])
     city_code = _clean_text(city_code[recognized])
     address = _clean_text(address[recognized])
+    georef = georef[recognized]
+    source_date = _clean_text(source_date[recognized])
+    lat, lon = _parse_sagi_georef(georef)
 
     out = pd.DataFrame(index=name.index)
     out["service_id"] = [f"CREAS-{_slug(c if pd.notna(c) else n)}" for c, n in zip(code, name)]
     out["service_name"] = name.fillna("CREAS")
     out["service_type"] = "creas"
-    out["provider_source"] = "Censo SUAS"
+    out["provider_source"] = "MDS/SAGI"
     out["municipality_code"] = city_code
     out["municipality_name"] = city
     out["address_public"] = address
-    out["latitude"] = np.nan
-    out["longitude"] = np.nan
+    out["latitude"] = lat
+    out["longitude"] = lon
     out["capacity"] = np.nan
     out["capacity_type"] = pd.NA
     out["capacity_source"] = pd.NA
-    out["reference_date"] = reference_date
-    out["validation_status"] = "official_extract_needs_unit_validation"
+    out["reference_date"] = source_date.fillna(reference_date)
+    has_coords = lat.notna() & lon.notna()
+    out["validation_status"] = np.where(
+        has_coords,
+        "official_sagi_georeference_requires_routing_validation",
+        "official_sagi_unit_requires_geocoding",
+    )
     out["redistribution_status"] = "review_required"
     return out[STANDARD_COLUMNS]
 
@@ -264,9 +287,12 @@ def load_and_consolidate_artifact(artifact_dir: Path, reference_date: str) -> tu
     tjpa = artifact_dir / "tjpa_specialized_vaw_units.csv"
     if tjpa.exists():
         frames.append(normalize_tjpa(pd.read_csv(tjpa), reference_date))
-    creas = artifact_dir / "creas_2024_para_extracted.csv"
-    if creas.exists():
-        frames.append(infer_creas_units(pd.read_csv(creas, low_memory=False), "Censo SUAS 2024"))
+    creas_sagi = artifact_dir / "creas_sagi_pa.csv"
+    creas_legacy = artifact_dir / "creas_2024_para_extracted.csv"
+    if creas_sagi.exists():
+        frames.append(infer_creas_units(pd.read_csv(creas_sagi, low_memory=False), "MDS/SAGI"))
+    elif creas_legacy.exists():
+        frames.append(infer_creas_units(pd.read_csv(creas_legacy, low_memory=False), "Censo SUAS 2024"))
     manual = artifact_dir / "ligue180_services_curated.csv"
     if manual.exists():
         frames.append(normalize_manual_standard(pd.read_csv(manual)))
