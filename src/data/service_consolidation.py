@@ -68,10 +68,22 @@ def normalize_cnes_candidates(frame: pd.DataFrame, reference_date: str) -> pd.Da
     name = _first_existing(frame, ["nome_fantasia", "nome_empresarial", "NO_FANTASIA", "nome"])
     muni_code = _first_existing(frame, ["codigo_municipio", "codigo_municipio_ibge", "CO_MUNICIPIO_GESTOR"])
     muni_name = _first_existing(frame, ["nome_municipio", "municipio", "NO_MUNICIPIO"])
-    address = _first_existing(frame, ["logradouro", "endereco", "NO_LOGRADOURO"])
-    number = _first_existing(frame, ["numero_endereco", "numero", "NU_ENDERECO"])
-    lat = _first_existing(frame, ["latitude", "nu_latitude", "LATITUDE"])
-    lon = _first_existing(frame, ["longitude", "nu_longitude", "LONGITUDE"])
+    address = _first_existing(
+        frame,
+        ["logradouro", "endereco", "NO_LOGRADOURO", "endereco_estabelecimento"],
+    )
+    number = _first_existing(
+        frame,
+        ["numero_endereco", "numero", "NU_ENDERECO", "numero_estabelecimento"],
+    )
+    lat = _first_existing(
+        frame,
+        ["latitude", "nu_latitude", "LATITUDE", "latitude_estabelecimento_decimo_grau"],
+    )
+    lon = _first_existing(
+        frame,
+        ["longitude", "nu_longitude", "LONGITUDE", "longitude_estabelecimento_decimo_grau"],
+    )
 
     out["service_id"] = [f"CNES-{_slug(v)}" for v in cnes]
     out["service_name"] = _clean_text(name)
