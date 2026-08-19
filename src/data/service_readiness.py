@@ -47,9 +47,14 @@ def audit_service_readiness(inventory: pd.DataFrame) -> tuple[pd.DataFrame, Serv
     out["has_observed_or_documented_capacity"] = capacity.notna() & (capacity >= 0)
     out["needs_function_validation"] = needs_validation
     out["ready_for_routing"] = valid_coords & ~needs_validation
-    out["ready_for_e2sfca_primary"] = (
-        out["ready_for_routing"] & out["has_observed_or_documented_capacity"]
-    )
+
+    # Primary accessibility analysis uses one validated physical service unit as
+    # one supply opportunity within each service category. Observed/documented
+    # capacity is retained for category-specific sensitivity analyses only and
+    # is therefore not a readiness blocker for the primary model.
+    out["primary_supply_weight"] = 1.0
+    out["primary_supply_assumption"] = "one_validated_service_unit_equals_one_supply_opportunity"
+    out["ready_for_e2sfca_primary"] = out["ready_for_routing"]
 
     def blocker(row: pd.Series) -> str:
         reasons: list[str] = []
@@ -57,8 +62,6 @@ def audit_service_readiness(inventory: pd.DataFrame) -> tuple[pd.DataFrame, Serv
             reasons.append("coordinates")
         if bool(row["needs_function_validation"]):
             reasons.append("function_validation")
-        if not bool(row["has_observed_or_documented_capacity"]):
-            reasons.append("capacity")
         return ";".join(reasons) if reasons else "none"
 
     out["readiness_blockers"] = out.apply(blocker, axis=1)
