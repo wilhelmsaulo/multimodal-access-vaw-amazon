@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import re
+import time
 import zipfile
 from io import BytesIO
 from pathlib import Path
@@ -20,6 +21,28 @@ CENSO_SUAS_INDEX = "https://aplicacoes.mds.gov.br/sagi/snas/vigilancia/index2.ph
 
 def sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
+
+def _get_with_retries(
+    client: httpx.Client,
+    url: str,
+    *,
+    retries: int = 4,
+    backoff_seconds: float = 2.0,
+) -> httpx.Response:
+    last_error: Exception | None = None
+    for attempt in range(retries + 1):
+        try:
+            response = client.get(url)
+            response.raise_for_status()
+            return response
+        except (httpx.HTTPError, httpx.TimeoutException) as exc:
+            last_error = exc
+            if attempt >= retries:
+                break
+            time.sleep(backoff_seconds * (2**attempt))
+    assert last_error is not None
+    raise last_error
 
 
 def discover_creas_2024_links(html: str) -> list[str]:
@@ -90,20 +113,43 @@ def filter_para_rows(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def download_creas_2024(out_dir: Path, client: httpx.Client) -> dict:
-    response = client.get(CENSO_SUAS_INDEX)
-    response.raise_for_status()
-    links = discover_creas_2024_links(response.text)
-    if not links:
-        raise RuntimeError("No Censo SUAS 2024 CREAS resource links discovered.")
+    manifest: dict[str, object] = {
+        "index_url": CENSO_SUAS_INDEX,
+        "source_status": "available",
+        "source_error": None,
+        "resources": [],
+    }
+    try:
+        response = _get_with_retries(client, CENSO_SUAS_INDEX)
+        links = discover_creas_2024_links(response.text)
+        if not links:
+            raise RuntimeError("No Censo SUAS 2024 CREAS resource links discovered.")
+    except (httpx.HTTPError, httpx.TimeoutException, RuntimeError) as exc:
+        manifest["source_status"] = "temporarily_unavailable"
+        manifest["source_error"] = f"{type(exc).__name__}: {exc}"
+        (out_dir / "creas_2024_manifest.json").write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        return manifest
 
-    manifest = {"index_url": CENSO_SUAS_INDEX, "resources": []}
     normalized_frames: list[pd.DataFrame] = []
     raw_dir = out_dir / "creas_raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
     for i, url in enumerate(links, start=1):
-        r = client.get(url)
-        r.raise_for_status()
+        try:
+            r = _get_with_retries(client, url)
+        except (httpx.HTTPError, httpx.TimeoutException) as exc:
+            manifest["resources"].append(
+                {
+                    "url": url,
+                    "status": "temporarily_unavailable",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "tables": [],
+                }
+            )
+            continue
+
         data = r.content
         cd = r.headers.get("content-disposition", "")
         match = re.search(r'filename\*?=(?:UTF-8\'\')?["\']?([^"\';]+)', cd, flags=re.I)
@@ -115,6 +161,7 @@ def download_creas_2024(out_dir: Path, client: httpx.Client) -> dict:
         tables = extract_zip_tables(data) if zipfile.is_zipfile(BytesIO(data)) else read_tabular_bytes(data, filename)
         resource_entry = {
             "url": str(r.url),
+            "status": "available",
             "filename": filename,
             "sha256": sha256_bytes(data),
             "content_type": r.headers.get("content-type"),
@@ -136,6 +183,9 @@ def download_creas_2024(out_dir: Path, client: httpx.Client) -> dict:
         pd.concat(normalized_frames, ignore_index=True, sort=False).to_csv(
             out_dir / "creas_2024_para_extracted.csv", index=False
         )
+    elif any(r.get("status") == "temporarily_unavailable" for r in manifest["resources"]):
+        manifest["source_status"] = "partially_unavailable"
+
     (out_dir / "creas_2024_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
