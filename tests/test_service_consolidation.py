@@ -67,6 +67,30 @@ def test_demas_cnes_field_aliases_are_preserved():
     assert str(row["municipality_code"]) == "150345"
 
 
+def test_sagi_creas_georeference_is_preserved_without_inventing_capacity():
+    creas = pd.DataFrame(
+        {
+            "id_equipamento": [1506801932],
+            "ibge": [150680],
+            "uf": ["PA"],
+            "cidade": ["Santarém"],
+            "nome": ["CREAS Municipal"],
+            "endereco": ["SILVA JARDIM - 460"],
+            "georef_location": [r"-2.4227511666704946\,-54.721895634702385"],
+            "data_atualizacao": ["2026-08-14T04:28:43.318Z"],
+        }
+    )
+    out = infer_creas_units(creas, "MDS/SAGI")
+    row = out.iloc[0]
+    assert row["service_id"] == "CREAS-1506801932"
+    assert row["provider_source"] == "MDS/SAGI"
+    assert str(row["municipality_code"]) == "150680"
+    assert row["latitude"] == pytest.approx(-2.4227511666704946)
+    assert row["longitude"] == pytest.approx(-54.721895634702385)
+    assert pd.isna(row["capacity"])
+    assert row["validation_status"] == "official_sagi_georeference_requires_routing_validation"
+
+
 def test_exact_cnes_match_attaches_registered_beds():
     cnes = pd.DataFrame(
         {"codigo_cnes": [12345, 67890], "nome_fantasia": ["Hospital A", "Hospital B"]}
