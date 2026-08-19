@@ -1,0 +1,32 @@
+{
+  "source": "CNES monthly database, July 2026",
+  "source_file": "rlEstabServClass202607.csv",
+  "source_drive_file_id": "14EKvtf52AbrymtudI9-BYoraLZkO-BNc",
+  "source_sha256": "c5710f261b24f5f592f1a0bbc78196a9d6adc247537b2a868fcc3af498e17d1f",
+  "source_rows": 1458665,
+  "para_relation_rows_all_services": 38713,
+  "retained_service_codes": ["110", "112", "115", "140", "165"],
+  "retained_rows": 3190,
+  "retained_unique_establishments": 2054,
+  "filtered_snapshot_sha256": "3b3419c928a5be0b753f4198b7c1d7fd7082e4c053c52283839bfcc1f266c8ed",
+  "specialized_service": {
+    "code": "165",
+    "description": "ATENCAO AS PESSOAS EM SITUACAO DE VIOLENCIA SEXUAL",
+    "unique_establishments_para": 71,
+    "relation_rows_para": 78,
+    "classification_counts": {
+      "001": 9,
+      "006": 6,
+      "007": 39,
+      "008": 24
+    }
+  },
+  "complementary_services": {
+    "110": {"description": "SERVICO DE ATENCAO A SAUDE REPRODUTIVA", "unique_establishments_para": 144},
+    "112": {"description": "SERVICO DE ATENCAO AO PRE-NATAL, PARTO E NASCIMENTO", "unique_establishments_para": 1571},
+    "115": {"description": "ATENCAO PSICOSSOCIAL", "unique_establishments_para": 477},
+    "140": {"description": "SERVICO DE URGENCIA E EMERGENCIA", "unique_establishments_para": 234}
+  },
+  "interpretation_rule": "Service 165 defines the specialized health-response core. Services 110, 112, 115 and 140 are complementary response-network evidence and are not treated as substitutes for service 165.",
+  "join_key": "CO_UNIDADE corresponds to codigo_estabelecimento_saude in the CNES establishment extract."
+}
