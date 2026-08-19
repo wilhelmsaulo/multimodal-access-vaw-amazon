@@ -85,7 +85,7 @@ def fetch_hospital_beds_pa(
             frames.append(page)
             if len(page) < page_size:
                 break
-            offset += page_size
+            offset += 1
             page_number += 1
     finally:
         if own_client:
