@@ -3,12 +3,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
 import time
-import zipfile
 from io import BytesIO
 from pathlib import Path
-from urllib.parse import urljoin
 
 import httpx
 import pandas as pd
@@ -16,7 +13,14 @@ import pandas as pd
 from src.data.health_capacity import fetch_hospital_beds_pa, summarize_beds_by_cnes
 from src.data.service_inventory import fetch_cnes_establishments_pa, filter_cnes_vaw_relevant
 
-CENSO_SUAS_INDEX = "https://aplicacoes.mds.gov.br/sagi/snas/vigilancia/index2.php"
+
+CREAS_SAGI_URL = (
+    "https://aplicacoes.mds.gov.br/sagi/servicos/equipamentos"
+    "?q=tipo_equipamento:CREAS&wt=csv"
+    "&fl=id_equipamento,ibge,uf,cidade,nome,responsavel,telefone,endereco,numero,"
+    "complemento,referencia,bairro,cep,georef_location,data_atualizacao"
+    "&rows=999999999"
+)
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -45,148 +49,76 @@ def _get_with_retries(
     raise last_error
 
 
-def discover_creas_2024_links(html: str) -> list[str]:
-    upper = html.upper()
-    start = upper.find("CENSO SUAS 2024")
-    end = upper.find("CENSO SUAS 2023", start + 1) if start >= 0 else -1
-    block = html[start : end if end > start else None] if start >= 0 else html
-    anchors = re.findall(r'<a[^>]+href=["\']([^"\']+)["\'][^>]*>(.*?)</a>', block, flags=re.I | re.S)
-    links: list[str] = []
-    for href, label in anchors:
-        plain = re.sub(r"<[^>]+>", " ", label)
-        if "CREAS" in plain.upper() or "CREAS" in href.upper():
-            links.append(urljoin(CENSO_SUAS_INDEX, href))
-    return list(dict.fromkeys(links))
+def _read_csv_bytes(data: bytes) -> pd.DataFrame:
+    last_error: Exception | None = None
+    for encoding in ("utf-8", "latin1"):
+        try:
+            return pd.read_csv(BytesIO(data), encoding=encoding)
+        except Exception as exc:  # pragma: no cover - only used for alternate source encodings
+            last_error = exc
+    assert last_error is not None
+    raise ValueError(f"Could not parse SAGI CREAS CSV: {last_error}")
 
 
-def read_tabular_bytes(data: bytes, filename: str) -> dict[str, pd.DataFrame]:
-    name = filename.lower()
-    if name.endswith(".csv"):
-        for encoding in ("utf-8", "latin1"):
-            try:
-                return {"csv": pd.read_csv(BytesIO(data), sep=None, engine="python", encoding=encoding)}
-            except Exception:
-                pass
-        raise ValueError(f"Could not parse CSV {filename}")
-    if name.endswith((".xlsx", ".xls")):
-        return pd.read_excel(BytesIO(data), sheet_name=None)
-    return {}
+def download_creas_sagi_pa(out_dir: Path, client: httpx.Client) -> dict:
+    """Download the official SAGI equipment registry for CREAS and retain Pará units.
 
-
-def extract_zip_tables(data: bytes) -> dict[str, pd.DataFrame]:
-    tables: dict[str, pd.DataFrame] = {}
-    with zipfile.ZipFile(BytesIO(data)) as zf:
-        for member in zf.namelist():
-            if member.endswith("/"):
-                continue
-            payload = zf.read(member)
-            for sheet, frame in read_tabular_bytes(payload, member).items():
-                tables[f"{member}::{sheet}"] = frame
-    return tables
-
-
-def _norm_text(value: object) -> str:
-    return re.sub(r"[^A-Z0-9]", "", str(value).upper())
-
-
-def filter_para_rows(frame: pd.DataFrame) -> pd.DataFrame:
-    if frame.empty:
-        return frame.copy()
-    candidates = []
-    for col in frame.columns:
-        n = _norm_text(col)
-        if n in {"UF", "SGUF", "SIGLAUF", "ESTADO", "NOESTADO", "UFUNIDADE"} or n.endswith("UF"):
-            candidates.append(col)
-    for col in candidates:
-        s = frame[col].astype(str).str.strip().str.upper()
-        mask = s.isin({"PA", "PARA", "PARÁ", "15"})
-        if mask.any():
-            return frame.loc[mask].copy()
-    for col in frame.columns:
-        n = _norm_text(col)
-        if "IBGE" in n or n in {"CODMUNICIPIO", "CODMUNICIPIOIBGE", "CDMUNICIPIO"}:
-            s = frame[col].astype(str).str.replace(r"\.0$", "", regex=True).str.strip()
-            mask = s.str.startswith("15")
-            if mask.any():
-                return frame.loc[mask].copy()
-    return frame.iloc[0:0].copy()
-
-
-def download_creas_2024(out_dir: Path, client: httpx.Client) -> dict:
+    The endpoint is a unit-level operational registry and supplies stable equipment IDs,
+    municipality identifiers, public addresses, georeferences when available, and the
+    source update timestamp. It is used for service location/routing only; it does not
+    provide a defensible service-capacity measure, so capacity remains missing later.
+    """
     manifest: dict[str, object] = {
-        "index_url": CENSO_SUAS_INDEX,
+        "source": "MDS/SAGI equipment registry",
+        "endpoint": CREAS_SAGI_URL,
+        "query": "tipo_equipamento:CREAS",
         "source_status": "available",
         "source_error": None,
-        "resources": [],
+        "rows_total": 0,
+        "rows_para": 0,
+        "rows_para_with_georef": 0,
+        "sha256": None,
+        "columns": [],
+        "capacity_rule": "No capacity is inferred from presence, address, or georeference fields.",
     }
     try:
-        response = _get_with_retries(client, CENSO_SUAS_INDEX)
-        links = discover_creas_2024_links(response.text)
-        if not links:
-            raise RuntimeError("No Censo SUAS 2024 CREAS resource links discovered.")
-    except (httpx.HTTPError, httpx.TimeoutException, RuntimeError) as exc:
+        response = _get_with_retries(client, CREAS_SAGI_URL)
+        data = response.content
+        raw = _read_csv_bytes(data)
+    except (httpx.HTTPError, httpx.TimeoutException, ValueError) as exc:
         manifest["source_status"] = "temporarily_unavailable"
         manifest["source_error"] = f"{type(exc).__name__}: {exc}"
-        (out_dir / "creas_2024_manifest.json").write_text(
+        (out_dir / "creas_sagi_manifest.json").write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         return manifest
 
-    normalized_frames: list[pd.DataFrame] = []
-    raw_dir = out_dir / "creas_raw"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-
-    for i, url in enumerate(links, start=1):
-        try:
-            r = _get_with_retries(client, url)
-        except (httpx.HTTPError, httpx.TimeoutException) as exc:
-            manifest["resources"].append(
-                {
-                    "url": url,
-                    "status": "temporarily_unavailable",
-                    "error": f"{type(exc).__name__}: {exc}",
-                    "tables": [],
-                }
-            )
-            continue
-
-        data = r.content
-        cd = r.headers.get("content-disposition", "")
-        match = re.search(r'filename\*?=(?:UTF-8\'\')?["\']?([^"\';]+)', cd, flags=re.I)
-        filename = match.group(1) if match else Path(r.url.path).name or f"creas_resource_{i}"
-        filename = re.sub(r"[^A-Za-z0-9._-]", "_", filename)
-        path = raw_dir / filename
-        path.write_bytes(data)
-
-        tables = extract_zip_tables(data) if zipfile.is_zipfile(BytesIO(data)) else read_tabular_bytes(data, filename)
-        resource_entry = {
-            "url": str(r.url),
-            "status": "available",
-            "filename": filename,
-            "sha256": sha256_bytes(data),
-            "content_type": r.headers.get("content-type"),
-            "tables": [],
-        }
-        for table_name, frame in tables.items():
-            pa = filter_para_rows(frame)
-            resource_entry["tables"].append(
-                {"name": table_name, "rows_total": int(len(frame)), "rows_para": int(len(pa))}
-            )
-            if len(pa):
-                pa = pa.copy()
-                pa["_source_file"] = filename
-                pa["_source_table"] = table_name
-                normalized_frames.append(pa)
-        manifest["resources"].append(resource_entry)
-
-    if normalized_frames:
-        pd.concat(normalized_frames, ignore_index=True, sort=False).to_csv(
-            out_dir / "creas_2024_para_extracted.csv", index=False
+    required = {"id_equipamento", "ibge", "uf", "cidade", "nome", "georef_location", "data_atualizacao"}
+    missing = required.difference(raw.columns)
+    if missing:
+        manifest["source_status"] = "invalid_schema"
+        manifest["source_error"] = f"Missing expected SAGI columns: {sorted(missing)}"
+        manifest["rows_total"] = int(len(raw))
+        manifest["columns"] = [str(c) for c in raw.columns]
+        (out_dir / "creas_sagi_manifest.json").write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-    elif any(r.get("status") == "temporarily_unavailable" for r in manifest["resources"]):
-        manifest["source_status"] = "partially_unavailable"
+        return manifest
 
-    (out_dir / "creas_2024_manifest.json").write_text(
+    pa = raw.loc[raw["uf"].astype(str).str.strip().str.upper().eq("PA")].copy()
+    pa.to_csv(out_dir / "creas_sagi_pa.csv", index=False)
+
+    georef = pa["georef_location"].astype("string").str.strip()
+    manifest.update(
+        {
+            "rows_total": int(len(raw)),
+            "rows_para": int(len(pa)),
+            "rows_para_with_georef": int(georef.notna().sum()),
+            "sha256": sha256_bytes(data),
+            "columns": [str(c) for c in raw.columns],
+        }
+    )
+    (out_dir / "creas_sagi_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     return manifest
@@ -249,7 +181,7 @@ def main() -> None:
         summary["cnes"] = build_cnes(args.output_dir)
     if not args.skip_creas:
         with httpx.Client(timeout=120.0, follow_redirects=True) as client:
-            summary["creas"] = download_creas_2024(args.output_dir, client)
+            summary["creas"] = download_creas_sagi_pa(args.output_dir, client)
     (args.output_dir / "build_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
