@@ -10,6 +10,7 @@ from pathlib import Path
 import pandas as pd
 
 from src.data.cnes_service_evidence import (
+    COMPLEMENTARY_SERVICES,
     SPECIALIZED_SERVICE,
     load_cnes_vaw_service_relations,
 )
@@ -38,6 +39,7 @@ def build_cnes(out_dir: Path) -> dict:
     core = pd.read_csv(CNES_CORE, dtype=str)
     if len(core) != 71 or core["codigo_cnes"].nunique() != 71:
         raise ValueError("CNES service-165 core snapshot must contain 71 unique establishments")
+
     relations, evidence_manifest = load_cnes_vaw_service_relations()
     service165 = relations.loc[relations["CO_SERVICO"].eq(SPECIALIZED_SERVICE)].copy()
     expected_ids = set(service165["CO_UNIDADE"].astype(str).str[-7:])
@@ -59,6 +61,30 @@ def build_cnes(out_dir: Path) -> dict:
     lat = pd.to_numeric(core["latitude_estabelecimento_decimo_grau"], errors="coerce")
     lon = pd.to_numeric(core["longitude_estabelecimento_decimo_grau"], errors="coerce")
     valid_coords = lat.between(-90, 90) & lon.between(-180, 180)
+
+    complementary_union = relations.loc[relations["CO_SERVICO"].isin(COMPLEMENTARY_SERVICES), "CO_UNIDADE"].nunique()
+    audit = {
+        "source_snapshot": evidence_manifest.get("source_file"),
+        "specialized_service_code": SPECIALIZED_SERVICE,
+        "specialized_establishments_para": int(len(core)),
+        "specialized_classification_rows_para": int(len(service165)),
+        "specialized_classification_counts": {
+            str(k): int(v) for k, v in service165["CO_CLASSIFICACAO"].value_counts().sort_index().to_dict().items()
+        },
+        "complementary_service_codes": sorted(COMPLEMENTARY_SERVICES),
+        "complementary_unique_establishments_union": int(complementary_union),
+        "complementary_unique_establishments_by_service": {
+            code: int(relations.loc[relations["CO_SERVICO"].eq(code), "CO_UNIDADE"].nunique())
+            for code in sorted(COMPLEMENTARY_SERVICES)
+        },
+        "interpretation": (
+            "CNES service 165 defines the primary specialized health-response layer. "
+            "Services 110, 112, 115 and 140 are retained as a separate complementary network and are not substitutes."
+        ),
+    }
+    (out_dir / "cnes_vaw_service_evidence_audit.json").write_text(
+        json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     manifest = {
         "source": "CNES official establishment attributes + CNES July 2026 service/classification snapshot",
