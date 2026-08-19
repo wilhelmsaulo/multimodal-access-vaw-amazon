@@ -77,16 +77,24 @@ def audit_service_readiness(inventory: pd.DataFrame) -> tuple[pd.DataFrame, Serv
 
 
 def build_geocoding_queue(readiness: pd.DataFrame) -> pd.DataFrame:
-    """Return public-address records needing coordinates; no approximate coordinates are invented."""
+    """Return every unresolved service location without inventing approximate coordinates.
+
+    Services with a public address enter direct geocoding validation. Services that are
+    known only by unit name and municipality remain in the same queue with an explicit
+    official-address-resolution status, so they cannot silently disappear from routing.
+    """
     required = {"service_id", "service_name", "municipality_name", "address_public", "has_valid_coordinates"}
     missing = required.difference(readiness.columns)
     if missing:
         raise ValueError(f"Readiness table missing columns: {sorted(missing)}")
     queue = readiness.loc[
-        ~readiness["has_valid_coordinates"] & readiness["address_public"].notna(),
+        ~readiness["has_valid_coordinates"],
         ["service_id", "service_name", "service_type", "provider_source", "municipality_name", "address_public"],
     ].copy()
-    queue["geocoding_status"] = "pending_validation"
+    has_address = queue["address_public"].astype("string").str.strip().notna()
+    queue["geocoding_status"] = has_address.map(
+        {True: "pending_coordinate_validation", False: "needs_official_address_resolution"}
+    )
     queue["latitude_candidate"] = pd.NA
     queue["longitude_candidate"] = pd.NA
     queue["geocoding_source"] = pd.NA
