@@ -11,6 +11,13 @@ import pandas as pd
 CNES_API = "https://apidadosabertos.saude.gov.br/cnes/estabelecimentos"
 TJPA_CONTACTS = "https://centralservicos.tjpa.jus.br/bv/todos.php"
 
+# Legacy CNES establishment-type codes documented by DATASUS. These are used
+# only to validate that a candidate is a fixed assistential destination; they
+# are not used as capacity weights.
+CNES_FIXED_ACUTE_OR_OBSTETRIC_TYPES = {5, 7, 15, 20, 21, 61, 73}
+CNES_PSYCHOSOCIAL_TYPE = 70
+CNES_NON_FIXED_OR_ADMIN_TYPES = {32, 40, 42, 60, 76}
+
 
 @dataclass(frozen=True)
 class ServiceInventoryRecord:
@@ -38,11 +45,7 @@ def fetch_cnes_establishments_pa(
     page_size: int = 20,
     max_pages: int | None = None,
 ) -> pd.DataFrame:
-    """Fetch active CNES establishments for Pará from the official DEMAS API.
-
-    The official API documents `codigo_uf`, `status`, `limit`, and zero-based `offset`.
-    Pagination stops when a page returns fewer rows than requested or no rows.
-    """
+    """Fetch active CNES establishments for Pará from the official DEMAS API."""
     if not 1 <= page_size <= 20:
         raise ValueError("CNES page_size must be between 1 and 20.")
     own_client = client is None
@@ -90,16 +93,17 @@ def filter_cnes_vaw_relevant(
     *,
     name_columns: Iterable[str] = (
         "nome_fantasia",
+        "nome_razao_social",
         "nome_empresarial",
         "descricao_tipo_unidade",
         "tipo_unidade",
     ),
 ) -> pd.DataFrame:
-    """Conservative text filter for candidate VAW-relevant health facilities.
+    """Conservative screening of potentially VAW-relevant health establishments.
 
-    This is a candidate-screening step only; final inclusion still requires substantive
-    validation of establishment type/services. Broad primary-care units are not automatically
-    included merely because they are health facilities.
+    This step deliberately over-includes candidates. Final primary-routing
+    eligibility is assigned by :func:`validate_cnes_health_destinations` using
+    official establishment type plus explicit service naming.
     """
     candidates = [c for c in name_columns if c in establishments.columns]
     if not candidates:
@@ -110,6 +114,49 @@ def filter_cnes_vaw_relevant(
         r"MATERNIDADE|SA[ÚU]DE\s+DA\s+MULHER|VIOL[EÊ]NCIA\s+SEXUAL"
     )
     return establishments[text.str.contains(pattern, regex=True)].copy()
+
+
+def validate_cnes_health_destinations(candidates: pd.DataFrame) -> pd.DataFrame:
+    """Assign an auditable health-function status to screened CNES candidates.
+
+    Primary destinations are fixed facilities in one of four defensible groups:
+    acute/hospital care, obstetric/maternity care, psychosocial care (CAPS), or
+    an explicitly named women's-health/sexual-violence service. Mobile units,
+    regulation centers and other non-fixed/administrative types are not treated
+    as physical destinations even if their names contain emergency terms.
+
+    This validation concerns service function only. It does not assert quality,
+    VAW specialization, available beds, staffing, or actual service capacity.
+    """
+    if candidates.empty:
+        return candidates.copy()
+    out = candidates.copy()
+    code = pd.to_numeric(out.get("codigo_tipo_unidade"), errors="coerce")
+    text_cols = [c for c in ("nome_fantasia", "nome_razao_social", "nome_empresarial") if c in out.columns]
+    text = out[text_cols].fillna("").astype(str).agg(" ".join, axis=1).str.upper() if text_cols else pd.Series("", index=out.index)
+
+    explicit_women = text.str.contains(
+        r"SA[ÚU]DE\s+DA\s+MULHER|ATENDIMENTO\s+(?:A|À)\s+MULHER|"
+        r"VIOL[EÊ]NCIA\s+SEXUAL|MATERNIDADE|MATERNO\s*INFANTIL",
+        regex=True,
+        na=False,
+    )
+    fixed_core = code.isin(CNES_FIXED_ACUTE_OR_OBSTETRIC_TYPES)
+    psychosocial = code.eq(CNES_PSYCHOSOCIAL_TYPE)
+    excluded_nonfixed = code.isin(CNES_NON_FIXED_OR_ADMIN_TYPES)
+
+    out["vaw_health_function"] = "screened_unresolved"
+    out.loc[fixed_core, "vaw_health_function"] = "fixed_acute_or_obstetric_care"
+    out.loc[psychosocial, "vaw_health_function"] = "psychosocial_care"
+    out.loc[explicit_women & ~excluded_nonfixed, "vaw_health_function"] = "explicit_womens_health_or_maternity"
+    out.loc[excluded_nonfixed, "vaw_health_function"] = "nonfixed_or_administrative_excluded"
+
+    eligible = (fixed_core | psychosocial | explicit_women) & ~excluded_nonfixed
+    out["primary_function_eligible"] = eligible
+    out["validation_status"] = "screened_candidate_not_primary"
+    out.loc[eligible, "validation_status"] = "function_validated_from_official_cnes_type"
+    out.loc[excluded_nonfixed, "validation_status"] = "excluded_nonfixed_or_administrative"
+    return out
 
 
 def parse_tjpa_specialized_units(html: str) -> pd.DataFrame:
@@ -157,11 +204,7 @@ def harmonize_manual_service_table(
     provider_source: str,
     reference_date: str,
 ) -> pd.DataFrame:
-    """Normalize curated official-directory extracts (e.g. Censo SUAS or Ligue 180).
-
-    Required input columns are intentionally small so a manually exported official table can
-    be incorporated without inventing missing fields.
-    """
+    """Normalize curated official-directory extracts without inventing missing fields."""
     required = {"service_id", "service_name", "service_type", "municipality_name"}
     missing = required.difference(table.columns)
     if missing:
