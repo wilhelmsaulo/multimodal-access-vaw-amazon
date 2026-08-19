@@ -9,6 +9,7 @@ from src.data.service_consolidation import (
     normalize_tjpa,
     validate_consolidated_inventory,
 )
+from src.data.service_inventory import validate_cnes_health_destinations
 from src.data.service_readiness import audit_service_readiness
 
 
@@ -66,6 +67,33 @@ def test_demas_cnes_field_aliases_are_preserved():
     assert row["longitude"] == pytest.approx(-47.498322)
     assert row["address_public"] == "Av. Principal, 123"
     assert str(row["municipality_code"]) == "150345"
+
+
+def test_cnes_function_validation_excludes_mobile_and_preserves_validated_status():
+    candidates = pd.DataFrame(
+        {
+            "codigo_cnes": [1, 2, 3, 4],
+            "nome_fantasia": [
+                "Hospital Municipal",
+                "CAPS I",
+                "Centro de Saúde da Mulher",
+                "Serviço de Atendimento Móvel de Urgência SAMU 192",
+            ],
+            "codigo_tipo_unidade": [5, 70, 36, 42],
+            "latitude_estabelecimento_decimo_grau": [-1.0, -1.1, -1.2, -1.3],
+            "longitude_estabelecimento_decimo_grau": [-48.0, -48.1, -48.2, -48.3],
+        }
+    )
+    audited = validate_cnes_health_destinations(candidates)
+    assert audited["primary_function_eligible"].tolist() == [True, True, True, False]
+    assert audited.loc[0, "vaw_health_function"] == "fixed_acute_or_obstetric_care"
+    assert audited.loc[1, "vaw_health_function"] == "psychosocial_care"
+    assert audited.loc[2, "vaw_health_function"] == "explicit_womens_health_or_maternity"
+    assert audited.loc[3, "validation_status"] == "excluded_nonfixed_or_administrative"
+
+    normalized = normalize_cnes_candidates(audited, "2026-08-19")
+    assert normalized.loc[0, "validation_status"] == "function_validated_from_official_cnes_type"
+    assert normalized.loc[3, "validation_status"] == "excluded_nonfixed_or_administrative"
 
 
 def test_sagi_creas_georeference_is_preserved_without_inventing_capacity():
