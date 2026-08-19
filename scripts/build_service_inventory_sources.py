@@ -148,7 +148,15 @@ def build_cnes(out_dir: Path) -> dict:
     candidates = filter_cnes_vaw_relevant(raw)
     candidates.to_csv(out_dir / "cnes_pa_vaw_health_candidates.csv", index=False)
 
-    beds_raw = fetch_hospital_beds_pa(page_size=1000)
+    beds_status = "available"
+    beds_error: str | None = None
+    try:
+        beds_raw = fetch_hospital_beds_pa(page_size=250, retries=4, backoff_seconds=2.0)
+    except (httpx.HTTPError, httpx.TimeoutException) as exc:
+        beds_status = "temporarily_unavailable"
+        beds_error = f"{type(exc).__name__}: {exc}"
+        beds_raw = pd.DataFrame()
+
     beds_raw.to_csv(out_dir / "hospital_beds_pa_raw.csv", index=False)
     beds_summary = summarize_beds_by_cnes(beds_raw)
     beds_summary.to_csv(out_dir / "hospital_beds_pa_by_cnes.csv", index=False)
@@ -161,11 +169,16 @@ def build_cnes(out_dir: Path) -> dict:
         "status": 1,
         "rows_active_para": int(len(raw)),
         "rows_vaw_health_candidates": int(len(candidates)),
+        "beds_source_status": beds_status,
+        "beds_source_error": beds_error,
         "rows_hospital_beds_raw": int(len(beds_raw)),
         "rows_hospital_beds_cnes_summary": int(len(beds_summary)),
         "raw_columns": [str(c) for c in raw.columns],
         "beds_raw_columns": [str(c) for c in beds_raw.columns],
-        "capacity_rule": "registered beds only when CNES key and bed-count field are explicit",
+        "capacity_rule": (
+            "registered beds only when CNES key and bed-count field are explicit; "
+            "if the official beds endpoint is unavailable, capacity remains missing and is not imputed"
+        ),
     }
     (out_dir / "cnes_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
