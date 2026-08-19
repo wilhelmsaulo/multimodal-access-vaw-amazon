@@ -6,14 +6,17 @@ on:
       - main
     paths:
       - "scripts/build_service_inventory_sources.py"
+      - "scripts/apply_cnes_vaw_service_evidence.py"
       - "scripts/build_specialized_service_sources.py"
       - "scripts/consolidate_service_inventory.py"
       - "scripts/audit_service_readiness.py"
       - "src/data/service_inventory.py"
+      - "src/data/cnes_service_evidence.py"
       - "src/data/service_consolidation.py"
       - "src/data/service_readiness.py"
       - "src/data/health_capacity.py"
       - "data/snapshots/creas_sagi_pa_*"
+      - "data/snapshots/cnes_pa_vaw_service_relations_202607*"
       - "tests/test_service_consolidation.py"
       - ".github/workflows/build-service-inventory.yml"
       - "pyproject.toml"
@@ -22,14 +25,17 @@ on:
       - agent/stage1-stage2-accessibility
     paths:
       - "scripts/build_service_inventory_sources.py"
+      - "scripts/apply_cnes_vaw_service_evidence.py"
       - "scripts/build_specialized_service_sources.py"
       - "scripts/consolidate_service_inventory.py"
       - "scripts/audit_service_readiness.py"
       - "src/data/service_inventory.py"
+      - "src/data/cnes_service_evidence.py"
       - "src/data/service_consolidation.py"
       - "src/data/service_readiness.py"
       - "src/data/health_capacity.py"
       - "data/snapshots/creas_sagi_pa_*"
+      - "data/snapshots/cnes_pa_vaw_service_relations_202607*"
       - "tests/test_service_consolidation.py"
       - ".github/workflows/build-service-inventory.yml"
       - "pyproject.toml"
@@ -56,6 +62,8 @@ jobs:
         run: pytest tests/test_service_consolidation.py
       - name: Build CNES and CREAS extracts
         run: python scripts/build_service_inventory_sources.py --output-dir artifacts/service_inventory
+      - name: Apply CNES VAW service evidence
+        run: python scripts/apply_cnes_vaw_service_evidence.py --artifact-dir artifacts/service_inventory
       - name: Build TJPA and Ligue 180 source audit
         run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
       - name: Consolidate service inventory
@@ -65,6 +73,7 @@ jobs:
       - name: Show build summaries
         run: |
           cat artifacts/service_inventory/build_summary.json
+          cat artifacts/service_inventory/cnes_vaw_service_evidence_audit.json
           cat artifacts/service_inventory/specialized_sources_summary.json
           cat artifacts/service_inventory/services_consolidation_audit.json
           cat artifacts/service_inventory/services_readiness_audit.json
