@@ -11,7 +11,11 @@ import httpx
 import pandas as pd
 
 from src.data.health_capacity import fetch_hospital_beds_pa, summarize_beds_by_cnes
-from src.data.service_inventory import fetch_cnes_establishments_pa, filter_cnes_vaw_relevant
+from src.data.service_inventory import (
+    fetch_cnes_establishments_pa,
+    filter_cnes_vaw_relevant,
+    validate_cnes_health_destinations,
+)
 
 
 CREAS_SAGI_URL = (
@@ -61,13 +65,6 @@ def _read_csv_bytes(data: bytes) -> pd.DataFrame:
 
 
 def download_creas_sagi_pa(out_dir: Path, client: httpx.Client) -> dict:
-    """Download the official SAGI equipment registry for CREAS and retain Pará units.
-
-    The endpoint is a unit-level operational registry and supplies stable equipment IDs,
-    municipality identifiers, public addresses, georeferences when available, and the
-    source update timestamp. It is used for service location/routing only; primary
-    accessibility uses one validated physical unit as one supply opportunity.
-    """
     manifest: dict[str, object] = {
         "source": "MDS/SAGI equipment registry",
         "endpoint": CREAS_SAGI_URL,
@@ -128,7 +125,8 @@ def download_creas_sagi_pa(out_dir: Path, client: httpx.Client) -> dict:
 def build_cnes(out_dir: Path) -> dict:
     raw = fetch_cnes_establishments_pa(page_size=20)
     raw.to_csv(out_dir / "cnes_pa_active_raw.csv", index=False)
-    candidates = filter_cnes_vaw_relevant(raw)
+    screened = filter_cnes_vaw_relevant(raw)
+    candidates = validate_cnes_health_destinations(screened)
     candidates.to_csv(out_dir / "cnes_pa_vaw_health_candidates.csv", index=False)
 
     beds_status = "available"
@@ -144,6 +142,12 @@ def build_cnes(out_dir: Path) -> dict:
     beds_summary = summarize_beds_by_cnes(beds_raw)
     beds_summary.to_csv(out_dir / "hospital_beds_pa_by_cnes.csv", index=False)
 
+    eligible = candidates.get("primary_function_eligible", pd.Series(False, index=candidates.index)).fillna(False).astype(bool)
+    function_counts = (
+        candidates.get("vaw_health_function", pd.Series(dtype="object"))
+        .value_counts(dropna=False)
+        .to_dict()
+    )
     manifest = {
         "source": "DEMAS CNES API + hospitais-e-leitos",
         "establishments_endpoint": "https://apidadosabertos.saude.gov.br/cnes/estabelecimentos",
@@ -151,14 +155,21 @@ def build_cnes(out_dir: Path) -> dict:
         "uf_code": 15,
         "status": 1,
         "rows_active_para": int(len(raw)),
-        "rows_vaw_health_candidates": int(len(candidates)),
+        "rows_vaw_health_screened": int(len(screened)),
+        "rows_vaw_health_primary_function_eligible": int(eligible.sum()),
+        "rows_vaw_health_not_primary": int((~eligible).sum()),
+        "function_validation_counts": {str(k): int(v) for k, v in function_counts.items()},
         "beds_source_status": beds_status,
         "beds_source_error": beds_error,
         "rows_hospital_beds_raw": int(len(beds_raw)),
         "rows_hospital_beds_cnes_summary": int(len(beds_summary)),
         "raw_columns": [str(c) for c in raw.columns],
         "beds_raw_columns": [str(c) for c in beds_raw.columns],
-        "primary_supply_rule": "One validated health service unit equals one supply opportunity within the health category.",
+        "primary_supply_rule": "One function-validated fixed health service unit equals one supply opportunity within the health category.",
+        "function_validation_rule": (
+            "Primary health destinations must be fixed acute/hospital/obstetric care, CAPS psychosocial care, "
+            "or explicitly named women's-health/maternity/sexual-violence services. Mobile units and regulation/administrative centers are excluded."
+        ),
         "capacity_rule": (
             "registered beds are retained only when an exact CNES match exists; "
             "capacity is optional and reserved for health-specific sensitivity analysis"
