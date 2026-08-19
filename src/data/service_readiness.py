@@ -17,17 +17,9 @@ class ServiceReadinessAudit:
 
 def audit_service_readiness(inventory: pd.DataFrame) -> tuple[pd.DataFrame, ServiceReadinessAudit]:
     required = {
-        "service_id",
-        "service_name",
-        "service_type",
-        "provider_source",
-        "municipality_name",
-        "address_public",
-        "latitude",
-        "longitude",
-        "capacity",
-        "capacity_type",
-        "validation_status",
+        "service_id", "service_name", "service_type", "provider_source",
+        "municipality_name", "address_public", "latitude", "longitude",
+        "capacity", "capacity_type", "validation_status",
     }
     missing = required.difference(inventory.columns)
     if missing:
@@ -41,17 +33,20 @@ def audit_service_readiness(inventory: pd.DataFrame) -> tuple[pd.DataFrame, Serv
 
     status = out["validation_status"].astype("string").fillna("")
     needs_validation = status.str.contains(
-        r"candidate|needs|requires|pending", case=False, regex=True, na=False
+        r"candidate|needs|requires|pending|screened_unresolved",
+        case=False, regex=True, na=False,
     )
+    explicitly_excluded = status.str.contains(
+        r"excluded|not_primary|invalid|rejected",
+        case=False, regex=True, na=False,
+    )
+
     out["has_valid_coordinates"] = valid_coords
     out["has_observed_or_documented_capacity"] = capacity.notna() & (capacity >= 0)
     out["needs_function_validation"] = needs_validation
-    out["ready_for_routing"] = valid_coords & ~needs_validation
+    out["is_functionally_excluded"] = explicitly_excluded
+    out["ready_for_routing"] = valid_coords & ~needs_validation & ~explicitly_excluded
 
-    # Primary accessibility analysis uses one validated physical service unit as
-    # one supply opportunity within each service category. Observed/documented
-    # capacity is retained for category-specific sensitivity analyses only and
-    # is therefore not a readiness blocker for the primary model.
     out["primary_supply_weight"] = 1.0
     out["primary_supply_assumption"] = "one_validated_service_unit_equals_one_supply_opportunity"
     out["ready_for_e2sfca_primary"] = out["ready_for_routing"]
@@ -62,6 +57,8 @@ def audit_service_readiness(inventory: pd.DataFrame) -> tuple[pd.DataFrame, Serv
             reasons.append("coordinates")
         if bool(row["needs_function_validation"]):
             reasons.append("function_validation")
+        if bool(row["is_functionally_excluded"]):
+            reasons.append("function_excluded")
         return ";".join(reasons) if reasons else "none"
 
     out["readiness_blockers"] = out.apply(blocker, axis=1)
@@ -77,18 +74,13 @@ def audit_service_readiness(inventory: pd.DataFrame) -> tuple[pd.DataFrame, Serv
 
 
 def build_geocoding_queue(readiness: pd.DataFrame) -> pd.DataFrame:
-    """Return every unresolved service location without inventing approximate coordinates.
-
-    Services with a public address enter direct geocoding validation. Services that are
-    known only by unit name and municipality remain in the same queue with an explicit
-    official-address-resolution status, so they cannot silently disappear from routing.
-    """
+    """Return every unresolved service location without inventing approximate coordinates."""
     required = {"service_id", "service_name", "municipality_name", "address_public", "has_valid_coordinates"}
     missing = required.difference(readiness.columns)
     if missing:
         raise ValueError(f"Readiness table missing columns: {sorted(missing)}")
     queue = readiness.loc[
-        ~readiness["has_valid_coordinates"],
+        ~readiness["has_valid_coordinates"] & ~readiness.get("is_functionally_excluded", False),
         ["service_id", "service_name", "service_type", "provider_source", "municipality_name", "address_public"],
     ].copy()
     has_address = queue["address_public"].astype("string").str.strip().notna()
