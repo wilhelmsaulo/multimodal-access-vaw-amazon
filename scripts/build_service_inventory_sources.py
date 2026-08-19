@@ -31,8 +31,8 @@ def _get_with_retries(
     client: httpx.Client,
     url: str,
     *,
-    retries: int = 4,
-    backoff_seconds: float = 2.0,
+    retries: int = 7,
+    backoff_seconds: float = 1.5,
 ) -> httpx.Response:
     last_error: Exception | None = None
     for attempt in range(retries + 1):
@@ -54,7 +54,7 @@ def _read_csv_bytes(data: bytes) -> pd.DataFrame:
     for encoding in ("utf-8", "latin1"):
         try:
             return pd.read_csv(BytesIO(data), encoding=encoding)
-        except Exception as exc:  # pragma: no cover - only used for alternate source encodings
+        except Exception as exc:  # pragma: no cover - alternate source encodings
             last_error = exc
     assert last_error is not None
     raise ValueError(f"Could not parse SAGI CREAS CSV: {last_error}")
@@ -65,8 +65,8 @@ def download_creas_sagi_pa(out_dir: Path, client: httpx.Client) -> dict:
 
     The endpoint is a unit-level operational registry and supplies stable equipment IDs,
     municipality identifiers, public addresses, georeferences when available, and the
-    source update timestamp. It is used for service location/routing only; it does not
-    provide a defensible service-capacity measure, so capacity remains missing later.
+    source update timestamp. It is used for service location/routing only; primary
+    accessibility uses one validated physical unit as one supply opportunity.
     """
     manifest: dict[str, object] = {
         "source": "MDS/SAGI equipment registry",
@@ -79,7 +79,8 @@ def download_creas_sagi_pa(out_dir: Path, client: httpx.Client) -> dict:
         "rows_para_with_georef": 0,
         "sha256": None,
         "columns": [],
-        "capacity_rule": "No capacity is inferred from presence, address, or georeference fields.",
+        "primary_supply_rule": "One validated CREAS physical unit equals one supply opportunity within the CREAS category.",
+        "capacity_rule": "Observed capacity is optional and is not required for the primary accessibility analysis.",
     }
     try:
         response = _get_with_retries(client, CREAS_SAGI_URL)
@@ -157,9 +158,10 @@ def build_cnes(out_dir: Path) -> dict:
         "rows_hospital_beds_cnes_summary": int(len(beds_summary)),
         "raw_columns": [str(c) for c in raw.columns],
         "beds_raw_columns": [str(c) for c in beds_raw.columns],
+        "primary_supply_rule": "One validated health service unit equals one supply opportunity within the health category.",
         "capacity_rule": (
-            "registered beds only when CNES key and bed-count field are explicit; "
-            "if the official beds endpoint is unavailable, capacity remains missing and is not imputed"
+            "registered beds are retained only when an exact CNES match exists; "
+            "capacity is optional and reserved for health-specific sensitivity analysis"
         ),
     }
     (out_dir / "cnes_manifest.json").write_text(
@@ -180,7 +182,12 @@ def main() -> None:
     if not args.skip_cnes:
         summary["cnes"] = build_cnes(args.output_dir)
     if not args.skip_creas:
-        with httpx.Client(timeout=120.0, follow_redirects=True) as client:
+        timeout = httpx.Timeout(connect=30.0, read=180.0, write=30.0, pool=30.0)
+        headers = {
+            "User-Agent": "multimodal-access-vaw-amazon/1.0 (research data retrieval)",
+            "Accept": "text/csv,text/plain;q=0.9,*/*;q=0.8",
+        }
+        with httpx.Client(timeout=timeout, follow_redirects=True, headers=headers) as client:
             summary["creas"] = download_creas_sagi_pa(args.output_dir, client)
     (args.output_dir / "build_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
