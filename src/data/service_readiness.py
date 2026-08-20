@@ -32,8 +32,11 @@ def audit_service_readiness(inventory: pd.DataFrame) -> tuple[pd.DataFrame, Serv
     valid_coords = lat.between(-90, 90) & lon.between(-180, 180)
 
     status = out["validation_status"].astype("string").fillna("")
+    # Only function-related uncertainty blocks functional readiness. Generic
+    # location/routing qualifiers (for example, CREAS "requires_routing_validation")
+    # must not be misclassified as missing functional validation.
     needs_validation = status.str.contains(
-        r"candidate|needs|requires|pending|screened_unresolved",
+        r"candidate|needs[_ -]?function|requires[_ -]?function|pending[_ -]?function|screened_unresolved",
         case=False, regex=True, na=False,
     )
     explicitly_excluded = status.str.contains(
