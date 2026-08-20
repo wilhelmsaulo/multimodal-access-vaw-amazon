@@ -11,7 +11,9 @@ on:
       - "scripts/audit_service_readiness.py"
       - "scripts/geocode_service_locations.py"
       - "scripts/discover_service_pois_overpass.py"
+      - "scripts/audit_manual_service_coordinate_candidates.py"
       - "scripts/validate_geocoded_service_locations.py"
+      - "data/candidates/manual_service_coordinate_candidates_*.csv"
       - "src/data/cnes_service_evidence.py"
       - "src/data/service_consolidation.py"
       - "src/data/service_readiness.py"
@@ -35,7 +37,9 @@ on:
       - "scripts/audit_service_readiness.py"
       - "scripts/geocode_service_locations.py"
       - "scripts/discover_service_pois_overpass.py"
+      - "scripts/audit_manual_service_coordinate_candidates.py"
       - "scripts/validate_geocoded_service_locations.py"
+      - "data/candidates/manual_service_coordinate_candidates_*.csv"
       - "src/data/cnes_service_evidence.py"
       - "src/data/service_consolidation.py"
       - "src/data/service_readiness.py"
@@ -84,6 +88,9 @@ jobs:
         run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
       - name: Audit service readiness
         run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
+      - name: Audit manually supplied coordinate candidates
+        continue-on-error: true
+        run: python scripts/audit_manual_service_coordinate_candidates.py --output artifacts/service_inventory/manual_coordinate_candidate_audit.csv --audit artifacts/service_inventory/manual_coordinate_candidate_audit.json
       - name: Discover named OSM POIs with Overpass
         continue-on-error: true
         run: python scripts/discover_service_pois_overpass.py --queue artifacts/service_inventory/services_geocoding_queue.csv --output artifacts/service_inventory/services_overpass_poi_candidates.csv --audit artifacts/service_inventory/services_overpass_poi_audit.json
@@ -98,6 +105,7 @@ jobs:
           cat artifacts/service_inventory/specialized_sources_summary.json
           cat artifacts/service_inventory/services_consolidation_audit.json
           cat artifacts/service_inventory/services_readiness_audit.json
+          if [ -f artifacts/service_inventory/manual_coordinate_candidate_audit.json ]; then cat artifacts/service_inventory/manual_coordinate_candidate_audit.json; fi
           if [ -f artifacts/service_inventory/services_overpass_poi_audit.json ]; then cat artifacts/service_inventory/services_overpass_poi_audit.json; fi
           cat artifacts/service_inventory/services_geocoding_audit.json
           cat artifacts/service_inventory/services_geocoded_spatial_validation.audit.json
