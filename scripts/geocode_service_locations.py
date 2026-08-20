@@ -59,7 +59,7 @@ def institution_aliases(service_type: str, municipality: str) -> list[tuple[str,
     if service_type == "specialized_security":
         specific: dict[str, list[tuple[str, str]]] = {
             "ananindeua": [
-                ("exact_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Cláudio Sanders 28, Ananindeua, Pará, Brasil"),
+                ("exact_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Claude Saunders 28, Ananindeua, Pará, Brasil"),
             ],
             "canaa dos carajas": [
                 ("exact_complexo_policia_civil", "Complexo da Polícia Civil, Avenida Weyne Cavalcante, Jardim das Palmeiras, Canaã dos Carajás, Pará, Brasil"),
@@ -80,7 +80,7 @@ def institution_aliases(service_type: str, municipality: str) -> list[tuple[str,
                 ("exact_forum_criminal", "Fórum Criminal Des. Romão Amoedo Neto, Rua Tomázia Perdigão 310, Cidade Velha, Belém, Pará, Brasil"),
             ],
             "ananindeua": [
-                ("exact_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Cláudio Sanders 28, Ananindeua, Pará, Brasil"),
+                ("exact_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Claude Saunders 28, Ananindeua, Pará, Brasil"),
             ],
             "castanhal": [
                 ("exact_forum_castanhal", "Fórum Judiciário, Avenida Presidente Vargas 2639, Centro, Castanhal, Pará, Brasil"),
