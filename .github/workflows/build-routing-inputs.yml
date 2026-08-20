@@ -1,0 +1,102 @@
+name: build-routing-inputs
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/materialize_routing_inputs.py"
+      - "src/network/od_matrix.py"
+      - "tests/test_od_matrix.py"
+      - "scripts/build_cnefe_sector_origins.py"
+      - "src/data/cnefe_origins.py"
+      - "scripts/build_service_inventory_from_snapshots.py"
+      - "scripts/build_specialized_service_sources.py"
+      - "scripts/consolidate_service_inventory.py"
+      - "scripts/audit_service_readiness.py"
+      - "data/snapshots/**"
+      - ".github/workflows/build-routing-inputs.yml"
+  push:
+    branches: [agent/stage1-stage2-accessibility]
+    paths:
+      - "scripts/materialize_routing_inputs.py"
+      - "src/network/od_matrix.py"
+      - "tests/test_od_matrix.py"
+      - "scripts/build_cnefe_sector_origins.py"
+      - "src/data/cnefe_origins.py"
+      - "scripts/build_service_inventory_from_snapshots.py"
+      - "scripts/build_specialized_service_sources.py"
+      - "scripts/consolidate_service_inventory.py"
+      - "scripts/audit_service_readiness.py"
+      - "data/snapshots/**"
+      - ".github/workflows/build-routing-inputs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: routing-inputs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . \
+            "geopandas>=1.0,<2" \
+            "pyogrio>=0.10,<1" \
+            "PyYAML>=6,<7" \
+            "openpyxl>=3.1,<4" \
+            "xlrd>=2,<3" \
+            "pytest>=8,<9"
+      - name: Test routing contracts
+        run: pytest tests/test_od_matrix.py tests/test_cnefe_origins.py
+      - name: Build official Pará census sectors
+        run: python src/data/ibge_census2022_sectors.py
+      - name: Build validated CNEFE sector origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Build CNES and CREAS snapshots
+        run: python scripts/build_service_inventory_from_snapshots.py
+      - name: Build TJPA and DEAM sources
+        run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
+      - name: Consolidate services
+        run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
+      - name: Audit service readiness
+        run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
+      - name: Materialize routing inputs
+        run: python scripts/materialize_routing_inputs.py
+      - name: Validate materialized inputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          root = Path("artifacts/routing_inputs")
+          origins = pd.read_csv(root / "origins_for_routing.csv", low_memory=False)
+          dest = pd.read_csv(root / "destinations_for_routing.csv", low_memory=False)
+          audit = json.loads((root / "routing_inputs_audit.json").read_text(encoding="utf-8"))
+          assert len(origins) == audit["origins_ready"]
+          assert len(dest) == audit["destinations_ready"]
+          assert origins["female_population"].notna().all()
+          assert origins[["latitude", "longitude"]].notna().all().all()
+          assert dest[["latitude", "longitude"]].notna().all().all()
+          assert dest["service_id"].nunique() == len(dest)
+          assert origins["origin_id"].nunique() == len(origins)
+          print(json.dumps(audit, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload routing inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-routing-inputs
+          path: artifacts/routing_inputs/
+          if-no-files-found: error
+          retention-days: 30
