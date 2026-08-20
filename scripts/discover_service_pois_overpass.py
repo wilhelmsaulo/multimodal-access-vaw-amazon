@@ -74,7 +74,7 @@ def aliases_for(row: pd.Series) -> list[str]:
 
 def build_query(municipality: str, aliases: list[str]) -> str:
     pattern = "|".join(regex_escape(alias) for alias in aliases)
-    return f'''[out:json][timeout:40];
+    return f'''[out:json][timeout:15];
 area["boundary"="administrative"]["name"="{municipality}"]->.a;
 (
   nwr(area.a)["name"~"({pattern})",i];
@@ -109,43 +109,27 @@ def element_point(element: dict) -> tuple[float | None, float | None]:
     return None, None
 
 
-def discover(queue: pd.DataFrame, delay: float = 1.0) -> pd.DataFrame:
+def discover(queue: pd.DataFrame, delay: float = 0.4) -> pd.DataFrame:
     rows: list[dict] = []
-    with httpx.Client(timeout=60.0, follow_redirects=True, headers={"User-Agent": USER_AGENT}) as client:
+    cache: dict[tuple[str, tuple[str, ...]], tuple[list[dict] | None, str | None, str | None]] = {}
+    with httpx.Client(timeout=20.0, follow_redirects=True, headers={"User-Agent": USER_AGENT}) as client:
         for _, row in queue.iterrows():
             municipality = str(row.get("municipality_name") or "").strip()
             aliases = aliases_for(row)
             if not municipality or not aliases:
                 continue
-            query = build_query(municipality, aliases)
-            try:
-                elements, endpoint = request_overpass(client, query)
-                for element in elements:
-                    lat, lon = element_point(element)
-                    tags = element.get("tags") or {}
-                    rows.append({
-                        "service_id": row.get("service_id"),
-                        "service_name": row.get("service_name"),
-                        "service_type": row.get("service_type"),
-                        "municipality_name": municipality,
-                        "address_public": row.get("address_public"),
-                        "overpass_aliases": " | ".join(aliases),
-                        "osm_element_type": element.get("type"),
-                        "osm_element_id": element.get("id"),
-                        "osm_name": tags.get("name"),
-                        "osm_official_name": tags.get("official_name"),
-                        "osm_short_name": tags.get("short_name"),
-                        "osm_amenity": tags.get("amenity"),
-                        "osm_office": tags.get("office"),
-                        "osm_addr_street": tags.get("addr:street"),
-                        "osm_addr_housenumber": tags.get("addr:housenumber"),
-                        "osm_addr_postcode": tags.get("addr:postcode"),
-                        "latitude_candidate": lat,
-                        "longitude_candidate": lon,
-                        "overpass_endpoint": endpoint,
-                        "promotion_status": "manual_validation_required",
-                    })
-            except Exception as exc:
+            key = (municipality, tuple(aliases))
+            if key not in cache:
+                query = build_query(municipality, aliases)
+                try:
+                    elements, endpoint = request_overpass(client, query)
+                    cache[key] = (elements, endpoint, None)
+                except Exception as exc:
+                    cache[key] = (None, None, f"request_error:{type(exc).__name__}")
+                time.sleep(delay)
+
+            elements, endpoint, error = cache[key]
+            if error is not None:
                 rows.append({
                     "service_id": row.get("service_id"),
                     "service_name": row.get("service_name"),
@@ -153,9 +137,35 @@ def discover(queue: pd.DataFrame, delay: float = 1.0) -> pd.DataFrame:
                     "municipality_name": municipality,
                     "address_public": row.get("address_public"),
                     "overpass_aliases": " | ".join(aliases),
-                    "promotion_status": f"request_error:{type(exc).__name__}",
+                    "promotion_status": error,
                 })
-            time.sleep(delay)
+                continue
+
+            for element in elements or []:
+                lat, lon = element_point(element)
+                tags = element.get("tags") or {}
+                rows.append({
+                    "service_id": row.get("service_id"),
+                    "service_name": row.get("service_name"),
+                    "service_type": row.get("service_type"),
+                    "municipality_name": municipality,
+                    "address_public": row.get("address_public"),
+                    "overpass_aliases": " | ".join(aliases),
+                    "osm_element_type": element.get("type"),
+                    "osm_element_id": element.get("id"),
+                    "osm_name": tags.get("name"),
+                    "osm_official_name": tags.get("official_name"),
+                    "osm_short_name": tags.get("short_name"),
+                    "osm_amenity": tags.get("amenity"),
+                    "osm_office": tags.get("office"),
+                    "osm_addr_street": tags.get("addr:street"),
+                    "osm_addr_housenumber": tags.get("addr:housenumber"),
+                    "osm_addr_postcode": tags.get("addr:postcode"),
+                    "latitude_candidate": lat,
+                    "longitude_candidate": lon,
+                    "overpass_endpoint": endpoint,
+                    "promotion_status": "manual_validation_required",
+                })
     return pd.DataFrame(rows)
 
 
