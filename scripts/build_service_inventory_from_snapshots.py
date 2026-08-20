@@ -51,8 +51,6 @@ def load_creas() -> tuple[pd.DataFrame, dict]:
     if int(valid_coords.sum()) != EXPECTED_CREAS_WITH_COORDS or int((~valid_coords).sum()) != EXPECTED_CREAS_WITHOUT_COORDS:
         raise ValueError("CREAS coordinate counts differ from the audited 136 georeferenced / 2 unresolved records")
 
-    # Preserve compatibility with the existing consolidation parser while keeping
-    # the repository snapshot human-readable and free of compression/base64.
     frame["georef_location"] = pd.NA
     frame.loc[valid_coords, "georef_location"] = (
         frame.loc[valid_coords, "latitude"].astype("string").str.strip()
@@ -150,8 +148,15 @@ def build_cnes(out_dir: Path) -> dict:
         "temporal_note": "Service eligibility is fixed to CNES July 2026 service/classification data; establishment attributes are a versioned official extract successfully retrieved on 2026-08-19.",
     }
     (out_dir / "cnes_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
-    (out_dir / "hospital_beds_pa_raw.csv").write_text("", encoding="utf-8")
-    (out_dir / "hospital_beds_pa_by_cnes.csv").write_text("", encoding="utf-8")
+
+    # Keep compatibility with the consolidation pipeline while representing that
+    # no bed-capacity sensitivity data are being used in the primary workflow.
+    pd.DataFrame(columns=["codigo_cnes", "capacity", "capacity_type", "capacity_source"]).to_csv(
+        out_dir / "hospital_beds_pa_by_cnes.csv", index=False
+    )
+    pd.DataFrame(columns=["codigo_cnes", "capacity", "capacity_type", "capacity_source"]).to_csv(
+        out_dir / "hospital_beds_pa_raw.csv", index=False
+    )
     return manifest
 
 
