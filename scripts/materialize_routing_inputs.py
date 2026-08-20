@@ -23,7 +23,6 @@ def main() -> None:
 
     origins_all = pd.read_csv(args.origins, dtype={"origin_id": "string", "municipality_code": "string"}, low_memory=False)
     services_all = pd.read_csv(args.services, dtype={"service_id": "string", "municipality_code": "string"}, low_memory=False)
-
     origins = ready_origins(origins_all)
     destinations = ready_destinations(services_all, require_capacity=False)
     if origins.empty or destinations.empty:
@@ -35,39 +34,57 @@ def main() -> None:
     origins.to_csv(args.output_dir / "origins_for_routing.csv", index=False)
     destinations.to_csv(args.output_dir / "destinations_for_routing.csv", index=False)
 
-    rows = []
-    by_type = destinations.groupby("service_type", dropna=False)["service_id"].nunique()
-    for service_type, n_dest in by_type.items():
+    total_by_type = services_all.groupby("service_type", dropna=False)["service_id"].nunique()
+    ready_by_type = destinations.groupby("service_type", dropna=False)["service_id"].nunique()
+    coverage_rows = []
+    pair_rows = []
+    for service_type, total in total_by_type.items():
+        ready = int(ready_by_type.get(service_type, 0))
+        unresolved = int(total) - ready
+        coverage_rows.append({
+            "service_type": service_type,
+            "services_total": int(total),
+            "services_ready": ready,
+            "services_unresolved_location": unresolved,
+            "location_coverage_fraction": ready / int(total) if int(total) else 0.0,
+            "inventory_complete_for_primary_analysis": unresolved == 0,
+        })
         for scenario in SCENARIOS:
-            rows.append({
+            pair_rows.append({
                 "service_type": service_type,
                 "scenario": scenario,
                 "origins_ready": int(len(origins)),
-                "destinations_ready": int(n_dest),
-                "candidate_pairs": int(len(origins) * int(n_dest)),
+                "destinations_ready": ready,
+                "candidate_pairs": int(len(origins) * ready),
                 "travel_time_status": "not_yet_solved_by_multimodal_router",
             })
-    pd.DataFrame(rows).to_csv(args.output_dir / "od_candidate_manifest.csv", index=False)
+    coverage = pd.DataFrame(coverage_rows)
+    coverage.to_csv(args.output_dir / "destination_coverage_by_type.csv", index=False)
+    pd.DataFrame(pair_rows).to_csv(args.output_dir / "od_candidate_manifest.csv", index=False)
 
     female = pd.to_numeric(origins["female_population"], errors="coerce")
     all_female = pd.to_numeric(origins_all["female_population"], errors="coerce")
     all_lat = pd.to_numeric(origins_all["latitude"], errors="coerce")
     all_lon = pd.to_numeric(origins_all["longitude"], errors="coerce")
+    unresolved_origin = all_female.notna() & (all_lat.isna() | all_lon.isna())
     audit = {
         "origins_total": int(len(origins_all)),
         "origins_ready": int(len(origins)),
         "origins_excluded_missing_female_population": int(all_female.isna().sum()),
-        "origins_excluded_missing_location_with_observed_female_population": int((all_female.notna() & (all_lat.isna() | all_lon.isna())).sum()),
+        "origins_excluded_missing_location_with_observed_female_population": int(unresolved_origin.sum()),
         "female_population_ready": float(female.sum()),
+        "female_population_observed_but_unresolved_location": float(all_female[unresolved_origin].sum()),
         "destinations_total": int(len(services_all)),
         "destinations_ready": int(len(destinations)),
-        "destinations_by_service_type": {str(k): int(v) for k, v in destinations["service_type"].astype("string").value_counts(dropna=False).to_dict().items()},
+        "destinations_by_service_type": {str(k): int(v) for k, v in ready_by_type.to_dict().items()},
+        "incomplete_service_types_for_primary_analysis": coverage.loc[~coverage["inventory_complete_for_primary_analysis"], "service_type"].astype(str).tolist(),
         "scenarios": list(SCENARIOS),
         "candidate_pairs_per_scenario": int(len(origins) * len(destinations)),
         "candidate_pairs_all_scenarios": int(len(origins) * len(destinations) * len(SCENARIOS)),
         "pair_materialization_policy": "Full Cartesian pairs are not written yet; routing should solve pairs in chunks by service type and scenario.",
         "travel_time_policy": "No straight-line or assumed-speed travel time is created here.",
         "primary_supply_rule": "one_validated_service_unit_equals_one_supply_opportunity_within_service_type",
+        "analysis_gate": "A service type is not treated as a complete primary layer while known validated units still lack defensible coordinates.",
     }
     (args.output_dir / "routing_inputs_audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(audit, ensure_ascii=False, indent=2))
