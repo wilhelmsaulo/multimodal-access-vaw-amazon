@@ -58,9 +58,13 @@ def build_tjpa(out_dir: Path) -> dict:
     manifest = {
         "source": "Tribunal de Justiça do Estado do Pará - diretório oficial",
         "url": "https://centralservicos.tjpa.jus.br/bv/todos.php",
-        "rows_specialized_candidates": int(len(units)),
+        "rows_specialized_units": int(len(units)),
         "columns": [str(c) for c in units.columns],
-        "validation_status": "official_directory_candidate",
+        "function_validation_status": "function_validated_from_official_tjpa_directory",
+        "location_note": (
+            "The official directory validates the existence and specialized judicial function of each unit. "
+            "Street address and coordinates remain separate location-validation requirements and are not inferred here."
+        ),
     }
     (out_dir / "tjpa_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
