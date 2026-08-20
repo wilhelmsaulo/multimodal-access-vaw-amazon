@@ -47,6 +47,7 @@ def aliases_for(row: pd.Series) -> list[str]:
             "ananindeua": ["Casa da Mulher Brasileira de Ananindeua", "Casa da Mulher Brasileira"],
             "canaa dos carajas": ["Complexo da Polícia Civil"],
             "redencao": ["Complexo da Polícia Civil"],
+            "soure": ["Complexo da Polícia Civil"],
         }
         aliases.extend(specific.get(municipality, []))
         aliases.extend(["Delegacia Especializada de Atendimento à Mulher", "DEAM", "Delegacia da Mulher", "ParáPaz Mulher"])
@@ -73,7 +74,6 @@ def aliases_for(row: pd.Series) -> list[str]:
 
 def build_query(municipality: str, aliases: list[str]) -> str:
     pattern = "|".join(regex_escape(alias) for alias in aliases)
-    # Search administrative areas named after the municipality, restricted to Pará by ISO tag where available.
     return f'''[out:json][timeout:40];
 area["boundary"="administrative"]["name"="{municipality}"]->.a;
 (
