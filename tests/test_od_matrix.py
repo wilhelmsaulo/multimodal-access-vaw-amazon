@@ -46,19 +46,12 @@ def test_ready_and_candidate_pairs():
     assert len(ready_origins(origins)) == 2
     assert len(ready_destinations(services, require_capacity=False)) == 2
 
-    # Capacity remains available for category-specific sensitivity analyses only.
     assert len(ready_destinations(services, require_capacity=True)) == 1
-    sensitivity_pairs = build_candidate_pairs(
-        origins, ready_destinations(services, require_capacity=True)
-    )
-    assert len(sensitivity_pairs) == 4  # 2 origins x 1 capacity-observed service x 2 seasons
+    sensitivity_pairs = build_candidate_pairs(origins, ready_destinations(services, require_capacity=True))
+    assert len(sensitivity_pairs) == 4
 
-    # Primary accessibility uses one validated physical unit = one opportunity (S_j = 1),
-    # so both services are eligible even when harmonized capacity is unavailable.
-    primary_pairs = build_candidate_pairs(
-        origins, ready_destinations(services, require_capacity=False)
-    )
-    assert len(primary_pairs) == 8  # 2 origins x 2 services x 2 seasons
+    primary_pairs = build_candidate_pairs(origins, ready_destinations(services, require_capacity=False))
+    assert len(primary_pairs) == 8
     assert primary_pairs["travel_time_min"].isna().all()
 
     audit = audit_od_inputs(origins, services)
@@ -72,3 +65,19 @@ def test_unvalidated_rural_centroid_is_rejected():
     origins["origin_validation_status"] = "unvalidated"
     with pytest.raises(ValueError, match="rural centroids"):
         ready_origins(origins)
+
+
+def test_missing_female_population_is_not_analytically_ready():
+    origins = _origins()
+    origins.loc[1, "female_population"] = pd.NA
+    ready = ready_origins(origins)
+    assert ready["origin_id"].tolist() == ["s1"]
+
+
+def test_accepted_cnefe_level3_fallback_is_ready_when_demand_observed():
+    origins = _origins().iloc[[0]].copy()
+    origins["origin_id"] = "fallback-sector"
+    origins["origin_method"] = "cnefe_level3_estimated_address_fallback"
+    origins["origin_validation_status"] = "accepted_estimated_address_fallback"
+    ready = ready_origins(origins)
+    assert ready["origin_id"].tolist() == ["fallback-sector"]
