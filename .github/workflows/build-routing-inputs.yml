@@ -85,12 +85,15 @@ jobs:
           dest = pd.read_csv(root / "destinations_for_routing.csv", low_memory=False)
           audit = json.loads((root / "routing_inputs_audit.json").read_text(encoding="utf-8"))
           assert len(origins) == audit["origins_ready"]
-          assert len(dest) == audit["destinations_ready"]
+          assert len(dest) == audit["physical_service_sites_ready"]
           assert origins["female_population"].notna().all()
           assert origins[["latitude", "longitude"]].notna().all().all()
           assert dest[["latitude", "longitude"]].notna().all().all()
+          assert "physical_site_id" in dest.columns
+          assert dest["physical_site_id"].nunique() == len(dest)
           assert dest["service_id"].nunique() == len(dest)
           assert origins["origin_id"].nunique() == len(origins)
+          assert (dest["primary_supply_weight"] == 1.0).all()
           print(json.dumps(audit, ensure_ascii=False, indent=2))
           PY
       - name: Upload routing inputs
