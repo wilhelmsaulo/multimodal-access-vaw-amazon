@@ -8,10 +8,11 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import httpx
-
-from src.data.service_inventory import fetch_tjpa_specialized_units
+import pandas as pd
 
 LIGUE180_PAGE = "https://www.gov.br/mulheres/pt-br/ligue180/painel-da-rede-de-atendimento"
+TJPA_DIRECTORY = "https://centralservicos.tjpa.jus.br/bv/todos.php"
+TJPA_SNAPSHOT = Path("data/snapshots/tjpa_specialized_vaw_units_2026-08-20.csv")
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -53,17 +54,32 @@ def audit_ligue180_publication(out_dir: Path, client: httpx.Client) -> dict:
 
 
 def build_tjpa(out_dir: Path) -> dict:
-    units = fetch_tjpa_specialized_units()
+    units = pd.read_csv(TJPA_SNAPSHOT, dtype=str)
+    required = {"service_name", "municipality_name", "address_public", "validation_status"}
+    missing = required.difference(units.columns)
+    if missing:
+        raise ValueError(f"TJPA snapshot missing columns: {sorted(missing)}")
+    if len(units) != 9:
+        raise ValueError("TJPA specialized VAW snapshot must contain the 9 units confirmed in the official directory on 2026-08-20")
+    units["service_type"] = "specialized_justice"
+    units["provider_source"] = "TJPA"
     units.to_csv(out_dir / "tjpa_specialized_vaw_units.csv", index=False)
+
     manifest = {
-        "source": "Tribunal de Justiça do Estado do Pará - diretório oficial",
-        "url": "https://centralservicos.tjpa.jus.br/bv/todos.php",
+        "source": "Tribunal de Justiça do Estado do Pará - official directory and official property/address records",
+        "directory_url": TJPA_DIRECTORY,
+        "snapshot_file": str(TJPA_SNAPSHOT),
+        "snapshot_sha256": sha256_bytes(TJPA_SNAPSHOT.read_bytes()),
+        "snapshot_reference_date": "2026-08-20",
         "rows_specialized_units": int(len(units)),
-        "columns": [str(c) for c in units.columns],
+        "municipalities": sorted(units["municipality_name"].dropna().unique().tolist()),
         "function_validation_status": "function_validated_from_official_tjpa_directory",
-        "location_note": (
-            "The official directory validates the existence and specialized judicial function of each unit. "
-            "Street address and coordinates remain separate location-validation requirements and are not inferred here."
+        "address_status": "official_building_address_resolved",
+        "coordinate_status": "pending_geocoding_and_spatial_validation",
+        "note": (
+            "The current TJPA directory confirms nine specialized judicial units, including the district unit in Icoaraci. "
+            "Addresses are tied to official TJPA building/property records. Coordinates are deliberately not invented and "
+            "remain a separate geocoding/spatial-validation step."
         ),
     }
     (out_dir / "tjpa_manifest.json").write_text(
