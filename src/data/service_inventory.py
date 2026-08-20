@@ -160,7 +160,12 @@ def validate_cnes_health_destinations(candidates: pd.DataFrame) -> pd.DataFrame:
 
 
 def parse_tjpa_specialized_units(html: str) -> pd.DataFrame:
-    """Parse specialized VAW justice units from the public TJPA contacts page text/HTML."""
+    """Parse explicitly specialized VAW justice units from the official TJPA directory.
+
+    The directory itself is authoritative evidence that the named judicial unit
+    exists and is functionally specialized. This parser does not infer or invent
+    a street address or coordinates; location readiness is audited separately.
+    """
     text = re.sub(r"<[^>]+>", "\n", html)
     text = re.sub(r"&nbsp;", " ", text, flags=re.I)
     text = re.sub(r"\s+", " ", text)
@@ -178,7 +183,7 @@ def parse_tjpa_specialized_units(html: str) -> pd.DataFrame:
                 "municipality_name": match.group("city").strip(),
                 "service_type": "specialized_justice",
                 "provider_source": "TJPA",
-                "validation_status": "official_directory_candidate",
+                "validation_status": "function_validated_from_official_tjpa_directory",
             }
         )
     return pd.DataFrame(rows).drop_duplicates() if rows else pd.DataFrame(
