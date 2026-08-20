@@ -4,17 +4,31 @@ import argparse
 import json
 from pathlib import Path
 
-from src.data.service_consolidation import load_and_consolidate_artifact
+import pandas as pd
+
+from src.data.service_consolidation import (
+    consolidate_service_frames,
+    load_and_consolidate_artifact,
+    normalize_manual_standard,
+)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Consolidate official Pará service extracts.")
     parser.add_argument("--artifact-dir", type=Path, default=Path("artifacts/service_inventory"))
     parser.add_argument("--output", type=Path, default=Path("artifacts/service_inventory/services_consolidated.csv"))
-    parser.add_argument("--reference-date", default="2026-08-18")
+    parser.add_argument("--reference-date", default="2026-08-20")
     args = parser.parse_args()
 
-    inventory, audit = load_and_consolidate_artifact(args.artifact_dir, args.reference_date)
+    inventory, _ = load_and_consolidate_artifact(args.artifact_dir, args.reference_date)
+
+    deam_path = args.artifact_dir / "deam_physical_units_pa.csv"
+    frames = [inventory]
+    if deam_path.exists():
+        deam = normalize_manual_standard(pd.read_csv(deam_path))
+        frames.append(deam)
+    inventory, audit = consolidate_service_frames(frames)
+
     args.output.parent.mkdir(parents=True, exist_ok=True)
     inventory.to_csv(args.output, index=False)
 
@@ -25,6 +39,7 @@ def main() -> None:
         "missing_coordinates": audit.missing_coordinates,
         "missing_capacity": audit.missing_capacity,
         "duplicate_service_ids": audit.duplicate_service_ids,
+        "strict_physical_deam_layer_included": bool(deam_path.exists()),
         "output": str(args.output),
     }
     (args.output.parent / "services_consolidation_audit.json").write_text(
