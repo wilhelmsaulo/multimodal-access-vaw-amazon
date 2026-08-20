@@ -66,13 +66,28 @@ def validate_origin_points(origins: pd.DataFrame) -> None:
 
 
 def ready_origins(origins: pd.DataFrame) -> pd.DataFrame:
+    """Return analytical origins with a defensible location and observed demand.
+
+    E2SFCA demand is the observed female resident population. A sector with a
+    coordinate but missing female population is therefore not analytically ready.
+    The documented CNEFE level-3 fallback is accepted because it was explicitly
+    retained as a defensible fallback after the level-1/2 audit.
+    """
     validate_origin_points(origins)
     lat = pd.to_numeric(origins["latitude"], errors="coerce")
     lon = pd.to_numeric(origins["longitude"], errors="coerce")
+    pop = pd.to_numeric(origins["female_population"], errors="coerce")
     status = origins["origin_validation_status"].astype("string")
-    mask = lat.notna() & lon.notna() & status.isin(
-        ["validated", "validated_inhabited_location", "official_locality", "urban_representative_point"]
+    location_valid = status.isin(
+        [
+            "validated",
+            "validated_inhabited_location",
+            "official_locality",
+            "urban_representative_point",
+            "accepted_estimated_address_fallback",
+        ]
     )
+    mask = lat.notna() & lon.notna() & pop.notna() & (pop >= 0) & location_valid
     return origins.loc[mask, ORIGIN_COLUMNS].copy()
 
 
