@@ -53,23 +53,47 @@ def query_nominatim(client: httpx.Client, query: str) -> list[dict]:
 
 
 def institution_aliases(service_type: str, municipality: str) -> list[tuple[str, str]]:
+    m = norm(municipality)
     base = f"{municipality}, Pará, Brasil"
+
     if service_type == "specialized_security":
-        return [
+        specific: dict[str, list[tuple[str, str]]] = {
+            "ananindeua": [
+                ("alias_casa_mulher_brasileira", "Casa da Mulher Brasileira, Ananindeua, Pará, Brasil"),
+                ("alias_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Cláudio Saunders 28, Ananindeua, Pará, Brasil"),
+            ],
+            "canaa dos carajas": [
+                ("alias_complexo_policia_civil", "Complexo da Polícia Civil, Avenida Weyne Cavalcante, Canaã dos Carajás, Pará, Brasil"),
+            ],
+            "redencao": [
+                ("alias_complexo_policia_civil", "Complexo da Polícia Civil, Buriti III, Redenção, Pará, Brasil"),
+            ],
+        }
+        return specific.get(m, []) + [
             ("alias_deam_full", f"Delegacia Especializada de Atendimento à Mulher, {base}"),
             ("alias_deam", f"DEAM, {base}"),
             ("alias_delegacia_mulher", f"Delegacia da Mulher, {base}"),
         ]
+
     if service_type == "specialized_justice":
-        if norm(municipality) == "belem":
-            return [
-                ("alias_forum_criminal_romao_amoedo", f"Fórum Criminal Romão Amoedo, {base}"),
-                ("alias_forum_criminal", f"Fórum Criminal, {base}"),
-            ]
-        return [
+        specific = {
+            "belem": [
+                ("alias_forum_criminal_romao_amoedo", "Fórum Criminal Desembargador Romão Amoedo Neto, Belém, Pará, Brasil"),
+                ("alias_forum_criminal_address", "Fórum Criminal, Rua Tomázia Perdigão 310, Belém, Pará, Brasil"),
+            ],
+            "ananindeua": [
+                ("alias_forum_edgar_lassance", "Fórum Desembargador Edgar Lassance Cunha, Ananindeua, Pará, Brasil"),
+                ("alias_forum_ananindeua_address", "Fórum de Ananindeua, Avenida Cláudio Sanders 193, Ananindeua, Pará, Brasil"),
+            ],
+            "castanhal": [
+                ("alias_forum_castanhal_address", "Fórum de Castanhal, Avenida Presidente Vargas 2639, Castanhal, Pará, Brasil"),
+            ],
+        }
+        return specific.get(m, []) + [
             ("alias_forum_municipality", f"Fórum de {municipality}, Pará, Brasil"),
             ("alias_tjpa_forum", f"Tribunal de Justiça Fórum de {municipality}, Pará, Brasil"),
         ]
+
     if service_type == "creas":
         return [
             ("alias_creas_municipality", f"CREAS de {municipality}, Pará, Brasil"),
@@ -102,8 +126,6 @@ def geocode_queue(queue: pd.DataFrame, *, timeout: float = 30.0, delay: float = 
                 "candidate_accepted_for_manual_validation": False,
             })
 
-            # Institution-specific aliases are tried before address-only queries. This avoids
-            # promoting a road centroid when Nominatim knows the actual courthouse/DEAM/CREAS POI.
             strategies: list[tuple[str, str]] = institution_aliases(service_type, municipality)
             if service_name and service_name.lower() not in {"nan", "<na>"}:
                 strategies.append(("official_service_name", f"{service_name}, {municipality}, Pará, Brasil"))
