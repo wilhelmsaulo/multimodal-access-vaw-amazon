@@ -7,6 +7,7 @@ on:
       - "scripts/materialize_routing_inputs.py"
       - "src/network/od_matrix.py"
       - "tests/test_od_matrix.py"
+      - "tests/test_materialize_routing_inputs.py"
       - "scripts/build_cnefe_sector_origins.py"
       - "src/data/cnefe_origins.py"
       - "scripts/build_service_inventory_from_snapshots.py"
@@ -21,6 +22,7 @@ on:
       - "scripts/materialize_routing_inputs.py"
       - "src/network/od_matrix.py"
       - "tests/test_od_matrix.py"
+      - "tests/test_materialize_routing_inputs.py"
       - "scripts/build_cnefe_sector_origins.py"
       - "src/data/cnefe_origins.py"
       - "scripts/build_service_inventory_from_snapshots.py"
@@ -59,7 +61,7 @@ jobs:
             "xlrd>=2,<3" \
             "pytest>=8,<9"
       - name: Test routing contracts
-        run: pytest tests/test_od_matrix.py tests/test_cnefe_origins.py
+        run: pytest tests/test_od_matrix.py tests/test_cnefe_origins.py tests/test_materialize_routing_inputs.py
       - name: Build official Pará census sectors
         run: python src/data/ibge_census2022_sectors.py
       - name: Build validated CNEFE sector origins
