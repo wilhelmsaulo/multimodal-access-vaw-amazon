@@ -21,8 +21,23 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def audit_ligue180_publication(out_dir: Path, client: httpx.Client) -> dict:
-    response = client.get(LIGUE180_PAGE)
-    response.raise_for_status()
+    try:
+        response = client.get(LIGUE180_PAGE)
+        response.raise_for_status()
+    except Exception as exc:
+        manifest = {
+            "source": "Ministério das Mulheres - Painel da Rede de Atendimento",
+            "page_url": LIGUE180_PAGE,
+            "source_status": "temporarily_unavailable_nonblocking",
+            "error_type": type(exc).__name__,
+            "note": (
+                "This source is discovery/audit metadata only and is not used to define the current routing inventory. "
+                "Temporary network failure therefore does not invalidate or block the versioned CNES, CREAS, TJPA or DEAM layers."
+            ),
+        }
+        (out_dir / "ligue180_publication_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+        return manifest
+
     html = response.text
     (out_dir / "ligue180_panel_page.html").write_text(html, encoding="utf-8")
     hrefs = [urljoin(str(response.url), h) for h in re.findall(r'href=["\']([^"\']+)', html, re.I)]
@@ -38,6 +53,7 @@ def audit_ligue180_publication(out_dir: Path, client: httpx.Client) -> dict:
         "page_url": LIGUE180_PAGE,
         "resolved_url": str(response.url),
         "http_status": response.status_code,
+        "source_status": "available",
         "page_sha256": sha256_bytes(response.content),
         "iframes": list(dict.fromkeys(iframes)),
         "candidate_resources": list(dict.fromkeys(resource_candidates)),
@@ -67,7 +83,8 @@ def build_tjpa(out_dir: Path) -> dict:
         "rows_specialized_units": int(len(units)),
         "function_validation_status": "function_validated_from_official_tjpa_directory",
         "address_status": "official_building_address_resolved",
-        "coordinate_status": "pending_geocoding_and_spatial_validation",
+        "coordinate_status": "mixed_validated_and_pending",
+        "rows_with_validated_coordinates": int(pd.to_numeric(units.get("latitude"), errors="coerce").notna().sum()),
     }
     (out_dir / "tjpa_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return manifest
@@ -75,10 +92,7 @@ def build_tjpa(out_dir: Path) -> dict:
 
 def build_deam(out_dir: Path) -> dict:
     units = pd.read_csv(DEAM_SNAPSHOT, dtype=str)
-    required = {
-        "service_id", "service_name", "service_type", "provider_source", "municipality_name",
-        "address_evidence_status", "validation_status"
-    }
+    required = {"service_id", "service_name", "service_type", "provider_source", "municipality_name", "address_evidence_status", "validation_status"}
     missing = required.difference(units.columns)
     if missing:
         raise ValueError(f"DEAM snapshot missing columns: {sorted(missing)}")
@@ -89,23 +103,21 @@ def build_deam(out_dir: Path) -> dict:
     units.to_csv(out_dir / "deam_physical_units_pa.csv", index=False)
     evidence_counts = units["address_evidence_status"].fillna("unresolved").value_counts().to_dict()
     with_address = units["address_public"].astype("string").str.strip().notna()
+    valid_coords = pd.to_numeric(units.get("latitude"), errors="coerce").notna() & pd.to_numeric(units.get("longitude"), errors="coerce").notna()
     manifest = {
         "source": "PCPA/SEGUP and official/institutional public sources",
         "snapshot_file": str(DEAM_SNAPSHOT),
         "snapshot_sha256": sha256_bytes(DEAM_SNAPSHOT.read_bytes()),
         "snapshot_reference_date": "2026-08-20",
         "rows_physical_deam": int(len(units)),
+        "rows_with_validated_coordinates": int(valid_coords.sum()),
         "rows_with_address_candidate": int(with_address.sum()),
         "rows_without_address": int((~with_address).sum()),
         "address_evidence_counts": {str(k): int(v) for k, v in evidence_counts.items()},
         "definition": "Physical Delegacia Especializada de Atendimento à Mulher (DEAM) only.",
         "excluded_from_physical_routing_layer": ["DEAM Virtual", "Sala Lilás", "mobile/itinerant services", "generic police stations"],
         "function_validation_status": "function_validated_from_official_state_sources",
-        "coordinate_status": "pending_geocoding_and_spatial_validation",
-        "address_rule": (
-            "Nonblank addresses are candidates with explicit provenance. Only current_official_state evidence may be described "
-            "as a current official state address; legacy/institutional candidates require revalidation before routing promotion."
-        ),
+        "address_rule": "Only current official or independently revalidated addresses/coordinates may be promoted to primary routing.",
     }
     (out_dir / "deam_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     return manifest
@@ -117,7 +129,7 @@ def main() -> None:
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     summary: dict[str, object] = {}
-    with httpx.Client(timeout=120.0, follow_redirects=True) as client:
+    with httpx.Client(timeout=20.0, follow_redirects=True) as client:
         summary["ligue180"] = audit_ligue180_publication(args.output_dir, client)
     summary["tjpa"] = build_tjpa(args.output_dir)
     summary["deam"] = build_deam(args.output_dir)
