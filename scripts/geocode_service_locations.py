@@ -58,8 +58,16 @@ def institution_aliases(service_type: str, municipality: str) -> list[tuple[str,
 
     if service_type == "specialized_security":
         specific: dict[str, list[tuple[str, str]]] = {
+            "abaetetuba": [
+                ("exact_deam_abaetetuba_user_address", "Delegacia Especializada de Atendimento à Mulher, Rua Pedro Pinheiro Paes 226, Centro, 68440-000, Abaetetuba, Pará, Brasil"),
+                ("exact_address_abaetetuba_user", "Rua Pedro Pinheiro Paes 226, Centro, 68440-000, Abaetetuba, Pará, Brasil"),
+            ],
             "ananindeua": [
                 ("exact_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Claude Saunders 28, Ananindeua, Pará, Brasil"),
+            ],
+            "capanema": [
+                ("exact_deam_capanema_user_address", "Delegacia Especializada de Atendimento à Mulher, Avenida João Paulo II 1660, Tancredo Neves, 68700-050, Capanema, Pará, Brasil"),
+                ("exact_address_capanema_user", "Avenida João Paulo II 1660, Tancredo Neves, 68700-050, Capanema, Pará, Brasil"),
             ],
             "canaa dos carajas": [
                 ("exact_complexo_policia_civil", "Complexo da Polícia Civil, Avenida Weyne Cavalcante, Jardim das Palmeiras, Canaã dos Carajás, Pará, Brasil"),
@@ -94,7 +102,8 @@ def institution_aliases(service_type: str, municipality: str) -> list[tuple[str,
                 ("exact_creas_nova_maraba", "CREAS Nova Marabá, Folha 30, Quadra 01, Lote 40, Marabá, Pará, Brasil"),
             ],
             "monte alegre": [
-                ("exact_creas_monte_alegre", "CREAS, Avenida Nilo Peçanha 120, Monte Alegre, Pará, Brasil"),
+                ("exact_creas_monte_alegre_user_address", "CREAS, Avenida Nilo Peçanha 120, Serra Ocidental, 68220-000, Monte Alegre, Pará, Brasil"),
+                ("exact_address_monte_alegre_user", "Avenida Nilo Peçanha 120, Serra Ocidental, 68220-000, Monte Alegre, Pará, Brasil"),
             ],
         }
         return specific.get(m, []) + [
@@ -209,7 +218,8 @@ def main() -> None:
         "source": "OpenStreetMap Nominatim",
         "promotion_rule": (
             "Generic courthouse aliases are disabled. Exact institutional/address queries are preferred; "
-            "no candidate is automatically promoted without municipality, IBGE containment, precision and provenance validation."
+            "user-supplied addresses are used only as auditable geocoding queries and are not promoted automatically; "
+            "no candidate is promoted without municipality, IBGE containment, precision and provenance validation."
         ),
     }
     args.audit.write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
