@@ -13,6 +13,7 @@ import pandas as pd
 LIGUE180_PAGE = "https://www.gov.br/mulheres/pt-br/ligue180/painel-da-rede-de-atendimento"
 TJPA_DIRECTORY = "https://centralservicos.tjpa.jus.br/bv/todos.php"
 TJPA_SNAPSHOT = Path("data/snapshots/tjpa_specialized_vaw_units_2026-08-20.csv")
+DEAM_SNAPSHOT = Path("data/snapshots/deam_physical_units_pa_2026-08-20.csv")
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -88,6 +89,40 @@ def build_tjpa(out_dir: Path) -> dict:
     return manifest
 
 
+def build_deam(out_dir: Path) -> dict:
+    units = pd.read_csv(DEAM_SNAPSHOT, dtype=str)
+    required = {"service_id", "service_name", "service_type", "provider_source", "municipality_name", "validation_status"}
+    missing = required.difference(units.columns)
+    if missing:
+        raise ValueError(f"DEAM snapshot missing columns: {sorted(missing)}")
+    if len(units) != 21 or units["service_id"].nunique() != 21:
+        raise ValueError("Strict physical DEAM snapshot must contain 21 unique units")
+    if not units["service_type"].eq("specialized_security").all():
+        raise ValueError("DEAM snapshot must contain only specialized_security units")
+    units.to_csv(out_dir / "deam_physical_units_pa.csv", index=False)
+    addressed = units["address_public"].astype("string").str.strip().notna().sum()
+    manifest = {
+        "source": "PCPA/SEGUP and official Pará state communications",
+        "snapshot_file": str(DEAM_SNAPSHOT),
+        "snapshot_sha256": sha256_bytes(DEAM_SNAPSHOT.read_bytes()),
+        "snapshot_reference_date": "2026-08-20",
+        "rows_physical_deam": int(len(units)),
+        "rows_with_official_address_resolved": int(addressed),
+        "rows_pending_official_address_resolution": int(len(units) - addressed),
+        "definition": "Physical Delegacia Especializada de Atendimento à Mulher (DEAM) only.",
+        "excluded_from_physical_routing_layer": ["DEAM Virtual", "Sala Lilás", "mobile/itinerant services", "generic police stations"],
+        "function_validation_status": "function_validated_from_official_state_sources",
+        "coordinate_status": "pending_geocoding_and_spatial_validation",
+        "note": (
+            "The state reports 21 operating DEAMs. The strict physical layer keeps the central Belém unit plus the 20 physical "
+            "locations enumerated in later official state communication. Sala Lilás and DEAM Virtual remain separate services and "
+            "are not treated as equivalent physical DEAM destinations."
+        ),
+    }
+    (out_dir / "deam_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    return manifest
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", type=Path, default=Path("artifacts/service_inventory"))
@@ -98,6 +133,7 @@ def main() -> None:
     with httpx.Client(timeout=120.0, follow_redirects=True) as client:
         summary["ligue180"] = audit_ligue180_publication(args.output_dir, client)
     summary["tjpa"] = build_tjpa(args.output_dir)
+    summary["deam"] = build_deam(args.output_dir)
     (args.output_dir / "specialized_sources_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
