@@ -84,11 +84,11 @@ jobs:
         run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
       - name: Audit service readiness
         run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
-      - name: Generate geocoding candidates
-        run: python scripts/geocode_service_locations.py --queue artifacts/service_inventory/services_geocoding_queue.csv --output artifacts/service_inventory/services_geocoded_candidates.csv --audit artifacts/service_inventory/services_geocoding_audit.json
       - name: Discover named OSM POIs with Overpass
         continue-on-error: true
         run: python scripts/discover_service_pois_overpass.py --queue artifacts/service_inventory/services_geocoding_queue.csv --output artifacts/service_inventory/services_overpass_poi_candidates.csv --audit artifacts/service_inventory/services_overpass_poi_audit.json
+      - name: Generate geocoding candidates
+        run: python scripts/geocode_service_locations.py --queue artifacts/service_inventory/services_geocoding_queue.csv --output artifacts/service_inventory/services_geocoded_candidates.csv --audit artifacts/service_inventory/services_geocoding_audit.json
       - name: Validate geocoded candidates with official IBGE boundaries
         run: python scripts/validate_geocoded_service_locations.py --candidates artifacts/service_inventory/services_geocoded_candidates.csv --output artifacts/service_inventory/services_geocoded_spatial_validation.csv --audit artifacts/service_inventory/services_geocoded_spatial_validation.audit.json
       - name: Show build summaries
@@ -98,8 +98,8 @@ jobs:
           cat artifacts/service_inventory/specialized_sources_summary.json
           cat artifacts/service_inventory/services_consolidation_audit.json
           cat artifacts/service_inventory/services_readiness_audit.json
-          cat artifacts/service_inventory/services_geocoding_audit.json
           if [ -f artifacts/service_inventory/services_overpass_poi_audit.json ]; then cat artifacts/service_inventory/services_overpass_poi_audit.json; fi
+          cat artifacts/service_inventory/services_geocoding_audit.json
           cat artifacts/service_inventory/services_geocoded_spatial_validation.audit.json
       - name: Upload inventory artifact
         uses: actions/upload-artifact@v4
