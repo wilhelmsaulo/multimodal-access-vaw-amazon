@@ -25,7 +25,10 @@ def choose_candidate(results: list[dict], expected_municipality: str) -> tuple[d
         address = result.get("address") or {}
         state = norm(address.get("state"))
         display = norm(result.get("display_name"))
-        locality_values = " ".join(norm(address.get(k)) for k in ("city", "town", "municipality", "county", "village", "city_district", "suburb"))
+        locality_values = " ".join(
+            norm(address.get(k))
+            for k in ("city", "town", "municipality", "county", "village", "city_district", "suburb")
+        )
         state_ok = "para" in state or ", para," in f", {display},"
         municipality_ok = expected and (expected in locality_values or expected in display)
         if state_ok and municipality_ok:
@@ -40,25 +43,38 @@ def choose_candidate(results: list[dict], expected_municipality: str) -> tuple[d
 
 
 def query_nominatim(client: httpx.Client, query: str) -> list[dict]:
-    response = client.get(NOMINATIM_URL, params={"q": query, "format": "jsonv2", "addressdetails": 1, "limit": 3, "countrycodes": "br"})
+    response = client.get(
+        NOMINATIM_URL,
+        params={"q": query, "format": "jsonv2", "addressdetails": 1, "limit": 3, "countrycodes": "br"},
+    )
     response.raise_for_status()
     payload = response.json()
     return payload if isinstance(payload, list) else []
 
 
-def functional_aliases(service_type: str, municipality: str) -> list[tuple[str, str]]:
+def institution_aliases(service_type: str, municipality: str) -> list[tuple[str, str]]:
     base = f"{municipality}, Pará, Brasil"
     if service_type == "specialized_security":
         return [
+            ("alias_deam_full", f"Delegacia Especializada de Atendimento à Mulher, {base}"),
             ("alias_deam", f"DEAM, {base}"),
             ("alias_delegacia_mulher", f"Delegacia da Mulher, {base}"),
         ]
     if service_type == "specialized_justice":
         if norm(municipality) == "belem":
-            return [("alias_forum_criminal", f"Fórum Criminal, {base}"), ("alias_forum", f"Fórum, {base}")]
-        return [("alias_forum", f"Fórum de {municipality}, Pará, Brasil")]
+            return [
+                ("alias_forum_criminal_romao_amoedo", f"Fórum Criminal Romão Amoedo, {base}"),
+                ("alias_forum_criminal", f"Fórum Criminal, {base}"),
+            ]
+        return [
+            ("alias_forum_municipality", f"Fórum de {municipality}, Pará, Brasil"),
+            ("alias_tjpa_forum", f"Tribunal de Justiça Fórum de {municipality}, Pará, Brasil"),
+        ]
     if service_type == "creas":
-        return [("alias_creas", f"CREAS, {base}")]
+        return [
+            ("alias_creas_municipality", f"CREAS de {municipality}, Pará, Brasil"),
+            ("alias_creas", f"CREAS, {base}"),
+        ]
     return []
 
 
@@ -72,22 +88,33 @@ def geocode_queue(queue: pd.DataFrame, *, timeout: float = 30.0, delay: float = 
             service_type = str(row.get("service_type") or "").strip()
             municipality = str(row.get("municipality_name") or "").strip()
             record.update({
-                "geocoding_query": pd.NA, "geocoding_query_strategy": pd.NA,
-                "latitude_candidate": pd.NA, "longitude_candidate": pd.NA,
-                "geocoding_source": "OpenStreetMap Nominatim", "geocoding_quality": "not_attempted",
-                "geocoding_display_name": pd.NA, "geocoding_osm_type": pd.NA, "geocoding_osm_id": pd.NA,
+                "geocoding_query": pd.NA,
+                "geocoding_query_strategy": pd.NA,
+                "latitude_candidate": pd.NA,
+                "longitude_candidate": pd.NA,
+                "geocoding_source": "OpenStreetMap Nominatim",
+                "geocoding_quality": "not_attempted",
+                "geocoding_display_name": pd.NA,
+                "geocoding_osm_type": pd.NA,
+                "geocoding_osm_id": pd.NA,
+                "geocoding_result_type": pd.NA,
+                "geocoding_result_category": pd.NA,
                 "candidate_accepted_for_manual_validation": False,
             })
-            strategies: list[tuple[str, str]] = []
-            if address and address.lower() not in {"nan", "<na>"}:
-                strategies.append(("public_address", f"{address}, {municipality}, Pará, Brasil"))
+
+            # Institution-specific aliases are tried before address-only queries. This avoids
+            # promoting a road centroid when Nominatim knows the actual courthouse/DEAM/CREAS POI.
+            strategies: list[tuple[str, str]] = institution_aliases(service_type, municipality)
             if service_name and service_name.lower() not in {"nan", "<na>"}:
                 strategies.append(("official_service_name", f"{service_name}, {municipality}, Pará, Brasil"))
-            strategies.extend(functional_aliases(service_type, municipality))
+            if address and address.lower() not in {"nan", "<na>"}:
+                strategies.append(("public_address", f"{address}, {municipality}, Pará, Brasil"))
+
             if not strategies:
                 record["geocoding_quality"] = "no_query_available"
                 rows.append(record)
                 continue
+
             seen_queries: set[str] = set()
             try:
                 best_state_only: tuple[dict, str, str] | None = None
@@ -107,6 +134,8 @@ def geocode_queue(queue: pd.DataFrame, *, timeout: float = 30.0, delay: float = 
                             "geocoding_display_name": chosen.get("display_name"),
                             "geocoding_osm_type": chosen.get("osm_type"),
                             "geocoding_osm_id": chosen.get("osm_id"),
+                            "geocoding_result_type": chosen.get("type"),
+                            "geocoding_result_category": chosen.get("category"),
                             "candidate_accepted_for_manual_validation": True,
                         })
                         break
@@ -125,6 +154,8 @@ def geocode_queue(queue: pd.DataFrame, *, timeout: float = 30.0, delay: float = 
                             "geocoding_display_name": chosen.get("display_name"),
                             "geocoding_osm_type": chosen.get("osm_type"),
                             "geocoding_osm_id": chosen.get("osm_id"),
+                            "geocoding_result_type": chosen.get("type"),
+                            "geocoding_result_category": chosen.get("category"),
                         })
                     else:
                         record["geocoding_quality"] = "no_defensible_match"
@@ -153,7 +184,10 @@ def main() -> None:
         "quality_counts": {str(k): int(v) for k, v in result["geocoding_quality"].astype("string").value_counts(dropna=False).to_dict().items()},
         "query_strategy_counts": {str(k): int(v) for k, v in result["geocoding_query_strategy"].astype("string").value_counts(dropna=False).to_dict().items()},
         "source": "OpenStreetMap Nominatim",
-        "promotion_rule": "Aliases are discovery-only. No candidate is automatically promoted; municipality, IBGE containment, precision and provenance must be validated.",
+        "promotion_rule": (
+            "Institution-specific aliases are discovery-only and preferred over road-only address matches. "
+            "No candidate is automatically promoted; municipality, IBGE containment, precision and provenance must be validated."
+        ),
     }
     args.audit.write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(audit, ensure_ascii=False, indent=2))
