@@ -59,11 +59,11 @@ def institution_aliases(service_type: str, municipality: str) -> list[tuple[str,
     if service_type == "specialized_security":
         specific: dict[str, list[tuple[str, str]]] = {
             "ananindeua": [
-                ("alias_casa_mulher_brasileira", "Casa da Mulher Brasileira, Ananindeua, Pará, Brasil"),
-                ("alias_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Cláudio Saunders 28, Ananindeua, Pará, Brasil"),
+                ("alias_casa_mulher_brasileira", "Casa da Mulher Brasileira de Ananindeua, Pará, Brasil"),
+                ("alias_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Cláudio Sanders 28, Centro, Ananindeua, Pará, Brasil"),
             ],
             "canaa dos carajas": [
-                ("alias_complexo_policia_civil", "Complexo da Polícia Civil, Avenida Weyne Cavalcante, Canaã dos Carajás, Pará, Brasil"),
+                ("alias_complexo_policia_civil", "Complexo da Polícia Civil, Avenida Weyne Cavalcante, Jardim das Palmeiras, Canaã dos Carajás, Pará, Brasil"),
             ],
             "redencao": [
                 ("alias_complexo_policia_civil", "Complexo da Polícia Civil, Buriti III, Redenção, Pará, Brasil"),
@@ -78,15 +78,17 @@ def institution_aliases(service_type: str, municipality: str) -> list[tuple[str,
     if service_type == "specialized_justice":
         specific = {
             "belem": [
-                ("alias_forum_criminal_romao_amoedo", "Fórum Criminal Desembargador Romão Amoedo Neto, Belém, Pará, Brasil"),
-                ("alias_forum_criminal_address", "Fórum Criminal, Rua Tomázia Perdigão 310, Belém, Pará, Brasil"),
+                ("alias_forum_criminal_full", "Fórum Criminal Des. Romão Amoedo Neto, Belém, Pará, Brasil"),
+                ("alias_forum_criminal_largo", "Fórum Criminal Des. Romão Amoedo Neto, Largo São João, Belém, Pará, Brasil"),
+                ("alias_forum_criminal_address", "Fórum Criminal Des. Romão Amoedo Neto, Rua Tomázia Perdigão 310, Cidade Velha, Belém, Pará, Brasil"),
             ],
             "ananindeua": [
-                ("alias_forum_edgar_lassance", "Fórum Desembargador Edgar Lassance Cunha, Ananindeua, Pará, Brasil"),
-                ("alias_forum_ananindeua_address", "Fórum de Ananindeua, Avenida Cláudio Sanders 193, Ananindeua, Pará, Brasil"),
+                ("alias_casa_mulher_brasileira", "Casa da Mulher Brasileira de Ananindeua, Pará, Brasil"),
+                ("alias_casa_mulher_brasileira_address", "Casa da Mulher Brasileira, Avenida Cláudio Sanders 28, Centro, Ananindeua, Pará, Brasil"),
             ],
             "castanhal": [
-                ("alias_forum_castanhal_address", "Fórum de Castanhal, Avenida Presidente Vargas 2639, Castanhal, Pará, Brasil"),
+                ("alias_forum_joao_bento", "Fórum Des. João Bento de Souza, Castanhal, Pará, Brasil"),
+                ("alias_forum_castanhal_address", "Fórum Des. João Bento de Souza, Avenida Presidente Vargas 2639, Centro, Castanhal, Pará, Brasil"),
             ],
         }
         return specific.get(m, []) + [
@@ -95,7 +97,17 @@ def institution_aliases(service_type: str, municipality: str) -> list[tuple[str,
         ]
 
     if service_type == "creas":
-        return [
+        specific = {
+            "maraba": [
+                ("alias_creas_nova_maraba", "CREAS Nova Marabá, Folha 30, Quadra 01, Lote 40, Marabá, Pará, Brasil"),
+                ("alias_creas_nova_maraba_name", "CREAS Nova Marabá, Marabá, Pará, Brasil"),
+            ],
+            "monte alegre": [
+                ("alias_creas_monte_alegre_address", "CREAS, Avenida Nilo Peçanha 120, Monte Alegre, Pará, Brasil"),
+                ("alias_creas_monte_alegre_name", "CREAS Monte Alegre, Pará, Brasil"),
+            ],
+        }
+        return specific.get(m, []) + [
             ("alias_creas_municipality", f"CREAS de {municipality}, Pará, Brasil"),
             ("alias_creas", f"CREAS, {base}"),
         ]
