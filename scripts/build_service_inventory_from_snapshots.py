@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import base64
-import gzip
 import hashlib
 import json
-from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
@@ -12,11 +9,14 @@ import pandas as pd
 
 CNES_CORE = Path("data/snapshots/cnes_pa_service165_core_attributes_2026-08-19.csv")
 CNES_EVIDENCE_MANIFEST = Path("data/snapshots/cnes_pa_vaw_service_relations_202607.manifest.json")
-CREAS_SNAPSHOT = Path("data/snapshots/creas_sagi_pa_2026-08-19.csv.gz.b64")
+CREAS_SNAPSHOT = Path("data/snapshots/creas_sagi_pa_2026-08-19.csv")
 CREAS_MANIFEST = Path("data/snapshots/creas_sagi_pa_2026-08-19.manifest.json")
 
 SPECIALIZED_SERVICE = "165"
 COMPLEMENTARY_SERVICES = {"110", "112", "115", "140"}
+EXPECTED_CREAS_ROWS = 138
+EXPECTED_CREAS_WITH_COORDS = 136
+EXPECTED_CREAS_WITHOUT_COORDS = 2
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -24,13 +24,43 @@ def sha256_bytes(data: bytes) -> str:
 
 
 def load_creas() -> tuple[pd.DataFrame, dict]:
-    encoded = CREAS_SNAPSHOT.read_text(encoding="utf-8").strip()
-    csv_bytes = gzip.decompress(base64.b64decode(encoded))
-    frame = pd.read_csv(BytesIO(csv_bytes), dtype=str)
+    """Load the versioned plain-text Pará CREAS routing snapshot."""
     manifest = json.loads(CREAS_MANIFEST.read_text(encoding="utf-8"))
-    expected = manifest.get("para_snapshot_sha256")
-    if expected and sha256_bytes(csv_bytes) != expected:
-        raise ValueError("CREAS snapshot SHA-256 mismatch")
+    raw = CREAS_SNAPSHOT.read_bytes()
+    expected = manifest.get("routing_snapshot_sha256")
+    if not expected:
+        raise ValueError("CREAS manifest missing routing_snapshot_sha256")
+    observed = sha256_bytes(raw)
+    if observed != expected:
+        raise ValueError(f"CREAS routing snapshot SHA-256 mismatch: expected {expected}, got {observed}")
+
+    frame = pd.read_csv(CREAS_SNAPSHOT, dtype=str)
+    required = {
+        "id_equipamento", "ibge", "cidade", "nome", "endereco", "numero",
+        "bairro", "latitude", "longitude",
+    }
+    missing = required.difference(frame.columns)
+    if missing:
+        raise ValueError(f"CREAS routing snapshot missing columns: {sorted(missing)}")
+    if len(frame) != EXPECTED_CREAS_ROWS or frame["id_equipamento"].nunique() != EXPECTED_CREAS_ROWS:
+        raise ValueError("CREAS routing snapshot must contain 138 unique Pará equipment records")
+
+    lat = pd.to_numeric(frame["latitude"], errors="coerce")
+    lon = pd.to_numeric(frame["longitude"], errors="coerce")
+    valid_coords = lat.between(-90, 90) & lon.between(-180, 180)
+    if int(valid_coords.sum()) != EXPECTED_CREAS_WITH_COORDS or int((~valid_coords).sum()) != EXPECTED_CREAS_WITHOUT_COORDS:
+        raise ValueError("CREAS coordinate counts differ from the audited 136 georeferenced / 2 unresolved records")
+
+    # Preserve compatibility with the existing consolidation parser while keeping
+    # the repository snapshot human-readable and free of compression/base64.
+    frame["georef_location"] = pd.NA
+    frame.loc[valid_coords, "georef_location"] = (
+        frame.loc[valid_coords, "latitude"].astype("string").str.strip()
+        + r"\,"
+        + frame.loc[valid_coords, "longitude"].astype("string").str.strip()
+    )
+    frame["data_atualizacao"] = manifest.get("download_date", "2026-08-19")
+    frame["uf"] = "PA"
     return frame, manifest
 
 
@@ -128,18 +158,21 @@ def build_cnes(out_dir: Path) -> dict:
 def build_creas(out_dir: Path) -> dict:
     frame, source_manifest = load_creas()
     frame.to_csv(out_dir / "creas_sagi_pa.csv", index=False)
-    georef = frame["georef_location"].astype("string").str.strip()
+    lat = pd.to_numeric(frame["latitude"], errors="coerce")
+    lon = pd.to_numeric(frame["longitude"], errors="coerce")
+    valid_coords = lat.between(-90, 90) & lon.between(-180, 180)
     manifest = {
         "source": "MDS/SAGI equipment registry",
-        "source_mode": "versioned_official_snapshot",
+        "source_mode": "versioned_plain_csv_snapshot",
         "endpoint": source_manifest.get("source_url"),
         "download_date": source_manifest.get("download_date"),
         "raw_sha256": source_manifest.get("raw_sha256"),
-        "snapshot_sha256": source_manifest.get("para_snapshot_sha256"),
+        "source_filtered_snapshot_sha256": source_manifest.get("para_snapshot_sha256"),
+        "routing_snapshot_sha256": source_manifest.get("routing_snapshot_sha256"),
         "source_status": "snapshot_available",
         "rows_para": int(len(frame)),
-        "rows_para_with_georef": int(georef.notna().sum()),
-        "rows_para_without_georef": int(georef.isna().sum()),
+        "rows_para_with_georef": int(valid_coords.sum()),
+        "rows_para_without_georef": int((~valid_coords).sum()),
         "unique_equipment_ids": int(frame["id_equipamento"].nunique()),
         "primary_supply_rule": "One validated CREAS physical unit equals one supply opportunity within the CREAS category.",
     }
