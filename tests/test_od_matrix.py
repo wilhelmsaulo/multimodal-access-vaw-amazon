@@ -45,12 +45,25 @@ def test_ready_and_candidate_pairs():
     services = _services()
     assert len(ready_origins(origins)) == 2
     assert len(ready_destinations(services, require_capacity=False)) == 2
+
+    # Capacity remains available for category-specific sensitivity analyses only.
     assert len(ready_destinations(services, require_capacity=True)) == 1
-    pairs = build_candidate_pairs(origins, ready_destinations(services, require_capacity=True))
-    assert len(pairs) == 4  # 2 origins x 1 service x 2 seasons
-    assert pairs["travel_time_min"].isna().all()
+    sensitivity_pairs = build_candidate_pairs(
+        origins, ready_destinations(services, require_capacity=True)
+    )
+    assert len(sensitivity_pairs) == 4  # 2 origins x 1 capacity-observed service x 2 seasons
+
+    # Primary accessibility uses one validated physical unit = one opportunity (S_j = 1),
+    # so both services are eligible even when harmonized capacity is unavailable.
+    primary_pairs = build_candidate_pairs(
+        origins, ready_destinations(services, require_capacity=False)
+    )
+    assert len(primary_pairs) == 8  # 2 origins x 2 services x 2 seasons
+    assert primary_pairs["travel_time_min"].isna().all()
+
     audit = audit_od_inputs(origins, services)
-    assert audit.candidate_pairs_e2sfca == 4
+    assert audit.destinations_ready_e2sfca == 2
+    assert audit.candidate_pairs_e2sfca == 8
 
 
 def test_unvalidated_rural_centroid_is_rejected():
