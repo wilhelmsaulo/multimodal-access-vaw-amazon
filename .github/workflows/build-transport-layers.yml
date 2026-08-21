@@ -1,0 +1,63 @@
+name: build-transport-layers
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/build_transport_layers.py"
+      - "src/network/download.py"
+      - "src/network/source_catalog.py"
+      - ".github/workflows/build-transport-layers.yml"
+  push:
+    branches: [agent/stage1-stage2-accessibility]
+    paths:
+      - "scripts/build_transport_layers.py"
+      - "src/network/download.py"
+      - "src/network/source_catalog.py"
+      - ".github/workflows/build-transport-layers.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: transport-layers-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install project
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Build official transport-layer bundle
+        run: python scripts/build_transport_layers.py
+      - name: Validate transport manifests
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("data/processed/transport")
+          status = json.loads((root / "transport_layer_download_status.json").read_text(encoding="utf-8"))
+          summary = json.loads((root / "transport_bundle_summary.json").read_text(encoding="utf-8"))
+          assert summary["source_status"] == status["sources"]
+          assert status["sources"], "Transport source status cannot be empty"
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload transport layers
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-transport-layers
+          path: |
+            data/raw/transport/
+            data/processed/transport/
+          if-no-files-found: error
+          retention-days: 30
