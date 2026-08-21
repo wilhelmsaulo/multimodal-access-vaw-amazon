@@ -8,12 +8,14 @@ on:
       - "scripts/build_service_inventory_from_snapshots.py"
       - "scripts/build_specialized_service_sources.py"
       - "scripts/consolidate_service_inventory.py"
+      - "scripts/apply_manual_service_coordinate_overrides.py"
       - "scripts/audit_service_readiness.py"
       - "scripts/geocode_service_locations.py"
       - "scripts/discover_service_pois_overpass.py"
       - "scripts/audit_manual_service_coordinate_candidates.py"
       - "scripts/validate_geocoded_service_locations.py"
       - "data/candidates/manual_service_coordinate_candidates_*.csv"
+      - "data/candidates/manual_service_coordinate_overrides_*.csv"
       - "src/data/cnes_service_evidence.py"
       - "src/data/service_consolidation.py"
       - "src/data/service_readiness.py"
@@ -34,12 +36,14 @@ on:
       - "scripts/build_service_inventory_from_snapshots.py"
       - "scripts/build_specialized_service_sources.py"
       - "scripts/consolidate_service_inventory.py"
+      - "scripts/apply_manual_service_coordinate_overrides.py"
       - "scripts/audit_service_readiness.py"
       - "scripts/geocode_service_locations.py"
       - "scripts/discover_service_pois_overpass.py"
       - "scripts/audit_manual_service_coordinate_candidates.py"
       - "scripts/validate_geocoded_service_locations.py"
       - "data/candidates/manual_service_coordinate_candidates_*.csv"
+      - "data/candidates/manual_service_coordinate_overrides_*.csv"
       - "src/data/cnes_service_evidence.py"
       - "src/data/service_consolidation.py"
       - "src/data/service_readiness.py"
@@ -86,6 +90,8 @@ jobs:
         run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
       - name: Consolidate service inventory
         run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
+      - name: Apply accepted operational coordinates
+        run: python scripts/apply_manual_service_coordinate_overrides.py --inventory artifacts/service_inventory/services_consolidated.csv --audit artifacts/service_inventory/manual_coordinate_overrides_audit.json
       - name: Audit service readiness
         run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
       - name: Audit manually supplied coordinate candidates
@@ -104,6 +110,7 @@ jobs:
           cat artifacts/service_inventory/cnes_vaw_service_evidence_audit.json
           cat artifacts/service_inventory/specialized_sources_summary.json
           cat artifacts/service_inventory/services_consolidation_audit.json
+          cat artifacts/service_inventory/manual_coordinate_overrides_audit.json
           cat artifacts/service_inventory/services_readiness_audit.json
           if [ -f artifacts/service_inventory/manual_coordinate_candidate_audit.json ]; then cat artifacts/service_inventory/manual_coordinate_candidate_audit.json; fi
           if [ -f artifacts/service_inventory/services_overpass_poi_audit.json ]; then cat artifacts/service_inventory/services_overpass_poi_audit.json; fi
