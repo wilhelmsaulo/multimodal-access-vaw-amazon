@@ -1,6 +1,15 @@
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
+
 import pandas as pd
 
-from scripts.materialize_routing_inputs import collapse_ready_destinations_to_physical_sites
+
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "materialize_routing_inputs.py"
+SPEC = spec_from_file_location("materialize_routing_inputs", MODULE_PATH)
+assert SPEC is not None and SPEC.loader is not None
+MODULE = module_from_spec(SPEC)
+SPEC.loader.exec_module(MODULE)
+collapse_ready_destinations_to_physical_sites = MODULE.collapse_ready_destinations_to_physical_sites
 
 
 def _row(service_id: str, service_type: str, lat: float, lon: float, name: str) -> dict:
