@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import importlib.util
 import json
 import math
+import re
 import unicodedata
 import zipfile
 from pathlib import Path
 
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 from shapely.geometry import Point
 
@@ -45,6 +44,34 @@ def read_zip(path: Path) -> gpd.GeoDataFrame:
             raise RuntimeError(f"No shapefile in {path}")
         layer = shp[0]
     return gpd.read_file(f"zip://{path}!{layer}")
+
+
+def parse_coordinate(value: object) -> float | None:
+    """Parse ANTAQ decimal or DMS coordinates without inventing values."""
+    if value is None or (isinstance(value, float) and math.isnan(value)):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    s = str(value).strip().upper().replace(",", ".")
+    if not s:
+        return None
+    try:
+        return float(s)
+    except ValueError:
+        pass
+    # Examples in the official file: 4°10'50,23'S and 54°34'43.08"O.
+    m = re.match(r'^\s*(\d+(?:\.\d+)?)\s*[°º]\s*(\d+(?:\.\d+)?)\s*[\'’′]\s*(\d+(?:\.\d+)?)\s*(?:["”″])?\s*([NSEOWL])\s*$', s)
+    if not m:
+        return None
+    deg, minute, second = (float(m.group(i)) for i in (1, 2, 3))
+    if minute >= 60 or second >= 60:
+        return None
+    out = deg + minute / 60.0 + second / 3600.0
+    hemi = m.group(4)
+    # Portuguese Oeste (O) is west; W is accepted defensively.
+    if hemi in {"S", "O", "W"}:
+        out = -out
+    return out
 
 
 def quantiles(s: pd.Series) -> dict[str, float | None]:
@@ -91,7 +118,6 @@ def main() -> None:
     roads = gpd.read_file(ROADS, layer="roads")
     hydro = gpd.read_file(WATERWAYS, layer="waterways")
 
-    # Exact semantic fields documented in the ANTAQ crossing dataset.
     c_mun_o = col_ci(crossings, "mun_origem")
     c_uf_o = col_ci(crossings, "est_origem")
     c_mun_d = col_ci(crossings, "mun_estino", "mun_destino")
@@ -115,12 +141,10 @@ def main() -> None:
     if not p_mun or not p_uf:
         raise RuntimeError("Current ANTAQ port layer lacks cidade/estado")
 
-    # Canonical hydro already has standardized semantic fields.
     for c in ("origin_municipality", "origin_state", "destination_municipality", "destination_state"):
         if c not in hydro.columns:
             raise RuntimeError(f"Canonical hydro missing {c}")
 
-    # Restrict ports to Pará for the same-municipality positive-control association.
     ports = ports[ports[p_uf].map(norm).isin({"pa", "para"})].copy()
     ports = ports[ports.geometry.notna() & ~ports.geometry.is_empty].copy()
     if ports.crs is None:
@@ -150,25 +174,32 @@ def main() -> None:
     pa_lines = crossings.loc[pa_lines_mask].copy().reset_index(drop=False).rename(columns={"index": "crossing_row_index"})
 
     endpoint_rows: list[dict[str, object]] = []
+    parse_failures: list[dict[str, object]] = []
     for _, r in pa_lines.iterrows():
         for side in ("origin", "destination"):
             if side == "origin":
                 municipality = r[c_mun_o]
                 state = r[c_uf_o]
-                lat = pd.to_numeric(pd.Series([r[c_lat_o]]), errors="coerce").iloc[0]
-                lon = pd.to_numeric(pd.Series([r[c_lon_o]]), errors="coerce").iloc[0]
+                raw_lat, raw_lon = r[c_lat_o], r[c_lon_o]
                 code = r[c_code_o] if c_code_o else None
             else:
                 municipality = r[c_mun_d]
                 state = r[c_uf_d]
-                lat = pd.to_numeric(pd.Series([r[c_lat_d]]), errors="coerce").iloc[0]
-                lon = pd.to_numeric(pd.Series([r[c_lon_d]]), errors="coerce").iloc[0]
+                raw_lat, raw_lon = r[c_lat_d], r[c_lon_d]
                 code = r[c_code_d] if c_code_d else None
 
-            # The calibration population is the official endpoint itself when located in Pará.
             if norm(state) not in {"pa", "para"}:
                 continue
-            if pd.isna(lat) or pd.isna(lon):
+            lat = parse_coordinate(raw_lat)
+            lon = parse_coordinate(raw_lon)
+            if lat is None or lon is None:
+                parse_failures.append({
+                    "crossing_row_index": int(r["crossing_row_index"]),
+                    "endpoint_side": side,
+                    "municipality": str(municipality),
+                    "raw_latitude": None if pd.isna(raw_lat) else str(raw_lat),
+                    "raw_longitude": None if pd.isna(raw_lon) else str(raw_lon),
+                })
                 continue
 
             pt_geo = gpd.GeoSeries([Point(float(lon), float(lat))], crs=GEOGRAPHIC_CRS)
@@ -211,12 +242,15 @@ def main() -> None:
 
     endpoints = pd.DataFrame(endpoint_rows)
     endpoints.to_csv(OUT / "pa_crossing_endpoints_positive_controls.csv", index=False)
+    pd.DataFrame(parse_failures).to_csv(OUT / "pa_crossing_endpoint_coordinate_parse_failures.csv", index=False)
 
     n = int(len(endpoints))
     audit = {
         "source": str(CROSSING_ZIP),
         "pa_crossing_lines": int(len(pa_lines)),
         "pa_official_endpoints_with_coordinates": n,
+        "pa_endpoint_coordinate_parse_failures": int(len(parse_failures)),
+        "coordinate_format": "official_antaq_decimal_or_dms_parsed_without_imputation",
         "endpoints_with_same_municipality_port": int(endpoints["same_municipality_port_available"].sum()) if n else 0,
         "endpoint_to_same_municipality_port_m": {
             "n": int(endpoints["endpoint_to_same_municipality_port_m"].notna().sum()) if n else 0,
@@ -243,10 +277,10 @@ def main() -> None:
         "distance_to_time_conversion_used": False,
         "routing_enabled": False,
         "scientific_policy": (
-            "Official ANTAQ crossing origin/destination coordinates in Para are used as positive controls for how known "
-            "water-transfer terminals align with the current ANTAQ port layer, the standardized ANTAQ hydro geometry, "
-            "and the OSM road geometry. Distances are calibration evidence only. No cutoff is selected, no connector is "
-            "promoted, and no distance is converted to time."
+            "Official ANTAQ crossing origin/destination coordinates in Para are parsed from their published decimal/DMS "
+            "representation and used as positive controls for known water-transfer terminals. Distances to current ANTAQ "
+            "ports, standardized ANTAQ hydro geometry, and OSM roads are calibration evidence only. No cutoff is selected, "
+            "no connector is promoted, and no distance is converted to time."
         ),
         "ready_for_empirical_connector_geometry_decision": bool(n > 0),
     }
