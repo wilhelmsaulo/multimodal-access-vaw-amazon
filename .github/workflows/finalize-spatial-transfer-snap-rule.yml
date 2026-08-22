@@ -1,0 +1,65 @@
+name: finalize-spatial-transfer-snap-rule
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  finalize:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire OSM road network
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical multimodal inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build official crossing positive controls
+        run: python scripts/audit_antaq_crossing_endpoint_positive_controls.py
+      - name: Audit physical transfer ports
+        run: python scripts/audit_antaq_physical_transfer_ports.py
+      - name: Classify physical transfer candidates
+        run: python scripts/classify_physical_transfer_port_candidates.py
+      - name: Audit Pareto front-1 provenance
+        run: python scripts/audit_pareto_front1_transfer_ports.py
+      - name: Audit front-1 against canonical hydro
+        run: python scripts/audit_front1_against_canonical_hydro.py
+      - name: Materialize validated anchors
+        run: python scripts/materialize_validated_spatial_transfer_anchors.py
+      - name: Compare anchors with positive controls
+        run: python scripts/compare_front1_anchors_to_crossing_positive_controls.py
+      - name: Finalize spatial transfer snap rule
+        run: python scripts/finalize_spatial_transfer_snap_rule.py
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/spatial_transfer_snap_rule/spatial_transfer_snap_rule_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['anchors_evaluated'] == 3
+          assert d['spatial_snap_eligible_count'] == 3
+          assert d['spatial_snap_rule_adopted'] is True
+          assert d['universal_distance_cutoff_used'] is False
+          assert d['snap_distance_interpreted_as_travel_distance'] is False
+          assert d['temporal_connector_impedance_resolved'] is False
+          assert d['zero_time_transfer_adopted'] is False
+          assert d['distance_to_time_conversion_used'] is False
+          assert d['routing_enabled'] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: spatial-transfer-snap-rule
+          path: artifacts/spatial_transfer_snap_rule/
+          if-no-files-found: error
+          retention-days: 30
