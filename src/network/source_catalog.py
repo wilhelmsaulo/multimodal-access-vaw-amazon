@@ -18,13 +18,13 @@ SOURCES: list[dict[str, Any]] = [
         "official_page": "https://www.gov.br/dnit/pt-br/assuntos/atlas-e-mapas/pnv-e-snv",
         "expected_formats": ["shp", "geojson", "csv"],
         "map_reference_year": 2021,
-        "download_enabled": False,
+        "download_enabled": True,
         "direct_urls": [
             "https://geoservicos.inde.gov.br/geoserver/DNIT/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=DNIT:cide_2021_&outputFormat=SHAPE-ZIP",
             "https://geoservicos.inde.gov.br/geoserver/DNIT/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=DNIT:cide_2021_&outputFormat=application/json",
             "https://geoservicos.inde.gov.br/geoserver/DNIT/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=DNIT:cide_2021_&outputFormat=SHAPE-ZIP",
         ],
-        "purpose": "Official unified state and federal road-network geometry exposed by DNIT through INDE WFS.",
+        "purpose": "Primary official road-network geometry exposed by DNIT through INDE WFS.",
     },
     {
         "source_id": "mapbiomas_state_roads",
@@ -38,7 +38,7 @@ SOURCES: list[dict[str, Any]] = [
         ],
         "expected_sha256": "364a070e9394a812b8eab3956c6056203decfde66d7771c679854d28d8b4fe05",
         "direct_urls_only": True,
-        "purpose": "State-road network compiled by MapBiomas from institutional sources.",
+        "purpose": "Supplementary state-road geometry; not a blocker when the primary DNIT road layer is available.",
     },
     {
         "source_id": "mapbiomas_federal_roads",
@@ -52,7 +52,7 @@ SOURCES: list[dict[str, Any]] = [
         ],
         "expected_sha256": "f507e9c2bdca50c1ee6814c07cd220c88e686c0aae2b88ca8baef0280d01ba94",
         "direct_urls_only": True,
-        "purpose": "Federal-road network compiled by MapBiomas from institutional sources.",
+        "purpose": "Supplementary federal-road geometry; not a blocker when the primary DNIT road layer is available.",
     },
     {
         "source_id": "mapbiomas_other_roads",
@@ -66,7 +66,7 @@ SOURCES: list[dict[str, Any]] = [
         ],
         "expected_sha256": "7df6c217fe2ea6bbfd556863fe21a426003042ad774ac7c73bf38e41d58d1585",
         "direct_urls_only": True,
-        "purpose": "Other road segments compiled by MapBiomas from institutional sources.",
+        "purpose": "Supplementary other-road geometry; not a blocker when the primary DNIT road layer is available.",
     },
     {
         "source_id": "antaq_ports",
@@ -174,7 +174,7 @@ def build_transport_source_catalog(
                 "provenance": {
                     "reference_map": "Mapa Multimodal Pará - Ministério dos Transportes",
                     "reference_map_updated": "2023-09-22",
-                    "note": "Catalog retains the official sources used by the reproducible pipeline: DNIT/MapBiomas, ANTAQ, DECEA/ICA and IBGE.",
+                    "note": "Primary routing sources are DNIT, ANTAQ and DECEA/ICA; MapBiomas road layers are retained as supplementary evidence when available.",
                 },
             },
             ensure_ascii=False,
