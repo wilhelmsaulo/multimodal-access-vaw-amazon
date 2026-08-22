@@ -46,8 +46,6 @@ def _read_pbf_roads(path: Path) -> list[gpd.GeoDataFrame]:
     if "highway" in g.columns:
         g = g[g["highway"].notna()].copy()
     else:
-        # OSM line layers normally expose a highway field. Refuse to treat all
-        # line features as roads if that semantic tag is unavailable.
         return []
     return [g] if not g.empty else []
 
@@ -78,6 +76,35 @@ def _read_geodata(path: Path) -> list[gpd.GeoDataFrame]:
     return frames
 
 
+def _find_col(columns: list[str], candidates: tuple[str, ...]) -> str | None:
+    lookup = {str(c).lower(): str(c) for c in columns}
+    for candidate in candidates:
+        if candidate.lower() in lookup:
+            return lookup[candidate.lower()]
+    return None
+
+
+def _canonicalize_antaq_waterways(g: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    cols = [str(c) for c in g.columns if c != "geometry"]
+    mapping = {
+        "hydro_id": ("idhidrovia", "idantaq"),
+        "river_name": ("nome_rio",),
+        "origin_municipality": ("mun_origem",),
+        "origin_state": ("est_origem",),
+        "destination_municipality": ("mun_estino", "mun_destino"),
+        "destination_state": ("est_estino", "est_destino"),
+        "navigation_type": ("navegacao",),
+        "segment_type": ("tipo",),
+        "reported_length_km": ("extensao",),
+        "reported_time": ("tempo",),
+    }
+    out = g[["geometry"]].copy()
+    for canonical, candidates in mapping.items():
+        source = _find_col(cols, candidates)
+        out[canonical] = g[source].values if source else pd.NA
+    return gpd.GeoDataFrame(out, geometry="geometry", crs=g.crs)
+
+
 def _normalize(frames: list[gpd.GeoDataFrame], source_id: str, geometry_family: str) -> gpd.GeoDataFrame:
     kept: list[gpd.GeoDataFrame] = []
     for g in frames:
@@ -94,13 +121,24 @@ def _normalize(frames: list[gpd.GeoDataFrame], source_id: str, geometry_family: 
         g = g[g.geometry.intersects(PA_BBOX)].copy()
         if g.empty:
             continue
+        if source_id == "antaq_waterways":
+            g = _canonicalize_antaq_waterways(g)
         g["source_id"] = source_id
         kept.append(g)
     if not kept:
         return gpd.GeoDataFrame({"source_id": pd.Series(dtype="string")}, geometry=[], crs=TARGET_CRS)
-    cols = sorted(set.intersection(*(set(x.columns) for x in kept)) - {"geometry"})
-    cols = [c for c in cols if c != "source_id"][:25]
-    slim = [x[[*cols, "source_id", "geometry"]].copy() for x in kept]
+
+    if source_id == "antaq_waterways":
+        canonical_cols = [
+            "hydro_id", "river_name", "origin_municipality", "origin_state",
+            "destination_municipality", "destination_state", "navigation_type",
+            "segment_type", "reported_length_km", "reported_time", "source_id", "geometry",
+        ]
+        slim = [x.reindex(columns=canonical_cols).copy() for x in kept]
+    else:
+        cols = sorted(set.intersection(*(set(x.columns) for x in kept)) - {"geometry"})
+        cols = [c for c in cols if c != "source_id"][:25]
+        slim = [x[[*cols, "source_id", "geometry"]].copy() for x in kept]
     return gpd.GeoDataFrame(pd.concat(slim, ignore_index=True), geometry="geometry", crs=TARGET_CRS)
 
 
@@ -145,6 +183,7 @@ def main() -> None:
                 "geometry_types": sorted(out.geometry.geom_type.unique().tolist()) if not out.empty else [],
                 "ready": bool(len(out) > 0),
                 "output": str(path) if not out.empty else None,
+                "columns": [str(c) for c in out.columns if c != "geometry"],
             }
 
     required = ["roads", "waterways", "ports", "airports"]
