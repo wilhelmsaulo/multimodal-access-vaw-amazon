@@ -1,0 +1,85 @@
+name: compare-front1-anchors-to-crossing-positive-controls
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/compare_front1_anchors_to_crossing_positive_controls.py'
+      - 'scripts/audit_antaq_crossing_endpoint_positive_controls.py'
+      - 'scripts/audit_antaq_physical_transfer_ports.py'
+      - 'scripts/classify_physical_transfer_port_candidates.py'
+      - 'scripts/audit_pareto_front1_transfer_ports.py'
+      - 'scripts/audit_front1_against_canonical_hydro.py'
+      - 'scripts/materialize_validated_spatial_transfer_anchors.py'
+      - '.github/workflows/compare-front1-anchors-to-crossing-positive-controls.yml'
+  workflow_dispatch:
+
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+
+      - name: Acquire official transport layers
+        run: python scripts/build_transport_layers.py
+
+      - name: Acquire OSM road network
+        run: python scripts/acquire_osm_roads.py
+
+      - name: Prepare canonical multimodal inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+
+      - name: Build positive controls
+        run: python scripts/audit_antaq_crossing_endpoint_positive_controls.py
+
+      - name: Audit physical transfer ports
+        run: python scripts/audit_antaq_physical_transfer_ports.py
+
+      - name: Classify physical transfer candidates
+        run: python scripts/classify_physical_transfer_port_candidates.py
+
+      - name: Audit Pareto front-1 provenance
+        run: python scripts/audit_pareto_front1_transfer_ports.py
+
+      - name: Audit front-1 against canonical hydro
+        run: python scripts/audit_front1_against_canonical_hydro.py
+
+      - name: Materialize validated anchors
+        run: python scripts/materialize_validated_spatial_transfer_anchors.py
+
+      - name: Compare anchors with official crossing positive controls
+        run: python scripts/compare_front1_anchors_to_crossing_positive_controls.py
+
+      - name: Validate scientific safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/front1_vs_crossing_positive_controls/front1_anchor_positive_control_comparison_audit.json')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          assert d['anchors_compared'] == 3
+          assert d['official_positive_control_endpoints'] > 0
+          assert d['compatible_hydro_positive_controls_n'] > 0
+          assert d['connector_rule_adopted'] is False
+          assert d['distance_threshold_adopted'] is False
+          assert d['zero_time_transfer_adopted'] is False
+          assert d['distance_to_time_conversion_used'] is False
+          assert d['routing_enabled'] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: front1-anchor-positive-control-comparison
+          path: artifacts/front1_vs_crossing_positive_controls/
+          if-no-files-found: error
+          retention-days: 30
