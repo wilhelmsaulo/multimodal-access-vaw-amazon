@@ -8,6 +8,7 @@ from src.network.download import discover_and_download_transport_layers
 from src.network.source_catalog import build_transport_source_catalog
 
 
+# Rebuild after transport-source policy changes (e.g., DNIT road acquisition).
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Build the versioned transport-layer bundle required by the multimodal router."
