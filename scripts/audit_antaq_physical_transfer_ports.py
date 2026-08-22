@@ -73,7 +73,8 @@ def main() -> None:
     ports["state_norm"] = "pa"
     ports["port_name"] = ports[nome].astype(str) if nome else ""
     ports["port_id"] = ports[pid].astype(str) if pid else ports.index.astype(str)
-    ports = ports[ports.geometry.notna() & ~ports.geometry.is_empty].copy()
+    ports = ports[ports.geometry.notna() & ~ports.geometry.is_empty].copy().reset_index(drop=True)
+    ports["port_index"] = ports.index.astype(int)
     if ports.crs is None:
         ports = ports.set_crs("EPSG:4674")
     ports_m = ports.to_crs(DIST_CRS)
@@ -102,19 +103,19 @@ def main() -> None:
     water = gpd.GeoDataFrame(water, geometry="geometry", crs=DIST_CRS)
 
     rows = []
-    for idx, p in ports_m.iterrows():
+    for _, p in ports_m.iterrows():
         m = p["municipality_norm"]
         compatible = water[
             ((water["origin_municipality_norm"] == m) & water["origin_state_norm"].isin({"", "pa", "para"})) |
             ((water["destination_municipality_norm"] == m) & water["destination_state_norm"].isin({"", "pa", "para"}))
         ]
         if compatible.empty:
-            rows.append({"port_index": int(idx), "port_id": p["port_id"], "port_name": p["port_name"], "municipality": m, "compatible_hydro_segments": 0, "hydro_distance_m": None})
+            rows.append({"port_index": int(p["port_index"]), "port_id": p["port_id"], "port_name": p["port_name"], "municipality": m, "compatible_hydro_segments": 0, "hydro_distance_m": None})
             continue
         d = compatible.geometry.distance(p.geometry)
         j = d.idxmin()
         rows.append({
-            "port_index": int(idx), "port_id": p["port_id"], "port_name": p["port_name"], "municipality": m,
+            "port_index": int(p["port_index"]), "port_id": p["port_id"], "port_name": p["port_name"], "municipality": m,
             "compatible_hydro_segments": int(len(compatible)), "hydro_distance_m": float(d.loc[j]),
             "hydro_dataset": str(compatible.loc[j, "dataset"]),
         })
@@ -124,11 +125,11 @@ def main() -> None:
     if roads.crs is None:
         roads = roads.set_crs("EPSG:4674")
     roads_m = roads.to_crs(DIST_CRS)
-    port_pts = ports_m[["port_id", "geometry"]].copy().reset_index(drop=True)
+    port_pts = ports_m[["port_index", "geometry"]].copy()
     road_near = gpd.sjoin_nearest(port_pts, roads_m[["geometry"]], how="left", distance_col="road_distance_m")
-    road_near = road_near.sort_values(["port_id", "road_distance_m"]).drop_duplicates("port_id")
-    road_map = dict(zip(road_near["port_id"].astype(str), pd.to_numeric(road_near["road_distance_m"], errors="coerce")))
-    result["road_distance_m"] = result["port_id"].astype(str).map(road_map)
+    road_near = road_near.sort_values(["port_index", "road_distance_m"]).drop_duplicates("port_index")
+    road_map = dict(zip(road_near["port_index"].astype(int), pd.to_numeric(road_near["road_distance_m"], errors="coerce")))
+    result["road_distance_m"] = result["port_index"].astype(int).map(road_map)
     result["dual_physical_distance_max_m"] = result[["hydro_distance_m", "road_distance_m"]].max(axis=1, skipna=False)
 
     hydro_valid = result["hydro_distance_m"].notna()
@@ -145,7 +146,7 @@ def main() -> None:
         "dual_within_distance_counts": {f"{t}m": int((result.loc[dual_valid, "dual_physical_distance_max_m"] <= t).sum()) for t in thresholds},
         "connector_promoted": False,
         "ready_for_physical_transfer_rule_decision": True,
-        "scientific_policy": "Candidate intermodal transfer points are anchored at current 2025 ANTAQ port-installation geometries in Para. Hydro candidates are restricted to ANTAQ route geometries whose official origin/destination municipality matches the port municipality. Road distance is measured to the OSM routable geometry. Distances are diagnostic only; no threshold is selected or connector promoted here.",
+        "scientific_policy": "Candidate intermodal transfer points are anchored at current 2025 ANTAQ port-installation geometries in Para. Hydro candidates are restricted to ANTAQ route geometries whose official origin/destination municipality matches the port municipality. Road distance is measured to the OSM routable geometry using a unique internal port-row key. Distances are diagnostic only; no threshold is selected or connector promoted here.",
     }
     result.to_csv(OUT / "pa_physical_transfer_port_candidates.csv", index=False)
     (OUT / "pa_physical_transfer_port_audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
