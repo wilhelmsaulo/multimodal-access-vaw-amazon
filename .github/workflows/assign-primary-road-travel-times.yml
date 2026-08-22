@@ -1,0 +1,57 @@
+name: assign-primary-road-travel-times
+
+on:
+  pull_request:
+    paths:
+      - "scripts/assign_primary_road_travel_times.py"
+      - "scripts/build_primary_motor_road_graph.py"
+      - "scripts/build_transport_topology.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - ".github/workflows/assign-primary-road-travel-times.yml"
+  workflow_dispatch:
+
+jobs:
+  assign:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "osmium>=4,<5"
+      - name: Build official transport reference layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire routable OSM roads
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical multimodal layers
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build structural transport topology
+        run: python scripts/build_transport_topology.py
+      - name: Build conservative primary motor road graph
+        run: python scripts/build_primary_motor_road_graph.py
+      - name: Assign primary road travel times
+        run: python scripts/assign_primary_road_travel_times.py
+      - name: Validate time coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("artifacts/primary_motor_road_times/primary_motor_road_time_audit.json").read_text(encoding="utf-8"))
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          assert a["edges_total"] > 0
+          assert a["edges_with_travel_time"] > 0
+          assert a["hydro_temporal_model_resolved"] is False
+          PY
+      - name: Upload primary motor road times
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-primary-motor-road-times
+          path: artifacts/primary_motor_road_times/
+          if-no-files-found: error
+          retention-days: 30
