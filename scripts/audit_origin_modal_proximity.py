@@ -8,7 +8,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-DISTANCE_CRS = "EPSG:31982"  # SIRGAS 2000 / UTM zone 22S, suitable for most of Pará
+DISTANCE_CRS = "EPSG:5880"  # SIRGAS 2000 / Brazil Polyconic; statewide metric CRS for Pará
 GEOGRAPHIC_CRS = "EPSG:4674"
 
 
@@ -126,6 +126,7 @@ def main() -> None:
     audit = {
         "origins": int(len(out)),
         "distance_crs": DISTANCE_CRS,
+        "distance_crs_rationale": "SIRGAS 2000 / Brazil Polyconic is valid statewide and avoids single-zone UTM distortion across Pará.",
         "layers": {
             "roads": int(len(roads)),
             "waterways": int(len(waterways)),
