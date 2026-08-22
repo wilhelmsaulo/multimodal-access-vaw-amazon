@@ -12,7 +12,7 @@ import pandas as pd
 
 PORT_ZIP = Path("data/raw/transport/antaq_ports/Instalaesporturias06052025.zip")
 WATER_DIR = Path("data/raw/transport/antaq_waterways")
-CLASSIFICATION = Path("artifacts/antaq_physical_transfer_port_classification/pa_physical_transfer_port_classification.csv")
+CLASSIFICATION = Path("artifacts/antaq_physical_transfer_port_classification/pa_physical_transfer_port_ranked_candidates.csv")
 OUT = Path("artifacts/antaq_pareto_front1_transfer_port_audit")
 DIST_CRS = "EPSG:5880"
 
