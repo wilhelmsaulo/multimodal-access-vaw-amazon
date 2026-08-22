@@ -4,11 +4,14 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - agent/repository-bootstrap
+      - agent/stage1-stage2-accessibility
+      - main
     paths:
       - ".github/workflows/build-ibge-census-sectors.yml"
       - "config/ibge_census2022_sectors.yml"
       - "src/data/ibge_census2022_sectors.py"
+      - "src/data/ibge_localities_2022.py"
+      - "scripts/build_ibge_locality_origins.py"
       - "tests/test_ibge_census2022_sectors.py"
       - "pyproject.toml"
   pull_request:
@@ -18,6 +21,8 @@ on:
       - ".github/workflows/build-ibge-census-sectors.yml"
       - "config/ibge_census2022_sectors.yml"
       - "src/data/ibge_census2022_sectors.py"
+      - "src/data/ibge_localities_2022.py"
+      - "scripts/build_ibge_locality_origins.py"
       - "tests/test_ibge_census2022_sectors.py"
       - "pyproject.toml"
 
@@ -31,7 +36,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - name: Check out repository
@@ -46,27 +51,30 @@ jobs:
       - name: Install project and geospatial dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .             "geopandas>=1.0,<2"             "pyogrio>=0.10,<1"             "openpyxl>=3.1,<4"             "PyYAML>=6,<7"             "pytest>=8,<9"
+          python -m pip install -e . \
+            "geopandas>=1.0,<2" \
+            "pyogrio>=0.10,<1" \
+            "openpyxl>=3.1,<4" \
+            "PyYAML>=6,<7" \
+            "pytest>=8,<9"
 
       - name: Run automated tests
         run: pytest
 
-      - name: Build Pará census-sector origins
+      - name: Build Pará census-sector dataset
         run: python src/data/ibge_census2022_sectors.py
 
-      - name: Validate generated GeoPackage
+      - name: Validate generated sector GeoPackage
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-
           import geopandas as gpd
           import pandas as pd
 
           output = Path("data/processed/ibge/pa_census_sectors_2022.gpkg")
           audit_path = output.with_suffix(".audit.json")
           summary_path = output.with_name("pa_census_sectors_2022_summary.csv")
-
           sectors = gpd.read_file(output, layer="pa_census_sectors_2022")
           audit = json.loads(audit_path.read_text(encoding="utf-8"))
           summary = pd.read_csv(summary_path, dtype={"CD_SETOR": str, "CD_MUN": str})
@@ -85,7 +93,40 @@ jobs:
           print(json.dumps(audit, ensure_ascii=False, indent=2))
           PY
 
-      - name: Upload processed census-sector artifact
+      - name: Build and audit official IBGE locality origins
+        run: python scripts/build_ibge_locality_origins.py
+
+      - name: Validate locality outputs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import geopandas as gpd
+          import pandas as pd
+
+          root = Path("data/processed/ibge")
+          gpkg = root / "pa_ibge_localities_2022_by_sector.gpkg"
+          audit = json.loads((root / "pa_ibge_localities_2022.audit.json").read_text(encoding="utf-8"))
+          counts = pd.read_csv(root / "pa_sector_locality_counts_2022.csv", dtype={"CD_SETOR": str})
+          localities = gpd.read_file(gpkg, layer="pa_localities_by_sector")
+
+          assert audit["localities_para"] == 4_838
+          assert audit["sectors_total"] == 16_714
+          assert len(localities) == 4_838
+          assert "LOCALITY_RECORD_ID" in localities.columns
+          assert localities["LOCALITY_RECORD_ID"].nunique() == 4_838
+          assert localities["CD_SETOR"].notna().all()
+          assert len(counts) == 16_714
+          assert (
+              audit["sectors_with_zero_localities"]
+              + audit["sectors_with_one_locality"]
+              + audit["sectors_with_multiple_localities"]
+              == 16_714
+          )
+          print(json.dumps(audit, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Upload processed IBGE origins artifact
         uses: actions/upload-artifact@v4
         with:
           name: pa-census-sectors-2022
@@ -93,6 +134,10 @@ jobs:
             data/processed/ibge/pa_census_sectors_2022.gpkg
             data/processed/ibge/pa_census_sectors_2022.audit.json
             data/processed/ibge/pa_census_sectors_2022_summary.csv
+            data/processed/ibge/pa_ibge_localities_2022_by_sector.gpkg
+            data/processed/ibge/pa_ibge_localities_2022_by_sector.csv
+            data/processed/ibge/pa_sector_locality_counts_2022.csv
+            data/processed/ibge/pa_ibge_localities_2022.audit.json
           if-no-files-found: error
           retention-days: 30
           compression-level: 6

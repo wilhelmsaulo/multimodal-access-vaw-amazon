@@ -1,0 +1,76 @@
+name: build-transport-topology
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/build_transport_topology.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - ".github/workflows/build-transport-topology.yml"
+  push:
+    branches: [agent/stage1-stage2-accessibility]
+    paths:
+      - "scripts/build_transport_topology.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - ".github/workflows/build-transport-topology.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: transport-topology-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install project and topology dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . \
+            "geopandas>=1.0,<2" \
+            "pyogrio>=0.10,<1" \
+            "shapely>=2,<3" \
+            "pyproj>=3.7,<4" \
+            "osmium>=4,<5"
+      - name: Rebuild official reference transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire routable OSM road network
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical multimodal graph inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build structural multimodal transport topology
+        run: python scripts/build_transport_topology.py
+      - name: Validate topology audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("artifacts/transport_topology/transport_topology_audit.json")
+          a = json.loads(p.read_text(encoding="utf-8"))
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          assert a["road_graph"]["nodes"] > 0
+          assert a["road_graph"]["edges"] > 0
+          assert a["ready_for_connector_rule_audit"] is True
+          assert a["ready_for_travel_time_routing"] is False
+          for key in ("port_to_road", "port_to_waterway", "airport_to_road"):
+              assert a["connector_candidates"][key]["rows"] > 0
+          PY
+      - name: Upload structural topology artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-transport-topology
+          path: artifacts/transport_topology/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 6

@@ -1,0 +1,45 @@
+name: audit-antaq-crossing-lines-pa
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_antaq_crossing_lines_pa.py"
+      - ".github/workflows/audit-antaq-crossing-lines-pa.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire ANTAQ transport bundle
+        run: python scripts/build_transport_layers.py
+      - name: Audit ANTAQ crossing lines in Para
+        run: python scripts/audit_antaq_crossing_lines_pa.py
+      - name: Validate audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("artifacts/antaq_crossing_lines_pa/crossing_lines_pa_audit.json")
+          d = json.loads(p.read_text(encoding="utf-8"))
+          assert d["rows_total"] > 0
+          assert d["ready_for_wait_time_model_decision"] is True
+          assert d["wait_time_assigned"] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-antaq-crossing-lines-audit
+          path: artifacts/antaq_crossing_lines_pa/
+          if-no-files-found: error
+          retention-days: 30

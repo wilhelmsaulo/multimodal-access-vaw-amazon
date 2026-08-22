@@ -1,0 +1,51 @@
+name: build-hydro-temporal-graph-reference
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/build_hydro_temporal_graph_reference.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - ".github/workflows/build-hydro-temporal-graph-reference.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire transport bundle
+        run: python scripts/build_transport_layers.py
+      - name: Prepare canonical multimodal inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build hydro temporal reference graph
+        run: python scripts/build_hydro_temporal_graph_reference.py
+      - name: Validate audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/hydro_temporal_graph_reference/hydro_temporal_graph_reference_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['segments_total'] == 358
+          assert d['coverage_fraction'] == 1.0
+          assert d['passenger_realized_time_claimed'] is False
+          assert d['waiting_time_included'] is False
+          assert d['time_imputation_applied'] is False
+          assert d['ready_for_multimodal_temporal_integration'] is True
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-hydro-temporal-reference-graph
+          path: artifacts/hydro_temporal_graph_reference/
+          if-no-files-found: error
+          retention-days: 30

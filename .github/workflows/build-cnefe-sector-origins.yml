@@ -1,0 +1,86 @@
+name: build-cnefe-sector-origins
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/build_cnefe_sector_origins.py"
+      - "src/data/cnefe_origins.py"
+      - "src/data/ibge_census2022_sectors.py"
+      - "config/cnefe_origin_rules.yml"
+      - "config/ibge_census2022_sectors.yml"
+      - ".github/workflows/build-cnefe-sector-origins.yml"
+      - "pyproject.toml"
+  push:
+    branches:
+      - agent/stage1-stage2-accessibility
+    paths:
+      - "scripts/build_cnefe_sector_origins.py"
+      - "src/data/cnefe_origins.py"
+      - "src/data/ibge_census2022_sectors.py"
+      - "config/cnefe_origin_rules.yml"
+      - "config/ibge_census2022_sectors.yml"
+      - ".github/workflows/build-cnefe-sector-origins.yml"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cnefe-sector-origins-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . \
+            "geopandas>=1.0,<2" \
+            "pyogrio>=0.10,<1" \
+            "PyYAML>=6,<7" \
+            "pytest>=8,<9"
+      - name: Run tests
+        run: pytest
+      - name: Build official Pará census sectors
+        run: python src/data/ibge_census2022_sectors.py
+      - name: Build primary CNEFE sector origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Validate origin output
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+
+          p = Path("data/processed/ibge/pa_cnefe_sector_origins_2022.csv")
+          a = json.loads(p.with_suffix(".audit.json").read_text(encoding="utf-8"))
+          x = pd.read_csv(p, dtype={"origin_id": str, "municipality_code": str})
+          assert len(x) == 16714
+          assert x["origin_id"].nunique() == 16714
+          assert a["sectors_input"] == 16714
+          assert a["residential_species_values"] == ["1"]
+          assert a["accepted_nv_geo_coord_values"] == ["1", "2"]
+          assert not x.loc[x["origin_validation_status"].eq("validated_inhabited_location"), ["latitude", "longitude"]].isna().any().any()
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload derived sector origins
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-cnefe-sector-origins-2022
+          path: |
+            data/processed/ibge/pa_cnefe_sector_origins_2022.csv
+            data/processed/ibge/pa_cnefe_sector_origins_2022.audit.json
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 6

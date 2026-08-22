@@ -10,6 +10,10 @@ from typing import Any
 
 import httpx
 
+# Pará envelope in SIRGAS 2000. Used only to constrain national WFS downloads;
+# final clipping/validation is performed against official IBGE geometry downstream.
+_PA_BBOX = "-58.95,-9.90,-46.00,2.00,EPSG:4674"
+
 SOURCES: list[dict[str, Any]] = [
     {
         "source_id": "dnit_roads",
@@ -17,14 +21,25 @@ SOURCES: list[dict[str, Any]] = [
         "theme": "roads",
         "official_page": "https://www.gov.br/dnit/pt-br/assuntos/atlas-e-mapas/pnv-e-snv",
         "expected_formats": ["shp", "geojson", "csv"],
-        "map_reference_year": 2021,
-        "download_enabled": False,
+        "map_reference_year": 2024,
+        "download_enabled": True,
         "direct_urls": [
-            "https://geoservicos.inde.gov.br/geoserver/DNIT/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=DNIT:cide_2021_&outputFormat=SHAPE-ZIP",
-            "https://geoservicos.inde.gov.br/geoserver/DNIT/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=DNIT:cide_2021_&outputFormat=application/json",
-            "https://geoservicos.inde.gov.br/geoserver/DNIT/ows?service=WFS&version=2.0.0&request=GetFeature&typeNames=DNIT:cide_2021_&outputFormat=SHAPE-ZIP",
+            (
+                "https://geoservicos.inde.gov.br/geoserver/DNIT/ows?"
+                "service=WFS&version=1.0.0&request=GetFeature&"
+                "typeName=SNV202407A&outputFormat=SHAPE-ZIP&bbox=" + _PA_BBOX
+            ),
+            (
+                "https://geoservicos.inde.gov.br/geoserver/DNIT/ows?"
+                "service=WFS&version=2.0.0&request=GetFeature&"
+                "typeNames=SNV202407A&outputFormat=application/json&bbox=" + _PA_BBOX
+            ),
         ],
-        "purpose": "Official unified state and federal road-network geometry exposed by DNIT through INDE WFS.",
+        "direct_urls_only": True,
+        "purpose": (
+            "Primary official federal road-network geometry from the DNIT/INDE WFS, "
+            "SNV reference 2024-07-25, spatially constrained to the Pará envelope."
+        ),
     },
     {
         "source_id": "mapbiomas_state_roads",
@@ -38,7 +53,7 @@ SOURCES: list[dict[str, Any]] = [
         ],
         "expected_sha256": "364a070e9394a812b8eab3956c6056203decfde66d7771c679854d28d8b4fe05",
         "direct_urls_only": True,
-        "purpose": "State-road network compiled by MapBiomas from institutional sources.",
+        "purpose": "Supplementary state-road geometry; not a blocker when the primary DNIT road layer is available.",
     },
     {
         "source_id": "mapbiomas_federal_roads",
@@ -52,7 +67,7 @@ SOURCES: list[dict[str, Any]] = [
         ],
         "expected_sha256": "f507e9c2bdca50c1ee6814c07cd220c88e686c0aae2b88ca8baef0280d01ba94",
         "direct_urls_only": True,
-        "purpose": "Federal-road network compiled by MapBiomas from institutional sources.",
+        "purpose": "Supplementary federal-road geometry; not a blocker when the primary DNIT road layer is available.",
     },
     {
         "source_id": "mapbiomas_other_roads",
@@ -66,7 +81,7 @@ SOURCES: list[dict[str, Any]] = [
         ],
         "expected_sha256": "7df6c217fe2ea6bbfd556863fe21a426003042ad774ac7c73bf38e41d58d1585",
         "direct_urls_only": True,
-        "purpose": "Other road segments compiled by MapBiomas from institutional sources.",
+        "purpose": "Supplementary other-road geometry; not a blocker when the primary DNIT road layer is available.",
     },
     {
         "source_id": "antaq_ports",

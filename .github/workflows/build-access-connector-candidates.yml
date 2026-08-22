@@ -1,0 +1,91 @@
+name: build-access-connector-candidates
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [agent/stage1-stage2-accessibility]
+    paths:
+      - "scripts/build_access_connector_candidates.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/materialize_routing_inputs.py"
+      - ".github/workflows/build-access-connector-candidates.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/build_access_connector_candidates.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/materialize_routing_inputs.py"
+      - ".github/workflows/build-access-connector-candidates.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: access-connectors-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . \
+            "geopandas>=1.0,<2" \
+            "pyogrio>=0.10,<1" \
+            "shapely>=2,<3" \
+            "PyYAML>=6,<7" \
+            "openpyxl>=3.1,<4" \
+            "xlrd>=2,<3"
+      - name: Build official Pará census sectors
+        run: python src/data/ibge_census2022_sectors.py
+      - name: Build validated CNEFE sector origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Build CNES and CREAS snapshots
+        run: python scripts/build_service_inventory_from_snapshots.py
+      - name: Build TJPA and DEAM sources
+        run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
+      - name: Consolidate services
+        run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
+      - name: Apply accepted operational coordinates
+        run: python scripts/apply_manual_service_coordinate_overrides.py --inventory artifacts/service_inventory/services_consolidated.csv --audit artifacts/service_inventory/manual_coordinate_overrides_audit.json
+      - name: Audit service readiness
+        run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
+      - name: Materialize routing inputs
+        run: python scripts/materialize_routing_inputs.py
+      - name: Acquire routable OSM roads
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical road layer
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build access connector candidates
+        run: python scripts/build_access_connector_candidates.py
+      - name: Validate connector audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("artifacts/access_connector_candidates/access_connector_audit.json").read_text(encoding="utf-8"))
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          assert a["origin_to_road"]["rows"] == 15743
+          assert a["service_to_road"]["rows"] == 236
+          assert a["origin_to_road"]["resolved"] == 15743
+          assert a["service_to_road"]["resolved"] == 236
+          assert a["travel_time_assigned"] is False
+          assert a["ready_for_access_connector_rule_audit"] is True
+          PY
+      - name: Upload access connector candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-access-connector-candidates
+          path: artifacts/access_connector_candidates/
+          if-no-files-found: error
+          retention-days: 30

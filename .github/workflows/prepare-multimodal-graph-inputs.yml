@@ -1,0 +1,76 @@
+name: prepare-multimodal-graph-inputs
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/build_transport_layers.py"
+      - "src/network/download.py"
+      - "src/network/source_catalog.py"
+      - ".github/workflows/prepare-multimodal-graph-inputs.yml"
+  push:
+    branches: [agent/stage1-stage2-accessibility]
+    paths:
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/build_transport_layers.py"
+      - "src/network/download.py"
+      - "src/network/source_catalog.py"
+      - ".github/workflows/prepare-multimodal-graph-inputs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: multimodal-graph-inputs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install project and geospatial dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . \
+            "geopandas>=1.0,<2" \
+            "pyogrio>=0.10,<1" \
+            "shapely>=2,<3"
+      - name: Rebuild official reference transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire routable OSM road network
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical multimodal graph inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Validate graph input readiness
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("artifacts/multimodal_graph_inputs/graph_input_audit.json")
+          audit = json.loads(p.read_text(encoding="utf-8"))
+          print(json.dumps(audit, ensure_ascii=False, indent=2))
+          assert audit["layers"]["waterways"]["ready"]
+          assert audit["layers"]["ports"]["ready"]
+          assert audit["layers"]["airports"]["ready"]
+          assert audit["layers"]["roads"]["ready"], "OSM routable road geometry is unavailable"
+          assert audit["all_required_modal_layers_ready"]
+          PY
+      - name: Upload graph inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-multimodal-graph-inputs
+          path: |
+            artifacts/multimodal_graph_inputs/
+            data/processed/transport/osm_roads_manifest.json
+          if-no-files-found: error
+          retention-days: 30

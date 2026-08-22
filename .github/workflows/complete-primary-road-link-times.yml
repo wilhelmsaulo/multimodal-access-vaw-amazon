@@ -1,0 +1,61 @@
+name: complete-primary-road-link-times
+
+on:
+  push:
+    branches: [agent/stage1-stage2-accessibility]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: complete-primary-road-link-times-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  complete:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "osmium>=4,<5"
+      - name: Build official transport reference layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire routable OSM roads
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical multimodal layers
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build structural transport topology
+        run: python scripts/build_transport_topology.py
+      - name: Build conservative primary motor road graph
+        run: python scripts/build_primary_motor_road_graph.py
+      - name: Assign primary road travel times
+        run: python scripts/assign_primary_road_travel_times.py
+      - name: Complete unresolved link travel times
+        run: python scripts/complete_primary_road_link_times.py
+      - name: Validate complete terrestrial time graph
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path('artifacts/primary_motor_road_times_complete/primary_motor_road_time_completion_audit.json').read_text())
+          assert a['unresolved_before'] > 0
+          assert a['unresolved_after'] == 0
+          assert a['edge_time_coverage_fraction'] == 1.0
+          assert a['terrestrial_temporal_graph_complete'] is True
+          assert a['hydro_temporal_model_resolved'] is False
+          print(json.dumps(a, indent=2))
+          PY
+      - name: Upload complete terrestrial road times
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-primary-motor-road-times-complete
+          path: artifacts/primary_motor_road_times_complete/
+          if-no-files-found: error
+          retention-days: 30

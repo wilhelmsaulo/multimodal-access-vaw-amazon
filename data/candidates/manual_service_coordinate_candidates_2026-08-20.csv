@@ -1,0 +1,26 @@
+candidate_id,service_type,municipality_name,service_label,address_as_supplied,latitude_candidate,longitude_candidate,candidate_source,scientific_use
+CREAS-MARABA-CAND,creas,Marabá,CREAS Carajás,"Avenida Espírito Santo, 285, Quadra 08, Lote 02, Bairro Amapá, Marabá - PA, CEP 68502-040",-5.33403,-49.12340,user_supplied_for_validation,validation_candidate_only
+CREAS-MONTE-ALEGRE-CAND,creas,Monte Alegre,CREAS Monte Alegre,"Avenida Nilo Peçanha, 120, Serra Ocidental, Monte Alegre - PA, CEP 68220-000",-2.00063,-54.07689,user_supplied_for_validation,validation_candidate_only
+TJPA-ANANINDEUA-CAND,specialized_justice,Ananindeua,Casa da Mulher Brasileira / Vara Especializada,"Avenida Cláudio Sanders, 28, Ananindeua - PA",-1.36531,-48.37528,user_supplied_for_validation,validation_candidate_only
+TJPA-BELEM-CAND,specialized_justice,Belém,Fórum Criminal Romão Amoedo,"Rua Dona Tomázia Perdigão, 310, Cidade Velha, Belém - PA",-1.45543,-48.50284,user_supplied_for_validation,validation_candidate_only
+TJPA-CASTANHAL-CAND,specialized_justice,Castanhal,Fórum da Comarca de Castanhal,"Avenida Presidente Vargas, 2639, Centro, Castanhal - PA",-1.29421,-47.92212,user_supplied_for_validation,validation_candidate_only
+DEAM-ANANINDEUA-CAND,specialized_security,Ananindeua,DEAM Ananindeua,"Travessa WE-31, 1112, Cidade Nova V, Ananindeua - PA",-1.36214,-48.39712,user_supplied_for_validation,validation_candidate_only
+DEAM-ABAETETUBA-CAND,specialized_security,Abaetetuba,DEAM Abaetetuba,"Rua Pedro Pinheiro Paes, 226, Centro, Abaetetuba - PA",-1.72265,-48.88211,user_supplied_for_validation,validation_candidate_only
+DEAM-ALTAMIRA-CAND,specialized_security,Altamira,DEAM Altamira,"Rua Curitiba, s/n, Jardim dos Estados, Altamira - PA",-3.20912,-52.21542,user_supplied_for_validation,validation_candidate_only
+DEAM-BARCARENA-CAND,specialized_security,Barcarena,DEAM Barcarena,"Rua Cronge de Oliveira, 225, Beira Rio, Barcarena - PA",-1.50724,-48.62103,user_supplied_for_validation,validation_candidate_only
+DEAM-BELEM-CAND,specialized_security,Belém,DEAM Belém,"Travessa Mauriti, 2393, Marco, Belém - PA",-1.43321,-48.46198,user_supplied_for_validation,validation_candidate_only
+DEAM-BRAGANCA-CAND,specialized_security,Bragança,DEAM Bragança,"Rua Martins Pinheiro, s/n, Alegre, Bragança - PA",-1.05432,-46.77211,user_supplied_for_validation,validation_candidate_only
+DEAM-BREVES-CAND,specialized_security,Breves,DEAM Breves,"Avenida Rio Branco, s/n, Centro, Breves - PA",-1.68112,-50.48154,user_supplied_for_validation,validation_candidate_only
+DEAM-CAPANEMA-CAND,specialized_security,Capanema,DEAM Capanema,"Avenida João Paulo II, 1660, Tancredo Neves, Capanema - PA",-1.19231,-47.18123,user_supplied_for_validation,validation_candidate_only
+DEAM-CAMETA-CAND,specialized_security,Cametá,DEAM Cametá,"Travessa Arciprestes Manduca, s/n, Centro, Cametá - PA",-2.24312,-49.49521,user_supplied_for_validation,validation_candidate_only
+DEAM-CANAA-CAND,specialized_security,Canaã dos Carajás,DEAM Canaã dos Carajás,"Avenida dos Pioneiros, s/n, Centro, Canaã dos Carajás - PA",-6.49621,-49.87812,user_supplied_for_validation,validation_candidate_only
+DEAM-CASTANHAL-CAND,specialized_security,Castanhal,DEAM Castanhal,"BR-316, Km 62, Cristo Redentor, Castanhal - PA",-1.29812,-47.91523,user_supplied_for_validation,validation_candidate_only
+DEAM-ITAITUBA-CAND,specialized_security,Itaituba,DEAM Itaituba,"Rua Primeira, s/n, Floresta, Itaituba - PA",-4.26812,-55.99231,user_supplied_for_validation,validation_candidate_only
+DEAM-MARABA-CAND,specialized_security,Marabá,DEAM Marabá,"Rodovia Transamazônica, Quadra Especial, Lote 01, Folha 30, Nova Marabá, Marabá - PA",-5.35231,-49.12841,user_supplied_for_validation,validation_candidate_only
+DEAM-PARAGOMINAS-CAND,specialized_security,Paragominas,DEAM Paragominas,"Rua Presidente Vargas, s/n, Célio Miranda, Paragominas - PA",-2.99781,-47.35123,user_supplied_for_validation,validation_candidate_only
+DEAM-PARAUAPEBAS-CAND,specialized_security,Parauapebas,DEAM Parauapebas,"PA-275, s/n, União, Parauapebas - PA",-6.06821,-49.90211,user_supplied_for_validation,validation_candidate_only
+DEAM-REDENCAO-CAND,specialized_security,Redenção,DEAM Redenção,"Avenida Brasil, 1820, Alto Paraná, Redenção - PA",-8.02612,-50.03124,user_supplied_for_validation,validation_candidate_only
+DEAM-SAO-FELIX-CAND,specialized_security,São Félix do Xingu,DEAM São Félix do Xingu,"Avenida 22 de Março, s/n, Centro, São Félix do Xingu - PA",-6.64321,-51.99312,user_supplied_for_validation,validation_candidate_only
+DEAM-SANTAREM-CAND,specialized_security,Santarém,DEAM Santarém,"Avenida Crisântemo, 70, Aeroporto Velho, Santarém - PA",-2.44682,-54.72911,user_supplied_for_validation,validation_candidate_only
+DEAM-SOURE-CAND,specialized_security,Soure,DEAM Soure,"Segunda Rua, 1105, Centro, Soure - PA",-0.71621,-48.52312,user_supplied_for_validation,validation_candidate_only
+DEAM-TUCURUI-CAND,specialized_security,Tucuruí,DEAM Tucuruí,"Avenida 07 de Setembro, s/n, Santa Rosa, Tucuruí - PA",-3.76612,-49.67321,user_supplied_for_validation,validation_candidate_only

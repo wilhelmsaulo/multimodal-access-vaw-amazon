@@ -1,0 +1,83 @@
+schema_version: 1
+reference_date: 2026-08-18
+state: PA
+
+sources:
+  cnes:
+    provider: Ministerio da Saude
+    role: health_services
+    url: https://dadosabertos.saude.gov.br/dataset/cnes-cadastro-nacional-de-estabelecimentos-de-saude
+    current_status: active
+    current_reference: 2026-08-18
+    update_frequency: daily
+    inclusion_rule: >-
+      Use validated CNES establishments relevant to emergency, hospital, sexual-violence,
+      psychosocial, or other explicitly justified VAW-response functions. Do not treat all
+      health facilities as equivalent.
+    capacity_candidates:
+      - beds
+      - professionals
+      - teams
+      - registered_specialized_service
+    capacity_rule: prefer_observed_or_documented_proxy
+
+  censo_suas:
+    provider: Ministerio do Desenvolvimento e Assistencia Social, Familia e Combate a Fome
+    role: social_assistance
+    url: https://aplicacoes.mds.gov.br/sagi/snas/vigilancia/index2.php
+    current_reference: Censo SUAS 2024
+    current_status: published_with_2026_corrections
+    inclusion_rule: >-
+      Prefer CREAS and other protection-specialized units with defensible relevance to women
+      experiencing violence. CRAS may be retained as a broader access layer but should not be
+      treated as functionally equivalent to CREAS or specialized women's centers.
+    capacity_candidates:
+      - worker_count
+      - team_composition
+      - monthly_attendance
+      - service_structure
+    capacity_rule: prefer_censo_suas_structure_or_workers
+
+  ligue180_network:
+    provider: Ministerio das Mulheres
+    role: specialized_vaw_network
+    url: https://www.gov.br/mulheres/pt-br/ligue180/painel-da-rede-de-atendimento
+    current_status: active
+    current_reference: living_directory
+    inclusion_rule: >-
+      Use publicly listed, non-confidential services in the official Rede de Atendimento a Mulher.
+      Preserve functional category. Never publish confidential shelter locations.
+    capacity_candidates:
+      - unit_presence
+    capacity_rule: presence_only_unless_external_capacity_is_documented
+
+  tjpa:
+    provider: Tribunal de Justica do Estado do Para
+    role: justice
+    url: https://centralservicos.tjpa.jus.br/bv/todos.php
+    current_status: active
+    current_reference: 2026-08-18
+    inclusion_rule: >-
+      Include specialized courts/units explicitly dedicated to domestic and family violence
+      against women. General courts are not substitutes for specialized units in the primary layer.
+    capacity_candidates:
+      - unit_presence
+    capacity_rule: presence_only_unless_staffing_or_case_capacity_is_documented
+
+service_types:
+  - health
+  - creas
+  - social_assistance_general
+  - specialized_womens_center
+  - deam_or_specialized_police
+  - specialized_justice
+  - public_defense_specialized
+  - prosecution_specialized
+  - shelter_public_location_only
+
+safeguards:
+  confidential_shelters: never_publish_exact_location
+  functional_substitutability: false
+  missing_capacity: do_not_invent
+  missing_coordinates: require_validation_or_documented_geocoding
+  police_records_as_demand: prohibited

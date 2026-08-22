@@ -1,0 +1,125 @@
+name: build-service-inventory
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/build_service_inventory_from_snapshots.py"
+      - "scripts/build_specialized_service_sources.py"
+      - "scripts/consolidate_service_inventory.py"
+      - "scripts/apply_manual_service_coordinate_overrides.py"
+      - "scripts/audit_service_readiness.py"
+      - "scripts/geocode_service_locations.py"
+      - "scripts/discover_service_pois_overpass.py"
+      - "scripts/audit_manual_service_coordinate_candidates.py"
+      - "scripts/validate_geocoded_service_locations.py"
+      - "data/candidates/manual_service_coordinate_candidates_*.csv"
+      - "data/candidates/manual_service_coordinate_overrides_*.csv"
+      - "src/data/cnes_service_evidence.py"
+      - "src/data/service_consolidation.py"
+      - "src/data/service_readiness.py"
+      - "src/data/ibge_census2022_sectors.py"
+      - "config/ibge_census2022_sectors.yml"
+      - "data/snapshots/creas_sagi_pa_*"
+      - "data/snapshots/cnes_pa_vaw_service_relations_202607*"
+      - "data/snapshots/cnes_pa_service165_core_attributes_2026-08-19.csv"
+      - "data/snapshots/tjpa_specialized_vaw_units_*.csv"
+      - "data/snapshots/deam_physical_units_pa_*.csv"
+      - "tests/test_service_consolidation.py"
+      - ".github/workflows/build-service-inventory.yml"
+      - "pyproject.toml"
+  push:
+    branches:
+      - agent/stage1-stage2-accessibility
+    paths:
+      - "scripts/build_service_inventory_from_snapshots.py"
+      - "scripts/build_specialized_service_sources.py"
+      - "scripts/consolidate_service_inventory.py"
+      - "scripts/apply_manual_service_coordinate_overrides.py"
+      - "scripts/audit_service_readiness.py"
+      - "scripts/geocode_service_locations.py"
+      - "scripts/discover_service_pois_overpass.py"
+      - "scripts/audit_manual_service_coordinate_candidates.py"
+      - "scripts/validate_geocoded_service_locations.py"
+      - "data/candidates/manual_service_coordinate_candidates_*.csv"
+      - "data/candidates/manual_service_coordinate_overrides_*.csv"
+      - "src/data/cnes_service_evidence.py"
+      - "src/data/service_consolidation.py"
+      - "src/data/service_readiness.py"
+      - "src/data/ibge_census2022_sectors.py"
+      - "config/ibge_census2022_sectors.yml"
+      - "data/snapshots/creas_sagi_pa_*"
+      - "data/snapshots/cnes_pa_vaw_service_relations_202607*"
+      - "data/snapshots/cnes_pa_service165_core_attributes_2026-08-19.csv"
+      - "data/snapshots/tjpa_specialized_vaw_units_*.csv"
+      - "data/snapshots/deam_physical_units_pa_*.csv"
+      - "tests/test_service_consolidation.py"
+      - ".github/workflows/build-service-inventory.yml"
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . \
+            "openpyxl>=3.1,<4" \
+            "xlrd>=2,<3" \
+            "pytest>=8,<9" \
+            "geopandas>=1.0,<2" \
+            "pyogrio>=0.10,<1" \
+            "PyYAML>=6,<7"
+      - name: Test service consolidation
+        run: pytest tests/test_service_consolidation.py
+      - name: Build CNES and CREAS from versioned snapshots
+        run: python scripts/build_service_inventory_from_snapshots.py
+      - name: Build TJPA, DEAM and Ligue 180 source audit
+        run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
+      - name: Consolidate service inventory
+        run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
+      - name: Apply accepted operational coordinates
+        run: python scripts/apply_manual_service_coordinate_overrides.py --inventory artifacts/service_inventory/services_consolidated.csv --audit artifacts/service_inventory/manual_coordinate_overrides_audit.json
+      - name: Audit service readiness
+        run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
+      - name: Audit manually supplied coordinate candidates
+        continue-on-error: true
+        run: python scripts/audit_manual_service_coordinate_candidates.py --output artifacts/service_inventory/manual_coordinate_candidate_audit.csv --audit artifacts/service_inventory/manual_coordinate_candidate_audit.json
+      - name: Discover named OSM POIs with Overpass
+        continue-on-error: true
+        run: python scripts/discover_service_pois_overpass.py --queue artifacts/service_inventory/services_geocoding_queue.csv --output artifacts/service_inventory/services_overpass_poi_candidates.csv --audit artifacts/service_inventory/services_overpass_poi_audit.json
+      - name: Generate geocoding candidates
+        run: python scripts/geocode_service_locations.py --queue artifacts/service_inventory/services_geocoding_queue.csv --output artifacts/service_inventory/services_geocoded_candidates.csv --audit artifacts/service_inventory/services_geocoding_audit.json
+      - name: Validate geocoded candidates with official IBGE boundaries
+        run: python scripts/validate_geocoded_service_locations.py --candidates artifacts/service_inventory/services_geocoded_candidates.csv --output artifacts/service_inventory/services_geocoded_spatial_validation.csv --audit artifacts/service_inventory/services_geocoded_spatial_validation.audit.json
+      - name: Show build summaries
+        run: |
+          cat artifacts/service_inventory/build_summary.json
+          cat artifacts/service_inventory/cnes_vaw_service_evidence_audit.json
+          cat artifacts/service_inventory/specialized_sources_summary.json
+          cat artifacts/service_inventory/services_consolidation_audit.json
+          cat artifacts/service_inventory/manual_coordinate_overrides_audit.json
+          cat artifacts/service_inventory/services_readiness_audit.json
+          if [ -f artifacts/service_inventory/manual_coordinate_candidate_audit.json ]; then cat artifacts/service_inventory/manual_coordinate_candidate_audit.json; fi
+          if [ -f artifacts/service_inventory/services_overpass_poi_audit.json ]; then cat artifacts/service_inventory/services_overpass_poi_audit.json; fi
+          cat artifacts/service_inventory/services_geocoding_audit.json
+          cat artifacts/service_inventory/services_geocoded_spatial_validation.audit.json
+      - name: Upload inventory artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-inventory-pa
+          path: artifacts/service_inventory/
+          if-no-files-found: error
+          retention-days: 30

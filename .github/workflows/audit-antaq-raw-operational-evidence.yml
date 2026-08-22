@@ -1,0 +1,52 @@
+name: audit-antaq-raw-operational-evidence
+
+on:
+  push:
+    branches: [agent/stage1-stage2-accessibility]
+    paths:
+      - 'scripts/audit_antaq_raw_operational_evidence.py'
+      - '.github/workflows/audit-antaq-raw-operational-evidence.yml'
+      - 'src/network/**'
+      - 'scripts/build_transport_layers.py'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire ANTAQ transport source bundle
+        run: python scripts/build_transport_layers.py
+      - name: Audit raw ANTAQ operational evidence
+        run: python scripts/audit_antaq_raw_operational_evidence.py
+      - name: Validate audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/antaq_raw_operational_evidence/antaq_raw_operational_evidence.json')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          s = d['summary']
+          assert s['zip_files_scanned'] > 0
+          assert s['datasets_or_layers_scanned'] > 0
+          assert s['ready_for_hydro_temporal_evidence_decision'] is True
+          assert s['hydro_time_assigned'] is False
+          print(json.dumps(s, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-antaq-raw-operational-evidence
+          path: artifacts/antaq_raw_operational_evidence/
+          if-no-files-found: error
+          retention-days: 30
