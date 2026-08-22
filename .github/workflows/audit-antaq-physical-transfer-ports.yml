@@ -23,6 +23,8 @@ jobs:
           python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
       - name: Acquire official transport layers
         run: python scripts/build_transport_layers.py
+      - name: Acquire OSM road network
+        run: python scripts/acquire_osm_roads.py
       - name: Prepare canonical multimodal inputs
         run: python scripts/prepare_multimodal_graph_inputs.py
       - name: Audit physical transfer ports
