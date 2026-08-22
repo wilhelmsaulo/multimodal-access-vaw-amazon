@@ -10,7 +10,7 @@ OUT = Path("artifacts/topological_transfer_attachment_audit")
 
 
 def classify(row: pd.Series) -> str:
-    hydro = float(row["hydro_distance_m_canonical"])
+    hydro = float(row["hydro_distance_m"])
     road = float(row["road_distance_m"])
     # Descriptive classes only. These are not routing thresholds and do not
     # enable temporal traversal. The purpose is to distinguish near-coincident
@@ -27,6 +27,11 @@ def main() -> None:
     if len(df) != 3:
         raise RuntimeError(f"Expected 3 validated anchors, found {len(df)}")
 
+    required = {"port_name", "road_distance_m", "hydro_distance_m"}
+    missing = sorted(required - set(df.columns))
+    if missing:
+        raise RuntimeError(f"Validated-anchor artifact is missing required columns: {missing}")
+
     df["attachment_geometry_class"] = df.apply(classify, axis=1)
     df["topological_zero_cost_candidate"] = df["attachment_geometry_class"].eq("near_coincident_geometry")
     df["topological_zero_cost_adopted"] = False
@@ -40,7 +45,7 @@ def main() -> None:
         rows.append({
             "port_name": str(r["port_name"]),
             "road_distance_m": float(r["road_distance_m"]),
-            "hydro_distance_m": float(r["hydro_distance_m_canonical"]),
+            "hydro_distance_m": float(r["hydro_distance_m"]),
             "attachment_geometry_class": str(r["attachment_geometry_class"]),
             "topological_zero_cost_candidate": bool(r["topological_zero_cost_candidate"]),
             "topological_zero_cost_adopted": False,
