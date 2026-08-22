@@ -1,0 +1,47 @@
+name: derive-antaq-hydro-temporal-observations-pa
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/derive_antaq_hydro_temporal_observations_pa.py"
+      - ".github/workflows/derive-antaq-hydro-temporal-observations-pa.yml"
+
+jobs:
+  derive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire ANTAQ transport bundle
+        run: python scripts/build_transport_layers.py
+      - name: Derive observed hydro temporal evidence for Para
+        run: python scripts/derive_antaq_hydro_temporal_observations_pa.py
+      - name: Validate hydro temporal audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/antaq_hydro_temporal_observations_pa/antaq_hydro_temporal_observations_pa_audit.json')
+          d = json.loads(p.read_text(encoding='utf-8'))
+          assert d['pa_observation_rows'] > 0
+          assert d['pa_rows_with_observed_time_and_length'] > 0
+          assert d['wait_time_model'] == 'excluded_from_primary_model_and_reserved_for_discussion'
+          assert d['hydro_missing_time_imputation_applied'] is False
+          assert d['ready_for_hydro_temporal_matching_audit'] is True
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-antaq-hydro-temporal-observations
+          path: artifacts/antaq_hydro_temporal_observations_pa/
+          if-no-files-found: error
+          retention-days: 30
