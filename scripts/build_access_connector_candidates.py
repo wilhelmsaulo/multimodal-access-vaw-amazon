@@ -7,10 +7,10 @@ from pathlib import Path
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString
 from shapely.ops import nearest_points
 
-TARGET_CRS = "EPSG:31982"  # SIRGAS 2000 / UTM 22S, suitable for most of Pará metric distance audit
+DISTANCE_CRS = "EPSG:5880"  # SIRGAS 2000 / Brazil Polyconic; statewide metric CRS for Pará
 INPUT_CRS = "EPSG:4674"
 
 
@@ -33,18 +33,17 @@ def _prepare_roads(path: Path) -> gpd.GeoDataFrame:
     roads = roads[roads.geometry.geom_type.isin(["LineString", "MultiLineString"])].copy()
     roads = roads.reset_index(drop=True)
     roads["road_feature_id"] = np.arange(len(roads), dtype="int64")
-    return roads[["road_feature_id", "geometry"]].to_crs(TARGET_CRS)
+    return roads[["road_feature_id", "geometry"]].to_crs(DISTANCE_CRS)
 
 
 def _nearest_connectors(points: gpd.GeoDataFrame, roads_m: gpd.GeoDataFrame, id_col: str) -> gpd.GeoDataFrame:
-    pts_m = points.to_crs(TARGET_CRS)
+    pts_m = points.to_crs(DISTANCE_CRS)
     nearest = gpd.sjoin_nearest(
         pts_m[[id_col, "geometry"]],
         roads_m,
         how="left",
         distance_col="snap_distance_m",
     )
-    # Ties may create duplicate point rows; retain the first deterministic road id.
     nearest = nearest.sort_values([id_col, "snap_distance_m", "road_feature_id"]).drop_duplicates(id_col)
     road_geom = roads_m.set_index("road_feature_id").geometry
 
@@ -67,7 +66,7 @@ def _nearest_connectors(points: gpd.GeoDataFrame, roads_m: gpd.GeoDataFrame, id_
             "status": "candidate_only_not_promoted",
         })
         geoms.append(LineString([p, snap]))
-    return gpd.GeoDataFrame(rows, geometry=geoms, crs=TARGET_CRS).to_crs(INPUT_CRS)
+    return gpd.GeoDataFrame(rows, geometry=geoms, crs=DISTANCE_CRS).to_crs(INPUT_CRS)
 
 
 def _summary(gdf: gpd.GeoDataFrame, id_col: str) -> dict:
@@ -111,7 +110,8 @@ def main() -> None:
     service_conn.to_file(service_path, layer="service_to_road", driver="GPKG")
 
     audit = {
-        "distance_crs": TARGET_CRS,
+        "distance_crs": DISTANCE_CRS,
+        "distance_crs_rationale": "SIRGAS 2000 / Brazil Polyconic is valid statewide and avoids using a single UTM zone across Pará; canonical geometries remain EPSG:4674.",
         "road_features": int(len(roads)),
         "origin_to_road": _summary(origin_conn, "origin_id"),
         "service_to_road": _summary(service_conn, "service_id"),
