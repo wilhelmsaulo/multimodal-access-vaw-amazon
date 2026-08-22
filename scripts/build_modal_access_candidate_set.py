@@ -5,13 +5,13 @@ from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import LineString, Point
+from shapely.geometry import Point
 
 ORIGINS = Path("artifacts/routing_inputs/origins_for_routing.csv")
 ROADS = Path("artifacts/multimodal_graph_inputs/roads.gpkg")
 WATERWAYS = Path("artifacts/multimodal_graph_inputs/waterways.gpkg")
 OUT = Path("artifacts/modal_access_candidates")
-DISTANCE_CRS = "EPSG:31982"
+DISTANCE_CRS = "EPSG:5880"  # SIRGAS 2000 / Brazil Polyconic; statewide metric CRS for Pará
 
 
 def _points(df: pd.DataFrame) -> gpd.GeoDataFrame:
@@ -71,6 +71,8 @@ def main() -> None:
         "candidate_rows": int(len(candidates)),
         "candidates_per_origin": int(len(candidates) / origins["origin_id"].nunique()),
         "modes": ["road", "waterway"],
+        "distance_crs": DISTANCE_CRS,
+        "distance_crs_rationale": "SIRGAS 2000 / Brazil Polyconic is used for statewide metric proximity; source geometries remain SIRGAS 2000 geographic.",
         "geometrically_nearest_mode_counts": {str(k): int(v) for k, v in nearest_counts.items()},
         "model_choice": "non_exclusive_multimodal_access_candidates",
         "model_rationale": (
