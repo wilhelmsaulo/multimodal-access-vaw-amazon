@@ -1,0 +1,59 @@
+name: build-primary-motor-road-graph
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/build_primary_motor_road_graph.py"
+      - "scripts/build_transport_topology.py"
+      - ".github/workflows/build-primary-motor-road-graph.yml"
+  push:
+    branches:
+      - agent/stage1-stage2-accessibility
+    paths:
+      - "scripts/build_primary_motor_road_graph.py"
+      - "scripts/build_transport_topology.py"
+      - ".github/workflows/build-primary-motor-road-graph.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "osmium>=4,<5"
+      - name: Build official transport reference layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire routable OSM roads
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical multimodal layers
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build structural transport topology
+        run: python scripts/build_transport_topology.py
+      - name: Build conservative primary motor road graph
+        run: python scripts/build_primary_motor_road_graph.py
+      - name: Validate primary motor graph
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("artifacts/primary_motor_road_graph/primary_motor_road_graph_audit.json").read_text(encoding="utf-8"))
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          assert a["primary_motor_edges"] > 0
+          assert a["track_sensitivity_edges"] > 0
+          assert a["travel_time_assigned"] is False
+          assert a["ready_for_primary_road_speed_assignment"] is True
+          PY
+      - name: Upload primary motor graph
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-primary-motor-road-graph
+          path: artifacts/primary_motor_road_graph/
+          if-no-files-found: error
+          retention-days: 30
