@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/acquire_osm_roads.py"
       - "scripts/build_transport_layers.py"
       - "src/network/download.py"
       - "src/network/source_catalog.py"
@@ -13,6 +14,7 @@ on:
     branches: [agent/stage1-stage2-accessibility]
     paths:
       - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/acquire_osm_roads.py"
       - "scripts/build_transport_layers.py"
       - "src/network/download.py"
       - "src/network/source_catalog.py"
@@ -43,8 +45,10 @@ jobs:
             "geopandas>=1.0,<2" \
             "pyogrio>=0.10,<1" \
             "shapely>=2,<3"
-      - name: Rebuild official transport layers
+      - name: Rebuild official reference transport layers
         run: python scripts/build_transport_layers.py
+      - name: Acquire routable OSM road network
+        run: python scripts/acquire_osm_roads.py
       - name: Prepare canonical multimodal graph inputs
         run: python scripts/prepare_multimodal_graph_inputs.py
       - name: Validate graph input readiness
@@ -58,12 +62,15 @@ jobs:
           assert audit["layers"]["waterways"]["ready"]
           assert audit["layers"]["ports"]["ready"]
           assert audit["layers"]["airports"]["ready"]
-          assert audit["layers"]["roads"]["ready"], "DNIT road geometry is still unavailable"
+          assert audit["layers"]["roads"]["ready"], "OSM routable road geometry is unavailable"
+          assert audit["all_required_modal_layers_ready"]
           PY
       - name: Upload graph inputs
         uses: actions/upload-artifact@v4
         with:
           name: pa-multimodal-graph-inputs
-          path: artifacts/multimodal_graph_inputs/
+          path: |
+            artifacts/multimodal_graph_inputs/
+            data/processed/transport/osm_roads_manifest.json
           if-no-files-found: error
           retention-days: 30
