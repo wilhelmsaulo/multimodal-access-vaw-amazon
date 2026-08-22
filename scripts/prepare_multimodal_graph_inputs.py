@@ -12,6 +12,7 @@ from shapely.geometry import box
 
 TARGET_CRS = "EPSG:4674"
 PA_BBOX = box(-58.95, -9.95, -46.0, 2.8)
+PA_BBOX_TUPLE = (-58.95, -9.95, -46.0, 2.8)
 
 
 def _extract_archives(source_dir: Path, workdir: Path) -> list[Path]:
@@ -25,13 +26,36 @@ def _extract_archives(source_dir: Path, workdir: Path) -> list[Path]:
             with zipfile.ZipFile(p) as zf:
                 zf.extractall(target)
             roots.append(target)
-        elif p.suffix.lower() in {".shp", ".geojson", ".json", ".gpkg", ".kml"}:
+        elif p.suffix.lower() in {".shp", ".geojson", ".json", ".gpkg", ".kml", ".pbf"}:
             roots.append(p)
     return roots
 
 
+def _read_pbf_roads(path: Path) -> list[gpd.GeoDataFrame]:
+    try:
+        g = gpd.read_file(
+            path,
+            layer="lines",
+            bbox=PA_BBOX_TUPLE,
+            engine="pyogrio",
+        )
+    except Exception:
+        return []
+    if g.empty:
+        return []
+    if "highway" in g.columns:
+        g = g[g["highway"].notna()].copy()
+    else:
+        # OSM line layers normally expose a highway field. Refuse to treat all
+        # line features as roads if that semantic tag is unavailable.
+        return []
+    return [g] if not g.empty else []
+
+
 def _read_geodata(path: Path) -> list[gpd.GeoDataFrame]:
     frames: list[gpd.GeoDataFrame] = []
+    if path.suffix.lower() == ".pbf":
+        return _read_pbf_roads(path)
     candidates: list[Path]
     if path.is_dir():
         candidates = [p for p in path.rglob("*") if p.suffix.lower() in {".shp", ".geojson", ".json", ".gpkg", ".kml"}]
@@ -88,12 +112,20 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     specs = {
-        "roads": ("dnit_roads", "line"),
+        "roads": ("osm_roads", "line"),
         "waterways": ("antaq_waterways", "line"),
         "ports": ("antaq_ports", "point"),
         "airports": ("decea_airports", "point"),
     }
-    audit: dict[str, object] = {"target_crs": TARGET_CRS, "layers": {}, "policy": "Canonical geometry preparation only; no travel-time weights or unsupported modal speeds are assigned."}
+    audit: dict[str, object] = {
+        "target_crs": TARGET_CRS,
+        "layers": {},
+        "road_network_policy": (
+            "OpenStreetMap is the primary routable terrestrial network because door-to-door routing requires local streets and access roads; "
+            "DNIT/SNV remains the official federal-road reference for validation, not a complete door-to-door graph."
+        ),
+        "policy": "Canonical geometry preparation only; no travel-time weights or unsupported modal speeds are assigned.",
+    }
 
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
