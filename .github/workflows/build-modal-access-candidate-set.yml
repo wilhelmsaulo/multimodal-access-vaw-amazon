@@ -1,0 +1,78 @@
+name: build-modal-access-candidate-set
+
+on:
+  push:
+    branches: [agent/stage1-stage2-accessibility]
+    paths:
+      - "scripts/build_modal_access_candidate_set.py"
+      - ".github/workflows/build-modal-access-candidate-set.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/build_modal_access_candidate_set.py"
+      - ".github/workflows/build-modal-access-candidate-set.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . \
+            "geopandas>=1.0,<2" \
+            "pyogrio>=0.10,<1" \
+            "shapely>=2,<3" \
+            "PyYAML>=6,<7" \
+            "openpyxl>=3.1,<4" \
+            "xlrd>=2,<3"
+      - name: Build official Pará census sectors
+        run: python src/data/ibge_census2022_sectors.py
+      - name: Build validated CNEFE sector origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Build service inventory and routing inputs
+        run: |
+          python scripts/build_service_inventory_from_snapshots.py
+          python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
+          python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
+          python scripts/apply_manual_service_coordinate_overrides.py --inventory artifacts/service_inventory/services_consolidated.csv --audit artifacts/service_inventory/manual_coordinate_overrides_audit.json
+          python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
+          python scripts/materialize_routing_inputs.py
+      - name: Build transport layers
+        run: |
+          python scripts/build_transport_layers.py
+          python scripts/acquire_osm_roads.py
+          python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build non-exclusive modal access candidate set
+        run: python scripts/build_modal_access_candidate_set.py
+      - name: Validate model audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a = json.loads(Path("artifacts/modal_access_candidates/modal_access_candidate_audit.json").read_text(encoding="utf-8"))
+          assert a["origins"] == 15743
+          assert a["candidate_rows"] == 31486
+          assert a["candidates_per_origin"] == 2
+          assert a["model_choice"] == "non_exclusive_multimodal_access_candidates"
+          assert a["travel_time_assigned"] is False
+          assert a["ready_for_temporal_calibration"] is True
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload modal access candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: pa-modal-access-candidates
+          path: artifacts/modal_access_candidates/
+          if-no-files-found: error
+          retention-days: 30
