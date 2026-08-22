@@ -22,6 +22,19 @@ def norm_text(v: object) -> str:
     return re.sub(r"[^a-z0-9]+", "", s.lower())
 
 
+def normalized_column_map(cols: list[str]) -> dict[str, str]:
+    return {norm_text(c): c for c in cols}
+
+
+def exact_col(cols: list[str], *names: str) -> str | None:
+    cmap = normalized_column_map(cols)
+    for name in names:
+        c = cmap.get(norm_text(name))
+        if c:
+            return c
+    return None
+
+
 def pick_col(cols: list[str], tokens: tuple[str, ...]) -> str | None:
     scored: list[tuple[int, str]] = []
     for c in cols:
@@ -53,8 +66,13 @@ def field_profile(df: pd.DataFrame) -> dict[str, object]:
         "candidate_id_fields": [c for c in cols if any(t in norm_text(c) for t in ("id", "codigo", "cod", "seq"))],
         "candidate_name_fields": [c for c in cols if any(t in norm_text(c) for t in ("nome", "porto", "instal", "terminal"))],
         "candidate_municipality_fields": [c for c in cols if any(t in norm_text(c) for t in ("municip", "cidade", "mun"))],
-        "candidate_state_fields": [c for c in cols if any(t in norm_text(c) for t in ("uf", "estado"))],
+        "candidate_state_fields": [c for c in cols if any(t in norm_text(c) for t in ("uf", "estado", "estorigem", "estestino"))],
     }
+
+
+def clean_id_values(series: pd.Series) -> set[str]:
+    vals = set(series.dropna().map(norm_text))
+    return {v for v in vals if v not in {"", "0", "00", "000", "nan", "none", "null"}}
 
 
 def main() -> None:
@@ -68,10 +86,10 @@ def main() -> None:
         g = read_zip(z)
         prof = field_profile(g)
         cols = prof["columns"]
-        mun = pick_col(cols, ("municip", "cidade", "mun"))
-        uf = pick_col(cols, ("uf", "estado"))
-        ident = pick_col(cols, ("idseq", "id", "codigo", "cod", "seq"))
-        name = pick_col(cols, ("nome", "porto", "instal", "terminal"))
+        mun = exact_col(cols, "cidade", "municipio", "municip") or pick_col(cols, ("municip", "cidade", "mun"))
+        uf = exact_col(cols, "estado", "uf") or pick_col(cols, ("uf", "estado"))
+        ident = exact_col(cols, "idseq", "idantaq", "idi_tuaria") or pick_col(cols, ("idseq", "id", "codigo", "cod", "seq"))
+        name = exact_col(cols, "nome", "noterminal") or pick_col(cols, ("nome", "porto", "instal", "terminal"))
         port_records.append({"dataset": z.name, "rows": len(g), "profile": prof, "chosen": {"municipality": mun, "state": uf, "id": ident, "name": name}})
         tmp = pd.DataFrame(index=g.index)
         tmp["dataset"] = z.name
@@ -88,10 +106,11 @@ def main() -> None:
         g = read_zip(z)
         prof = field_profile(g)
         cols = prof["columns"]
-        orig_mun = pick_col(cols, ("orig", "municip")) or pick_col(cols, ("orig", "cidade"))
-        dest_mun = pick_col(cols, ("dest", "municip")) or pick_col(cols, ("dest", "cidade"))
-        orig_uf = pick_col(cols, ("orig", "uf")) or pick_col(cols, ("orig", "estado"))
-        dest_uf = pick_col(cols, ("dest", "uf")) or pick_col(cols, ("dest", "estado"))
+        # Prefer the explicit ANTAQ municipality/state fields. Avoid IDM_* codes.
+        orig_mun = exact_col(cols, "MUN_ORIGEM", "mun_origem")
+        dest_mun = exact_col(cols, "MUN_ESTINO", "mun_estino", "MUN_DESTINO", "mun_destino")
+        orig_uf = exact_col(cols, "EST_ORIGEM", "est_origem")
+        dest_uf = exact_col(cols, "EST_ESTINO", "est_estino", "EST_DESTINO", "est_destino")
         water_records.append({"dataset": z.name, "rows": len(g), "profile": prof, "chosen": {"origin_municipality": orig_mun, "origin_state": orig_uf, "destination_municipality": dest_mun, "destination_state": dest_uf}})
 
         for side, mc, uc in (("origin", orig_mun, orig_uf), ("destination", dest_mun, dest_uf)):
@@ -107,11 +126,11 @@ def main() -> None:
                 })
 
         for c in prof["candidate_id_fields"]:
-            vals = set(g[c].dropna().map(norm_text)) - {""}
+            vals = clean_id_values(g[c])
             if not vals:
                 continue
             for pr, pf in zip(port_records, port_frames):
-                pvals = set(pf["port_id"]) - {""}
+                pvals = clean_id_values(pf["port_id"])
                 overlap = vals & pvals
                 if overlap:
                     id_overlap_candidates.append({
@@ -124,6 +143,7 @@ def main() -> None:
                     })
 
     ports = pd.concat(port_frames, ignore_index=True) if port_frames else pd.DataFrame(columns=["municipality", "state"])
+    ports = ports[ports["municipality"].ne("")].copy()
     endpoints = pd.DataFrame(endpoint_rows)
     if not endpoints.empty:
         endpoints = endpoints[endpoints["municipality"].ne("")].copy()
@@ -134,8 +154,7 @@ def main() -> None:
         ]
         endpoints["municipality_port_present"] = endpoints["municipality"].isin(port_muns)
     else:
-        endpoints["exact_municipality_state_port_present"] = []
-        endpoints["municipality_port_present"] = []
+        endpoints = pd.DataFrame(columns=["dataset", "row", "side", "municipality", "state", "exact_municipality_state_port_present", "municipality_port_present"])
 
     exact_count = int(endpoints["exact_municipality_state_port_present"].sum()) if len(endpoints) else 0
     municipality_count = int(endpoints["municipality_port_present"].sum()) if len(endpoints) else 0
@@ -151,7 +170,7 @@ def main() -> None:
         "endpoint_same_municipality_state_fraction": float(exact_count / len(endpoints)) if len(endpoints) else 0.0,
         "explicit_identifier_overlap_candidates": id_overlap_candidates,
         "explicit_identifier_overlap_candidate_count": len(id_overlap_candidates),
-        "scientific_policy": "This audit searches official ANTAQ port and waterway attributes for explicit identifier overlap and exact municipality/state endpoint associations. Municipality coincidence is evidence for candidate transfer validation but is not by itself promoted to a physical connector. No distance threshold or nearest-feature rule is applied here.",
+        "scientific_policy": "This audit searches official ANTAQ port and waterway attributes for explicit identifier overlap and exact municipality/state endpoint associations. Municipality coincidence is evidence for candidate transfer validation but is not by itself promoted to a physical connector. Zero/blank identifier values are excluded from overlap tests. No distance threshold or nearest-feature rule is applied here.",
         "connector_promoted": False,
         "ready_for_intermodal_connector_model_decision": True,
     }
