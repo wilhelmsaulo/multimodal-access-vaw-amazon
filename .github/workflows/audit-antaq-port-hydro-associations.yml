@@ -1,0 +1,46 @@
+name: audit-antaq-port-hydro-associations
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit_antaq_port_hydro_associations.py'
+      - '.github/workflows/audit-antaq-port-hydro-associations.yml'
+      - 'scripts/build_transport_layers.py'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Audit ANTAQ port-waterway associations
+        run: python scripts/audit_antaq_port_hydro_associations.py
+      - name: Validate audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/antaq_port_hydro_associations/antaq_port_hydro_association_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['port_rows_total'] > 0
+          assert d['waterway_endpoint_rows_total'] > 0
+          assert d['connector_promoted'] is False
+          assert d['ready_for_intermodal_connector_model_decision'] is True
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-antaq-port-hydro-association-audit
+          path: artifacts/antaq_port_hydro_associations/
+          if-no-files-found: error
+          retention-days: 30
