@@ -59,16 +59,22 @@ def parse_coordinate(value: object) -> float | None:
         return float(s)
     except ValueError:
         pass
-    # Examples in the official file: 4°10'50,23'S and 54°34'43.08"O.
-    m = re.match(r'^\s*(\d+(?:\.\d+)?)\s*[°º]\s*(\d+(?:\.\d+)?)\s*[\'’′]\s*(\d+(?:\.\d+)?)\s*(?:["”″])?\s*([NSEOWL])\s*$', s)
-    if not m:
+
+    # ANTAQ uses heterogeneous DMS punctuation, e.g. 18°11'7,8'S and 54°34'43.08\"O.
+    # Extract the three numeric components and hemisphere structurally, rather than
+    # requiring a particular quote character after minutes or seconds.
+    hemi_match = re.search(r"([NSEOWL])\s*$", s)
+    if not hemi_match:
         return None
-    deg, minute, second = (float(m.group(i)) for i in (1, 2, 3))
+    hemi = hemi_match.group(1)
+    body = s[:hemi_match.start()]
+    nums = re.findall(r"\d+(?:\.\d+)?", body)
+    if len(nums) != 3:
+        return None
+    deg, minute, second = map(float, nums)
     if minute >= 60 or second >= 60:
         return None
     out = deg + minute / 60.0 + second / 3600.0
-    hemi = m.group(4)
-    # Portuguese Oeste (O) is west; W is accepted defensively.
     if hemi in {"S", "O", "W"}:
         out = -out
     return out
