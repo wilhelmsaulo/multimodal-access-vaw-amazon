@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - "scripts/audit_hydro_temporal_matching_pa.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/derive_antaq_hydro_temporal_observations_pa.py"
       - ".github/workflows/audit-hydro-temporal-matching-pa.yml"
 
 jobs:
