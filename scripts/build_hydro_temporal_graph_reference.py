@@ -46,7 +46,7 @@ def main() -> None:
         "waiting_time_included": False,
         "time_imputation_applied": False,
         "ready_for_multimodal_temporal_integration": bool(len(w) and w["travel_time_min"].notna().all()),
-        "policy": "ANTLR reported_time is used as an official hydro-network reference impedance. It is not labeled as realized passenger travel time. Waiting time is excluded and no missing-time imputation is applied."
+        "policy": "ANTAQ reported_time is used as an official hydro-network reference impedance. It is not labeled as realized passenger travel time. Waiting time is excluded and no missing-time imputation is applied."
     }
     (OUT / "hydro_temporal_graph_reference_audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(audit, ensure_ascii=False, indent=2))
