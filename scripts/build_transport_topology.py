@@ -141,31 +141,63 @@ def _nearest_line_connectors(
     return gpd.GeoDataFrame(nearest, geometry="geometry", crs=DISTANCE_CRS).to_crs(TARGET_CRS)
 
 
-def build_connector_candidates(graph_inputs: Path, output_dir: Path) -> dict[str, object]:
-    roads = gpd.read_file(graph_inputs / "roads.gpkg", layer="roads")
-    waterways = gpd.read_file(graph_inputs / "waterways.gpkg", layer="waterways")
-    ports = gpd.read_file(graph_inputs / "ports.gpkg", layer="ports")
-    airports = gpd.read_file(graph_inputs / "airports.gpkg", layer="airports")
+def _read_optional_layer(path: Path, layer: str) -> gpd.GeoDataFrame | None:
+    if not path.exists():
+        return None
+    try:
+        g = gpd.read_file(path, layer=layer)
+    except Exception:
+        return None
+    return g if len(g) else None
 
-    specs = {
-        "port_to_road": _nearest_line_connectors(ports, roads, "port", "road"),
-        "port_to_waterway": _nearest_line_connectors(ports, waterways, "port", "waterway"),
-        "airport_to_road": _nearest_line_connectors(airports, roads, "airport", "road"),
+
+def _summarize_connector(name: str, layer: gpd.GeoDataFrame, output_dir: Path) -> dict[str, object]:
+    path = output_dir / f"{name}_connector_candidates.gpkg"
+    layer.to_file(path, layer=name, driver="GPKG")
+    distances = pd.to_numeric(layer["snap_distance_m"], errors="coerce").dropna()
+    return {
+        "rows": int(len(layer)),
+        "resolved": int(distances.notna().sum()),
+        "median_snap_distance_m": float(distances.median()) if len(distances) else None,
+        "p95_snap_distance_m": float(distances.quantile(0.95)) if len(distances) else None,
+        "max_snap_distance_m": float(distances.max()) if len(distances) else None,
+        "output": str(path),
+        "status": "candidate_only_not_promoted",
     }
+
+
+def build_connector_candidates(graph_inputs: Path, output_dir: Path) -> dict[str, object]:
+    roads = _read_optional_layer(graph_inputs / "roads.gpkg", "roads")
+    waterways = _read_optional_layer(graph_inputs / "waterways.gpkg", "waterways")
+    ports = _read_optional_layer(graph_inputs / "ports.gpkg", "ports")
+    airports = _read_optional_layer(graph_inputs / "airports.gpkg", "airports")
+
     summary: dict[str, object] = {}
-    for name, layer in specs.items():
-        path = output_dir / f"{name}_connector_candidates.gpkg"
-        layer.to_file(path, layer=name, driver="GPKG")
-        distances = pd.to_numeric(layer["snap_distance_m"], errors="coerce").dropna()
-        summary[name] = {
-            "rows": int(len(layer)),
-            "resolved": int(distances.notna().sum()),
-            "median_snap_distance_m": float(distances.median()) if len(distances) else None,
-            "p95_snap_distance_m": float(distances.quantile(0.95)) if len(distances) else None,
-            "max_snap_distance_m": float(distances.max()) if len(distances) else None,
-            "output": str(path),
-            "status": "candidate_only_not_promoted",
-        }
+    specs = [
+        ("port_to_road", ports, roads, "port", "road"),
+        ("port_to_waterway", ports, waterways, "port", "waterway"),
+        ("airport_to_road", airports, roads, "airport", "road"),
+    ]
+    for name, points, lines, point_kind, line_kind in specs:
+        if points is None or lines is None:
+            missing = []
+            if points is None:
+                missing.append(point_kind)
+            if lines is None:
+                missing.append(line_kind)
+            summary[name] = {
+                "rows": 0,
+                "resolved": 0,
+                "median_snap_distance_m": None,
+                "p95_snap_distance_m": None,
+                "max_snap_distance_m": None,
+                "output": None,
+                "status": "source_temporarily_unavailable_not_promoted",
+                "missing_modal_inputs": missing,
+            }
+            continue
+        layer = _nearest_line_connectors(points, lines, point_kind, line_kind)
+        summary[name] = _summarize_connector(name, layer, output_dir)
     return summary
 
 
@@ -186,7 +218,8 @@ def main() -> None:
         "scientific_policy": (
             "This stage builds structural topology and geometric connector candidates only. "
             "It does not assign modal speeds, waiting times, transfer penalties, seasonal travel times, "
-            "or automatically promote a connector solely because it is nearest in Euclidean space."
+            "or automatically promote a connector solely because it is nearest in Euclidean space. "
+            "Temporary source unavailability is recorded as an unresolved connector input rather than promoted or silently imputed."
         ),
         "ready_for_connector_rule_audit": bool(road_graph["nodes"] and road_graph["edges"]),
         "ready_for_travel_time_routing": False,
