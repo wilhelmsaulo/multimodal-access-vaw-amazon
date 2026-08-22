@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROAD = Path("artifacts/primary_motor_road_times_complete/primary_motor_road_time_completion_audit.json")
 HYDRO = Path("artifacts/hydro_temporal_graph_reference/hydro_temporal_graph_reference_audit.json")
-TOPO = Path("artifacts/transport_topology/topology_audit.json")
+TOPO = Path("artifacts/transport_topology/transport_topology_audit.json")
 OUT = Path("artifacts/multimodal_temporal_integration_readiness")
 
 
