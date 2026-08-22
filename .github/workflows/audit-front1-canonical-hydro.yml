@@ -1,0 +1,56 @@
+name: audit-front1-canonical-hydro
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/audit_front1_against_canonical_hydro.py'
+      - 'scripts/audit_antaq_physical_transfer_ports.py'
+      - 'scripts/classify_physical_transfer_port_candidates.py'
+      - '.github/workflows/audit-front1-canonical-hydro.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire OSM road network
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical multimodal inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Audit physical transfer ports
+        run: python scripts/audit_antaq_physical_transfer_ports.py
+      - name: Classify transfer port candidates
+        run: python scripts/classify_physical_transfer_port_candidates.py
+      - name: Audit front-1 against canonical hydro
+        run: python scripts/audit_front1_against_canonical_hydro.py
+      - name: Validate canonical audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/front1_canonical_hydro_audit/front1_canonical_hydro_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['front1_count'] == 3
+          assert d['all_canonical_matches_found'] is True
+          assert d['all_spatial_anchors_validated'] is True
+          assert d['temporal_connector_cost_resolved'] is False
+          assert d['connector_promoted'] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-front1-canonical-hydro-audit
+          path: artifacts/front1_canonical_hydro_audit/
+          if-no-files-found: error
+          retention-days: 30
