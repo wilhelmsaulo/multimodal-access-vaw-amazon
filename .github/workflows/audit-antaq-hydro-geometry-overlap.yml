@@ -1,0 +1,50 @@
+name: audit-antaq-hydro-geometry-overlap
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/audit_antaq_hydro_geometry_overlap.py"
+      - ".github/workflows/audit-antaq-hydro-geometry-overlap.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Prepare provenance-aware multimodal inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Audit ANTAQ hydro geometry overlap
+        run: python scripts/audit_antaq_hydro_geometry_overlap.py
+      - name: Validate non-destructive audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/antaq_hydro_geometry_overlap/antaq_hydro_geometry_overlap_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['waterway_rows_total'] > 0
+          assert d['unique_hydro_ids'] > 0
+          assert d['duplicate_hydro_id_groups'] > 0
+          assert d['reported_impedance_attributes_are_not_modified'] is True
+          assert d['canonical_geometry_selection_applied'] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-antaq-hydro-geometry-overlap
+          path: artifacts/antaq_hydro_geometry_overlap/
+          if-no-files-found: error
+          retention-days: 30
