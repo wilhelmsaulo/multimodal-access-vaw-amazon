@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import math
 import unicodedata
 from pathlib import Path
 
@@ -119,8 +118,8 @@ def main() -> None:
     decisive_n = reverse_n + same_n
     reverse_share = float(reverse_n / decisive_n) if decisive_n else None
 
-    # This audit is evidentiary only. It deliberately does not choose an arbitrary
-    # distance threshold; orientation is compared within each reciprocal pair.
+    # Reciprocal geometry is supporting evidence only. Contradictory pairs are
+    # sufficient to prevent statewide validation from this audit alone.
     audit = {
         "official_routes_total": int(len(routes)),
         "informative_nonself_routes": int(len(informative)),
@@ -130,24 +129,21 @@ def main() -> None:
         "tie_unresolved_pairs": tie_n,
         "decisive_pair_count": decisive_n,
         "reverse_order_support_fraction_among_decisive_pairs": reverse_share,
-        "geometry_vertex_order_validated_as_origin_to_destination": bool(decisive_n > 0 and reverse_n > same_n),
+        "reciprocal_evidence_supports_directional_ordering": bool(reverse_n > same_n),
+        "reciprocal_evidence_contains_contradictions": bool(same_n > 0 or tie_n > 0),
+        "geometry_vertex_order_validated_as_origin_to_destination": False,
         "statewide_symmetric_time_assumption_used": False,
         "automatic_reverse_edge_creation_used": False,
         "distance_threshold_used": False,
         "scientific_policy": (
-            "For explicit ANTAQ reciprocal municipality records A→B and B→A, endpoint ordering is compared within each record pair. "
-            "If the first endpoint of A→B aligns better with the last endpoint of B→A, and vice versa, the reciprocal geometries support directional vertex ordering. "
+            "Explicit reciprocal ANTAQ records provide supporting evidence about endpoint ordering, but contradictory reciprocal geometries prevent this audit alone from validating statewide geometry direction. "
             "No absolute distance cutoff is selected, no reverse edge is synthesized, and reported directional times remain route-record specific."
         ),
+        "ready_for_directional_hydro_graph_materialization": False,
+        "next_required_step": (
+            "Validate route endpoint orientation independently against official municipality polygons for informative Pará origin/destination records before directed graph materialization."
+        ),
     }
-    audit["ready_for_directional_hydro_graph_materialization"] = bool(
-        audit["geometry_vertex_order_validated_as_origin_to_destination"]
-    )
-    audit["next_required_step"] = (
-        "Materialize directed hydro edges using each ANTAQ route record's geometry order and its own reported time; do not synthesize reverse edges."
-        if audit["ready_for_directional_hydro_graph_materialization"]
-        else "Geometry orientation remains insufficiently supported; seek an additional official endpoint-direction source before directed routing."
-    )
 
     pairs.to_csv(OUT / "reciprocal_geometry_orientation_pairs.csv", index=False)
     (OUT / "hydro_geometry_orientation_audit.json").write_text(
