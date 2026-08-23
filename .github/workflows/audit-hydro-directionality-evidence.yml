@@ -1,12 +1,11 @@
 name: audit-hydro-directionality-evidence
 
+# Historical exploratory audit retained for reproducibility. The primary hydro
+# model now canonicalizes overlapping ANTAQ archives by official hydro_id and
+# treats TEMPO as corridor/network reference impedance, so this older
+# directional-record hypothesis is no longer a PR-gating workflow.
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "scripts/audit_hydro_directionality_evidence.py"
-      - "scripts/build_hydro_temporal_graph_reference.py"
-      - ".github/workflows/audit-hydro-directionality-evidence.yml"
 
 jobs:
   audit:
@@ -30,23 +29,10 @@ jobs:
         run: python scripts/build_hydro_temporal_graph_reference.py
       - name: Audit hydro directionality evidence
         run: python scripts/audit_hydro_directionality_evidence.py
-      - name: Validate conservative directionality audit
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p=Path('artifacts/hydro_directionality_audit/hydro_directionality_audit.json')
-          d=json.loads(p.read_text(encoding='utf-8'))
-          assert d['official_routes_total'] == 358
-          assert d['geometry_vertex_order_validated_as_origin_to_destination'] is False
-          assert d['symmetric_time_assumption_supported_statewide'] is False
-          assert d['automatic_reverse_edge_creation_supported_statewide'] is False
-          assert d['directionality_resolved_for_final_routing'] is False
-          print(json.dumps(d, ensure_ascii=False, indent=2))
-          PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: pa-hydro-directionality-evidence
+          name: pa-hydro-directionality-evidence-legacy
           path: artifacts/hydro_directionality_audit/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 30
