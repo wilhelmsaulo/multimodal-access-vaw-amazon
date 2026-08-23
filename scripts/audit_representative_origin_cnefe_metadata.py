@@ -17,15 +17,8 @@ DEFAULT_ORIGINS = ROOT / "data" / "processed" / "ibge" / "pa_cnefe_sector_origin
 DEFAULT_OUTPUT_DIR = ROOT / "artifacts" / "representative_origin_cnefe_metadata"
 
 USECOLS = [
-    "COD_SETOR",
-    "COD_ESPECIE",
-    "NV_GEO_COORD",
-    "LATITUDE",
-    "LONGITUDE",
-    "DSC_LOCALIDADE",
-    "NOM_TIPO_SEGLOGR",
-    "NOM_TITULO_SEGLOGR",
-    "NOM_SEGLOGR",
+    "COD_SETOR", "COD_ESPECIE", "NV_GEO_COORD", "LATITUDE", "LONGITUDE",
+    "DSC_LOCALIDADE", "NOM_TIPO_SEGLOGR", "NOM_TITULO_SEGLOGR", "NOM_SEGLOGR",
 ]
 
 
@@ -42,13 +35,18 @@ def _numeric_coordinate(values: pd.Series) -> pd.Series:
     return pd.to_numeric(s, errors="coerce")
 
 
+def _normalize_sector_code(values: pd.Series) -> pd.Series:
+    # Full CNEFE publishes COD_SETOR with a terminal P (e.g. 431490205001315P),
+    # while the 2022 sector mesh exposes the 15-digit geocode. Normalize only
+    # for interoperability; original source codes are not rewritten.
+    return values.astype("string").str.strip().str.replace(r"P$", "", regex=True)
+
+
 def _key(sector: pd.Series, lat: pd.Series, lon: pd.Series) -> pd.Series:
     return (
-        sector.astype("string").str.strip()
-        + "|"
-        + _numeric_coordinate(lat).round(7).astype("string")
-        + "|"
-        + _numeric_coordinate(lon).round(7).astype("string")
+        _normalize_sector_code(sector)
+        + "|" + _numeric_coordinate(lat).round(7).astype("string")
+        + "|" + _numeric_coordinate(lon).round(7).astype("string")
     )
 
 
@@ -72,7 +70,7 @@ def main() -> None:
     origins = origins[keep].copy()
     origins["match_key"] = _key(origins["origin_id"], origins["latitude"], origins["longitude"])
     target_keys = set(origins["match_key"].dropna().astype(str))
-    target_sectors = set(origins["origin_id"].dropna().astype("string").str.strip().astype(str))
+    target_sectors = set(_normalize_sector_code(origins["origin_id"]).dropna().astype(str))
     target_municipalities = set(origins.get("municipality_code", pd.Series(dtype="string")).dropna().astype("string").str.strip().astype(str))
 
     hits: list[pd.DataFrame] = []
@@ -83,8 +81,11 @@ def main() -> None:
     full_rows_in_target_sectors_with_valid_coordinates = 0
     full_rows_with_target_municipality_prefix = 0
     sector_length_counts: Counter[int] = Counter()
+    normalized_sector_length_counts: Counter[int] = Counter()
     sector_sample: list[str] = []
+    normalized_sector_sample: list[str] = []
     unique_sector_codes: set[str] = set()
+    unique_normalized_sector_codes: set[str] = set()
 
     with tempfile.TemporaryDirectory() as td:
         archive_path = Path(td) / "15_PA_full_cnefe.zip"
@@ -94,14 +95,8 @@ def main() -> None:
             if not members:
                 raise RuntimeError("Full CNEFE archive has no CSV member")
             with z.open(members[0]) as stream:
-                for chunk in pd.read_csv(
-                    stream,
-                    sep=";",
-                    dtype="string",
-                    usecols=USECOLS,
-                    chunksize=args.chunksize,
-                    encoding="utf-8",
-                ):
+                for chunk in pd.read_csv(stream, sep=";", dtype="string", usecols=USECOLS,
+                                         chunksize=args.chunksize, encoding="utf-8"):
                     full_rows_scanned += int(len(chunk))
                     chunk = chunk[
                         chunk["COD_ESPECIE"].astype("string").str.strip().eq("1")
@@ -111,17 +106,28 @@ def main() -> None:
                     if chunk.empty:
                         continue
 
-                    sector_norm = chunk["COD_SETOR"].astype("string").str.strip()
-                    nonempty_sector = sector_norm[sector_norm.notna() & sector_norm.ne("")]
-                    for length, count in nonempty_sector.str.len().value_counts().items():
+                    sector_raw = chunk["COD_SETOR"].astype("string").str.strip()
+                    sector_norm = _normalize_sector_code(chunk["COD_SETOR"])
+                    nonempty_raw = sector_raw[sector_raw.notna() & sector_raw.ne("")]
+                    nonempty_norm = sector_norm[sector_norm.notna() & sector_norm.ne("")]
+                    for length, count in nonempty_raw.str.len().value_counts().items():
                         sector_length_counts[int(length)] += int(count)
+                    for length, count in nonempty_norm.str.len().value_counts().items():
+                        normalized_sector_length_counts[int(length)] += int(count)
                     if len(sector_sample) < 10:
-                        for code in nonempty_sector.drop_duplicates().astype(str):
+                        for code in nonempty_raw.drop_duplicates().astype(str):
                             if code not in sector_sample:
                                 sector_sample.append(code)
                             if len(sector_sample) >= 10:
                                 break
-                    unique_sector_codes.update(nonempty_sector.drop_duplicates().astype(str).tolist())
+                    if len(normalized_sector_sample) < 10:
+                        for code in nonempty_norm.drop_duplicates().astype(str):
+                            if code not in normalized_sector_sample:
+                                normalized_sector_sample.append(code)
+                            if len(normalized_sector_sample) >= 10:
+                                break
+                    unique_sector_codes.update(nonempty_raw.drop_duplicates().astype(str).tolist())
+                    unique_normalized_sector_codes.update(nonempty_norm.drop_duplicates().astype(str).tolist())
 
                     in_target_sector = sector_norm.isin(target_sectors)
                     full_rows_in_target_sectors += int(in_target_sector.sum())
@@ -143,8 +149,7 @@ def main() -> None:
     meta_cols = ["DSC_LOCALIDADE", "NOM_TIPO_SEGLOGR", "NOM_TITULO_SEGLOGR", "NOM_SEGLOGR", "NV_GEO_COORD"]
     conflicts = 0
     for _, g in full.groupby("match_key", dropna=False):
-        signatures = g[meta_cols].fillna("").astype(str).drop_duplicates()
-        if len(signatures) > 1:
+        if len(g[meta_cols].fillna("").astype(str).drop_duplicates()) > 1:
             conflicts += 1
     dedup = full.sort_values(["match_key", "NOM_SEGLOGR", "DSC_LOCALIDADE"], na_position="last").drop_duplicates("match_key", keep="first")
 
@@ -169,17 +174,20 @@ def main() -> None:
 
     matched = int(merged["full_cnefe_metadata_match"].sum())
     named = int(merged["representative_cnefe_street_name"].fillna("").astype(str).str.strip().ne("").sum())
-    target_origin_lengths = {str(int(k)): int(v) for k, v in origins["origin_id"].astype("string").str.len().value_counts().sort_index().items()}
-    full_length_dict = {str(k): int(v) for k, v in sorted(sector_length_counts.items())}
     audit = {
         "origin_count": int(len(origins)),
-        "target_origin_sector_code_length_counts": target_origin_lengths,
+        "target_origin_sector_code_length_counts": {str(int(k)): int(v) for k, v in origins["origin_id"].astype("string").str.len().value_counts().sort_index().items()},
         "target_origin_sector_code_sample": sorted(origins["origin_id"].astype(str).drop_duplicates().head(10).tolist()),
         "full_cnefe_rows_scanned": full_rows_scanned,
         "eligible_full_cnefe_residential_rows": eligible_full_rows,
         "full_cnefe_unique_nonempty_sector_codes": int(len(unique_sector_codes)),
-        "full_cnefe_sector_code_length_counts": full_length_dict,
+        "full_cnefe_unique_normalized_sector_codes": int(len(unique_normalized_sector_codes)),
+        "full_cnefe_sector_code_length_counts": {str(k): int(v) for k, v in sorted(sector_length_counts.items())},
+        "full_cnefe_normalized_sector_code_length_counts": {str(k): int(v) for k, v in sorted(normalized_sector_length_counts.items())},
         "full_cnefe_sector_code_sample": sector_sample,
+        "full_cnefe_normalized_sector_code_sample": normalized_sector_sample,
+        "sector_code_interoperability_rule": "remove terminal P from full-CNEFE COD_SETOR for comparison with 15-digit 2022 sector-mesh geocode only",
+        "sector_code_original_preserved": True,
         "full_cnefe_rows_with_target_municipality_prefix": full_rows_with_target_municipality_prefix,
         "full_cnefe_rows_in_target_sectors": full_rows_in_target_sectors,
         "full_cnefe_rows_with_valid_coordinates_after_decimal_normalization": full_rows_with_valid_coordinates,
@@ -188,15 +196,15 @@ def main() -> None:
         "full_cnefe_metadata_match_fraction": float(matched / len(origins)) if len(origins) else None,
         "matched_origins_with_nonempty_street_name": named,
         "coordinate_metadata_groups_with_conflicting_street_or_locality": int(conflicts),
-        "matching_key": "COD_SETOR + numeric latitude/longitude rounded to 7 decimals after decimal-separator normalization",
+        "matching_key": "normalized 15-digit sector geocode + numeric latitude/longitude rounded to 7 decimals",
         "decimal_separator_normalization_applied": True,
         "origin_coordinates_changed": False,
         "address_number_published": False,
         "raw_full_cnefe_rows_published": False,
         "access_connector_promoted": False,
         "scientific_policy": (
-            "The full official CNEFE file is used only to diagnose and recover street/locality metadata for the already-selected representative origin coordinate. "
-            "Sector-code compatibility is audited explicitly before any join is trusted. Decimal separators are normalized for comparison only; coordinates are not altered. "
+            "The official full CNEFE publishes COD_SETOR with a terminal P while the 2022 sector mesh exposes the 15-digit geocode. "
+            "The terminal P is removed only for interoperability during matching; original source values and origin coordinates are not changed. "
             "No address number or raw residential microdata are published, and no connector or travel time is promoted from this audit."
         ),
     }
