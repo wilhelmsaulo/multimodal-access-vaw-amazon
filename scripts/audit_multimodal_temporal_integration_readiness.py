@@ -9,6 +9,7 @@ TOPO = Path("artifacts/transport_topology/transport_topology_audit.json")
 SNAP = Path("artifacts/spatial_transfer_snap_rule/spatial_transfer_snap_rule_audit.json")
 SENS = Path("artifacts/spatial_snap_sensitivity/spatial_snap_sensitivity_audit.json")
 TEMP = Path("artifacts/non_temporal_cartographic_snap_rule/non_temporal_cartographic_snap_rule_audit.json")
+HYDRO_TRAVERSAL = Path("artifacts/hydro_reference_traversal_policy/hydro_reference_traversal_policy_audit.json")
 OUT = Path("artifacts/multimodal_temporal_integration_readiness")
 
 
@@ -26,6 +27,7 @@ def main() -> None:
     snap = load(SNAP)
     sens = load(SENS)
     temp = load(TEMP)
+    hydro_traversal = load(HYDRO_TRAVERSAL)
 
     terrestrial_ready = bool(
         road.get("terrestrial_temporal_graph_complete") is True
@@ -67,16 +69,24 @@ def main() -> None:
         and temp.get("distance_to_time_conversion_used") is False
         and temp.get("waiting_time_included") is False
     )
-
-    # Component readiness is intentionally distinct from final OD readiness.
-    # The road and hydro temporal components plus the validated intermodal snap
-    # semantics are sufficient to assemble a multimodal graph, but the final
-    # graph has not yet been assembled/validated and access connectors from
-    # origins/services still require defensible temporal semantics.
-    ready_graph_assembly = bool(
-        terrestrial_ready and hydro_ready and spatial_rule_resolved and temporal_connector_resolved
+    hydro_traversal_policy_resolved = bool(
+        hydro_traversal.get("hydro_traversal_policy_resolved") is True
+        and hydro_traversal.get("bidirectional_reference_traversal_authorized") is True
+        and hydro_traversal.get("traversal_policy")
+        == "bidirectional_symmetric_reference_impedance_per_canonical_hydro_id"
+        and hydro_traversal.get("symmetric_realized_passenger_time_claimed") is False
+        and hydro_traversal.get("synthetic_direction_specific_time_imputed") is False
+        and hydro_traversal.get("cross_route_switching_enabled") is False
+        and hydro_traversal.get("waiting_time_included") is False
     )
-    hydro_traversal_policy_resolved = False
+
+    ready_graph_assembly = bool(
+        terrestrial_ready
+        and hydro_ready
+        and spatial_rule_resolved
+        and temporal_connector_resolved
+        and hydro_traversal_policy_resolved
+    )
     final_multimodal_graph_assembled_and_validated = False
     origin_access_temporal_connector_rule_resolved = False
     service_access_temporal_connector_rule_resolved = False
@@ -88,7 +98,7 @@ def main() -> None:
     if not temporal_connector_resolved:
         blocking_issues.append("temporal treatment of validated cartographic snaps is unresolved")
     if not hydro_traversal_policy_resolved:
-        blocking_issues.append("hydro traversal/directionality policy is unresolved")
+        blocking_issues.append("hydro traversal/reference-impedance policy is unresolved")
     if not final_multimodal_graph_assembled_and_validated:
         blocking_issues.append("final multimodal graph has not yet been assembled and validated")
     if not origin_access_temporal_connector_rule_resolved:
@@ -112,8 +122,11 @@ def main() -> None:
         "temporal_connector_is_temporal_edge": temp.get("connector_is_temporal_edge"),
         "zero_time_transfer_adopted": False,
         "intermodal_connector_rule_resolved": bool(spatial_rule_resolved and temporal_connector_resolved),
-        "ready_for_multimodal_graph_assembly": ready_graph_assembly,
         "hydro_traversal_policy_resolved": hydro_traversal_policy_resolved,
+        "hydro_traversal_policy": hydro_traversal.get("traversal_policy"),
+        "hydro_bidirectional_reference_traversal_authorized": hydro_traversal.get("bidirectional_reference_traversal_authorized"),
+        "symmetric_realized_passenger_time_claimed": False,
+        "ready_for_multimodal_graph_assembly": ready_graph_assembly,
         "final_multimodal_graph_assembled_and_validated": final_multimodal_graph_assembled_and_validated,
         "origin_access_temporal_connector_rule_resolved": origin_access_temporal_connector_rule_resolved,
         "service_access_temporal_connector_rule_resolved": service_access_temporal_connector_rule_resolved,
@@ -124,8 +137,8 @@ def main() -> None:
         "blocking_issues": blocking_issues,
         "blocking_issue": "; ".join(blocking_issues) if blocking_issues else None,
         "scientific_policy": (
-            "Terrestrial and canonical ANTAQ hydro temporal impedances are complete, and validated road-water snaps are non-temporal cartographic topology-alignment operations rather than travel edges. "
-            "These components are ready for multimodal graph assembly, not for final OD routing. Hydro traversal semantics, final graph assembly/validation, and temporal access connectors from sector origins and service sites must be resolved before OD computation. "
+            "Terrestrial and canonical ANTAQ hydro temporal impedances are complete. Canonical hydro_id corridors use a bidirectional network-reference impedance convention, without claiming directionally symmetric realized passenger time. Validated road-water snaps are non-temporal cartographic topology-alignment operations rather than travel edges. "
+            "These components are ready for multimodal graph assembly, not for final OD routing. Final graph assembly/validation and temporal access connectors from sector origins and service sites must still be resolved before OD computation. "
             "No nearest-geometry access connector is promoted solely by proximity, no snap distance is converted to time, and waiting/departure frequency remains excluded and must be reported as a limitation."
         ),
     }
