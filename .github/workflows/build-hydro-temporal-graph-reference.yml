@@ -35,9 +35,18 @@ jobs:
           from pathlib import Path
           p=Path('artifacts/hydro_temporal_graph_reference/hydro_temporal_graph_reference_audit.json')
           d=json.loads(p.read_text(encoding='utf-8'))
-          assert d['segments_total'] == 358
+          assert d['input_archive_rows'] == 358
+          assert d['canonical_unique_hydro_ids'] == 122
+          assert d['segments_total'] == 122
+          assert d['archive_rows_removed_as_overlapping_copies'] == 236
+          assert d['reported_impedance_conflicts_detected'] is False
+          assert d['source_provenance_aggregated'] is True
+          assert d['canonicalization_changes_reported_time'] is False
+          assert d['canonicalization_changes_reported_length'] is False
+          assert d['canonicalization_changes_reference_speed'] is False
           assert d['coverage_fraction'] == 1.0
           assert d['passenger_realized_time_claimed'] is False
+          assert d['directional_observed_time_claimed'] is False
           assert d['waiting_time_included'] is False
           assert d['time_imputation_applied'] is False
           assert d['ready_for_multimodal_temporal_integration'] is True
