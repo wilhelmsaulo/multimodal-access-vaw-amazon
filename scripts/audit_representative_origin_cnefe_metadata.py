@@ -7,13 +7,12 @@ import zipfile
 from pathlib import Path
 
 import httpx
-import numpy as np
 import pandas as pd
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "config" / "cnefe_origin_rules.yml"
-DEFAULT_ORIGINS = ROOT / "artifacts" / "routing_inputs" / "origins_for_routing.csv"
+DEFAULT_ORIGINS = ROOT / "data" / "processed" / "ibge" / "pa_cnefe_sector_origins_2022.csv"
 DEFAULT_OUTPUT_DIR = ROOT / "artifacts" / "representative_origin_cnefe_metadata"
 
 USECOLS = [
@@ -58,6 +57,9 @@ def main() -> None:
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     url = str(cfg["source"]["full_address_metadata_url"])
     origins = pd.read_csv(args.origins, dtype={"origin_id": "string"}, low_memory=False)
+    if "analysis_eligibility" in origins.columns:
+        origins = origins[origins["analysis_eligibility"].eq("eligible")].copy()
+    origins = origins[origins["latitude"].notna() & origins["longitude"].notna()].copy()
     origins = origins[["origin_id", "latitude", "longitude", "origin_method", "origin_validation_status"]].copy()
     origins["match_key"] = _key(origins["origin_id"], origins["latitude"], origins["longitude"])
     target_keys = set(origins["match_key"].dropna().astype(str))
@@ -91,8 +93,6 @@ def main() -> None:
                         hits.append(sub)
 
     full = pd.concat(hits, ignore_index=True) if hits else pd.DataFrame(columns=USECOLS + ["match_key"])
-    # Multiple apartments can legitimately share one coordinate. Street/locality metadata should agree;
-    # retain one deterministic metadata record per representative coordinate and audit disagreement.
     meta_cols = ["DSC_LOCALIDADE", "NOM_TIPO_SEGLOGR", "NOM_TITULO_SEGLOGR", "NOM_SEGLOGR", "NV_GEO_COORD"]
     conflicts = 0
     for _, g in full.groupby("match_key", dropna=False):
