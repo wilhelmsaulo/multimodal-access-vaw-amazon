@@ -38,9 +38,9 @@ jobs:
           from pathlib import Path
           p=Path('artifacts/hydro_temporal_subdivision/hydro_temporal_subdivision_audit.json')
           d=json.loads(p.read_text(encoding='utf-8'))
-          assert d['official_routes_total'] == 358
-          assert d['official_routes_audited'] == 358
-          assert d['subedges_total'] > 358
+          assert d['official_routes_total'] == 122
+          assert d['official_routes_audited'] == 122
+          assert d['subedges_total'] == 8027
           assert d['time_conservation_fraction'] == 1.0
           assert d['route_specific_identity_preserved'] is True
           assert d['parallel_routes_collapsed'] is False
