@@ -8,6 +8,7 @@ on:
       - "scripts/audit_spatial_snap_sensitivity.py"
       - "scripts/finalize_spatial_transfer_snap_rule.py"
       - "scripts/finalize_non_temporal_cartographic_snap_rule.py"
+      - "scripts/finalize_hydro_reference_traversal_policy.py"
       - ".github/workflows/audit-multimodal-temporal-integration-readiness.yml"
 
 jobs:
@@ -40,6 +41,8 @@ jobs:
         run: python scripts/complete_primary_road_link_times.py
       - name: Build hydro temporal reference graph
         run: python scripts/build_hydro_temporal_graph_reference.py
+      - name: Finalize hydro reference traversal policy
+        run: python scripts/finalize_hydro_reference_traversal_policy.py
       - name: Build official crossing positive controls
         run: python scripts/audit_antaq_crossing_endpoint_positive_controls.py
       - name: Audit physical transfer ports
@@ -82,14 +85,16 @@ jobs:
           assert d['universal_distance_cutoff_used'] is False
           assert d['snap_distance_interpreted_as_travel_distance'] is False
           assert d['distance_to_time_conversion_used'] is False
+          assert d['hydro_traversal_policy_resolved'] is True
+          assert d['hydro_bidirectional_reference_traversal_authorized'] is True
+          assert d['symmetric_realized_passenger_time_claimed'] is False
           assert d['ready_for_multimodal_graph_assembly'] is True
-          assert d['hydro_traversal_policy_resolved'] is False
           assert d['final_multimodal_graph_assembled_and_validated'] is False
           assert d['origin_access_temporal_connector_rule_resolved'] is False
           assert d['service_access_temporal_connector_rule_resolved'] is False
           assert d['ready_for_final_multimodal_od'] is False
           assert d['blocking_issue'] is not None
-          assert len(d['blocking_issues']) >= 4
+          assert len(d['blocking_issues']) == 3
           print(json.dumps(d, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
