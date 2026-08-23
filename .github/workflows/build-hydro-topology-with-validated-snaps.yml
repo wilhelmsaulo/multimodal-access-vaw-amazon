@@ -1,0 +1,91 @@
+name: build-hydro-topology-with-validated-snaps
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/build_hydro_topology_with_validated_snaps.py"
+      - "scripts/subdivide_hydro_reference_time.py"
+      - "scripts/finalize_non_temporal_cartographic_snap_rule.py"
+      - "scripts/materialize_validated_spatial_transfer_anchors.py"
+      - ".github/workflows/build-hydro-topology-with-validated-snaps.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "osmium>=4,<5"
+      - name: Build official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire OSM road network
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare canonical multimodal inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build hydro temporal reference graph
+        run: python scripts/build_hydro_temporal_graph_reference.py
+      - name: Subdivide hydro reference time
+        run: python scripts/subdivide_hydro_reference_time.py
+      - name: Build transport topology
+        run: python scripts/build_transport_topology.py
+      - name: Build official crossing positive controls
+        run: python scripts/audit_antaq_crossing_endpoint_positive_controls.py
+      - name: Audit physical transfer ports
+        run: python scripts/audit_antaq_physical_transfer_ports.py
+      - name: Classify physical transfer candidates
+        run: python scripts/classify_physical_transfer_port_candidates.py
+      - name: Audit Pareto front-1 provenance
+        run: python scripts/audit_pareto_front1_transfer_ports.py
+      - name: Audit front-1 against canonical hydro
+        run: python scripts/audit_front1_against_canonical_hydro.py
+      - name: Materialize validated anchors
+        run: python scripts/materialize_validated_spatial_transfer_anchors.py
+      - name: Compare anchors with positive controls
+        run: python scripts/compare_front1_anchors_to_crossing_positive_controls.py
+      - name: Finalize spatial transfer snap rule
+        run: python scripts/finalize_spatial_transfer_snap_rule.py
+      - name: Audit spatial snap sensitivity
+        run: python scripts/audit_spatial_snap_sensitivity.py
+      - name: Finalize non-temporal cartographic snap rule
+        run: python scripts/finalize_non_temporal_cartographic_snap_rule.py
+      - name: Build hydro topology with validated snaps
+        run: python scripts/build_hydro_topology_with_validated_snaps.py
+      - name: Validate hydro topology audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/hydro_topology_with_validated_snaps/hydro_topology_with_validated_snaps_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['official_route_count'] == 358
+          assert d['source_subedges_total'] == 20609
+          assert d['topology_edges_total'] >= d['source_subedges_total']
+          assert d['topology_nodes_total'] > 0
+          assert d['validated_snap_attachments_total'] == 3
+          assert d['route_time_conservation_fraction'] == 1.0
+          assert d['route_specific_node_identity_preserved'] is True
+          assert d['cross_route_node_merging_used'] is False
+          assert d['route_switching_enabled'] is False
+          assert d['hydro_directionality_resolved'] is False
+          assert d['cartographic_snap_is_temporal_edge'] is False
+          assert d['zero_time_transfer_adopted'] is False
+          assert d['distance_to_time_conversion_used'] is False
+          assert d['waiting_time_included'] is False
+          assert d['ready_for_hydro_directionality_decision'] is True
+          assert d['ready_for_final_multimodal_routing'] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-hydro-topology-with-validated-snaps
+          path: artifacts/hydro_topology_with_validated_snaps/
+          if-no-files-found: error
+          retention-days: 30
