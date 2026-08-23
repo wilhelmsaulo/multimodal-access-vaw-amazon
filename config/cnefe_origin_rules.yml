@@ -7,10 +7,12 @@ source:
   provider: IBGE
   product: Cadastro Nacional de Enderecos para Fins Estatisticos - CNEFE
   coordinate_url: https://ftp.ibge.gov.br/Cadastro_Nacional_de_Enderecos_para_Fins_Estatisticos/Censo_Demografico_2022/Coordenadas_enderecos/UF/15_PA.zip
+  full_address_metadata_url: https://ftp.ibge.gov.br/Cadastro_Nacional_de_Enderecos_para_Fins_Estatisticos/Censo_Demografico_2022/Arquivos_CNEFE/CSV/UF/15_PA.zip
 
 rules:
   preserve_one_demand_total_per_sector: true
   publish_raw_address_coordinates: false
+  publish_representative_address_number: false
   allow_unvalidated_rural_centroid: false
   representative_point_method: residential_address_median_anchored_observed_point
   residential_species_values: [1]
@@ -25,6 +27,7 @@ rationale:
   nv_geo_coord_2: endereco_coordenada_modificada_mesmo_numero_logradouro
   nv_geo_coord_3: endereco_coordenada_estimada_use_only_as_fallback_or_sensitivity
   nv_geo_coord_4_6: not_primary_address_coordinates_face_locality_or_sector
+  full_address_metadata_use: audit_representative_origin_street_and_locality_without_changing_origin_coordinates
 
 finalization_gate:
   completed:
