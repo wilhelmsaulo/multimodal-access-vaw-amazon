@@ -1,0 +1,56 @@
+name: audit-hydro-geometry-orientation-from-reciprocals
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_hydro_geometry_orientation_from_reciprocals.py"
+      - "scripts/audit_hydro_directionality_evidence.py"
+      - "scripts/build_hydro_temporal_graph_reference.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - ".github/workflows/audit-hydro-geometry-orientation-from-reciprocals.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Acquire transport bundle
+        run: python scripts/build_transport_layers.py
+      - name: Prepare canonical multimodal inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build hydro temporal reference graph
+        run: python scripts/build_hydro_temporal_graph_reference.py
+      - name: Audit reciprocal geometry orientation
+        run: python scripts/audit_hydro_geometry_orientation_from_reciprocals.py
+      - name: Validate evidence-only audit
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/hydro_geometry_orientation_audit/hydro_geometry_orientation_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['official_routes_total'] == 358
+          assert d['informative_nonself_routes'] > 0
+          assert d['reciprocal_record_pairs_evaluated'] > 0
+          assert d['decisive_pair_count'] > 0
+          assert d['statewide_symmetric_time_assumption_used'] is False
+          assert d['automatic_reverse_edge_creation_used'] is False
+          assert d['distance_threshold_used'] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-hydro-geometry-orientation-from-reciprocals
+          path: artifacts/hydro_geometry_orientation_audit/
+          if-no-files-found: error
+          retention-days: 30
