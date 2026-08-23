@@ -1,0 +1,85 @@
+name: audit-origin-network-access-evidence
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_local_access_to_primary_motor_network.py"
+      - "scripts/classify_origin_network_access_evidence.py"
+      - ".github/workflows/audit-origin-network-access-evidence.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "scipy>=1.14,<2" "osmium>=4,<5" "PyYAML>=6,<7" "openpyxl>=3.1,<4" "xlrd>=2,<3"
+      - name: Build official Pará census sectors
+        run: python src/data/ibge_census2022_sectors.py
+      - name: Build CNEFE sector origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Build service snapshots
+        run: python scripts/build_service_inventory_from_snapshots.py
+      - name: Build specialized services
+        run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
+      - name: Consolidate services
+        run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
+      - name: Apply accepted operational coordinates
+        run: python scripts/apply_manual_service_coordinate_overrides.py --inventory artifacts/service_inventory/services_consolidated.csv --audit artifacts/service_inventory/manual_coordinate_overrides_audit.json
+      - name: Audit service readiness
+        run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
+      - name: Materialize routing inputs
+        run: python scripts/materialize_routing_inputs.py
+      - name: Build official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire OSM road network
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare multimodal graph inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build OSM transport topology
+        run: python scripts/build_transport_topology.py
+      - name: Build primary motor graph
+        run: python scripts/build_primary_motor_road_graph.py
+      - name: Assign road travel times
+        run: python scripts/assign_primary_road_travel_times.py
+      - name: Complete road link times
+        run: python scripts/complete_primary_road_link_times.py
+      - name: Audit access connector semantics
+        run: python scripts/audit_access_connector_semantics.py
+      - name: Audit local access to primary motor graph
+        run: python scripts/audit_local_access_to_primary_motor_network.py
+      - name: Classify origin network access evidence
+        run: python scripts/classify_origin_network_access_evidence.py
+      - name: Validate safeguards and expected partition
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/origin_network_access_evidence/origin_network_access_evidence_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['origin_count'] == 15743
+          assert sum(d['evidence_class_counts'].values()) == 15743
+          assert d['distance_threshold_used_for_promotion'] is False
+          assert d['hydro_candidate_promoted_by_distance'] is False
+          assert d['euclidean_distance_converted_to_time'] is False
+          assert d['walking_speed_assigned'] is False
+          assert d['track_speed_assigned'] is False
+          assert d['origin_access_temporal_connector_rule_resolved'] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-origin-network-access-evidence
+          path: |
+            artifacts/local_access_primary_motor_audit/
+            artifacts/origin_network_access_evidence/
+          if-no-files-found: error
+          retention-days: 30
