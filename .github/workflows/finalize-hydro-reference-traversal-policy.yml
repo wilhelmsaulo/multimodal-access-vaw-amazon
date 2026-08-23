@@ -1,0 +1,59 @@
+name: finalize-hydro-reference-traversal-policy
+
+on:
+  pull_request:
+    paths:
+      - "scripts/finalize_hydro_reference_traversal_policy.py"
+      - "scripts/build_hydro_temporal_graph_reference.py"
+      - ".github/workflows/finalize-hydro-reference-traversal-policy.yml"
+  workflow_dispatch:
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+      - name: Build official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Prepare canonical multimodal inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build canonical hydro temporal reference
+        run: python scripts/build_hydro_temporal_graph_reference.py
+      - name: Finalize traversal policy
+        run: python scripts/finalize_hydro_reference_traversal_policy.py
+      - name: Validate policy safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/hydro_reference_traversal_policy/hydro_reference_traversal_policy_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['canonical_corridors'] == 122
+          assert d['canonical_unique_hydro_ids'] == 122
+          assert d['time_role'] == 'hydro_network_reference_impedance'
+          assert d['passenger_realized_time_claimed'] is False
+          assert d['directional_observed_time_claimed'] is False
+          assert d['reciprocal_pairs_sharing_same_hydro_id'] is False
+          assert d['bidirectional_reference_traversal_authorized'] is True
+          assert d['symmetric_realized_passenger_time_claimed'] is False
+          assert d['synthetic_direction_specific_time_imputed'] is False
+          assert d['cross_route_switching_enabled'] is False
+          assert d['waiting_time_included'] is False
+          assert d['hydro_traversal_policy_resolved'] is True
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-hydro-reference-traversal-policy
+          path: artifacts/hydro_reference_traversal_policy/
+          if-no-files-found: error
+          retention-days: 30
