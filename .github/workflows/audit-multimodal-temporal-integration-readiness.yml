@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - "scripts/audit_multimodal_temporal_integration_readiness.py"
+      - "scripts/audit_spatial_snap_sensitivity.py"
+      - "scripts/finalize_spatial_transfer_snap_rule.py"
       - ".github/workflows/audit-multimodal-temporal-integration-readiness.yml"
 
 jobs:
@@ -37,6 +39,24 @@ jobs:
         run: python scripts/complete_primary_road_link_times.py
       - name: Build hydro temporal reference graph
         run: python scripts/build_hydro_temporal_graph_reference.py
+      - name: Build official crossing positive controls
+        run: python scripts/audit_antaq_crossing_endpoint_positive_controls.py
+      - name: Audit physical transfer ports
+        run: python scripts/audit_antaq_physical_transfer_ports.py
+      - name: Classify physical transfer candidates
+        run: python scripts/classify_physical_transfer_port_candidates.py
+      - name: Audit Pareto front-1 provenance
+        run: python scripts/audit_pareto_front1_transfer_ports.py
+      - name: Audit front-1 against canonical hydro
+        run: python scripts/audit_front1_against_canonical_hydro.py
+      - name: Materialize validated anchors
+        run: python scripts/materialize_validated_spatial_transfer_anchors.py
+      - name: Compare anchors with positive controls
+        run: python scripts/compare_front1_anchors_to_crossing_positive_controls.py
+      - name: Finalize spatial transfer snap rule
+        run: python scripts/finalize_spatial_transfer_snap_rule.py
+      - name: Audit spatial snap sensitivity
+        run: python scripts/audit_spatial_snap_sensitivity.py
       - name: Audit multimodal integration readiness
         run: python scripts/audit_multimodal_temporal_integration_readiness.py
       - name: Validate audit
@@ -49,7 +69,13 @@ jobs:
           assert d['terrestrial_temporal_ready'] is True
           assert d['hydro_temporal_ready'] is True
           assert d['waiting_time_included'] is False
+          assert d['intermodal_spatial_connector_rule_resolved'] is True
+          assert d['spatial_snap_sensitivity_complete'] is True
+          assert d['intermodal_temporal_connector_rule_resolved'] is False
           assert d['intermodal_connector_rule_resolved'] is False
+          assert d['universal_distance_cutoff_used'] is False
+          assert d['snap_distance_interpreted_as_travel_distance'] is False
+          assert d['distance_to_time_conversion_used'] is False
           assert d['ready_for_final_multimodal_od'] is False
           print(json.dumps(d, ensure_ascii=False, indent=2))
           PY
