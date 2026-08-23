@@ -1,0 +1,50 @@
+name: audit-antaq-reference-time-semantics
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_antaq_reference_time_semantics.py"
+      - ".github/workflows/audit-antaq-reference-time-semantics.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3"
+      - name: Acquire official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Audit ANTAQ reference-time semantics
+        run: python scripts/audit_antaq_reference_time_semantics.py
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/antaq_reference_time_semantics/antaq_reference_time_semantics_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['pa_intersecting_raw_records'] > 0
+          assert d['records_with_length_time_and_vel_cional'] > 0
+          assert d['unique_hydro_ids'] > 0
+          assert d['hydro_ids_present_in_multiple_archives'] > 0
+          assert d['vel_cional_is_observed_passenger_speed_claimed'] is False
+          assert d['reported_time_is_observed_passenger_time_claimed'] is False
+          assert d['directional_asymmetry_inferred_from_municipality_labels'] is False
+          assert d['archive_provenance_overlap_requires_canonicalization'] is True
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-antaq-reference-time-semantics
+          path: artifacts/antaq_reference_time_semantics/
+          if-no-files-found: error
+          retention-days: 30
