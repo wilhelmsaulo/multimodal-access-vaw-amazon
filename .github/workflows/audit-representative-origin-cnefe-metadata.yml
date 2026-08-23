@@ -1,0 +1,51 @@
+name: audit-representative-origin-cnefe-metadata
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_representative_origin_cnefe_metadata.py"
+      - "config/cnefe_origin_rules.yml"
+      - ".github/workflows/audit-representative-origin-cnefe-metadata.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "PyYAML>=6,<7"
+      - name: Build official Pará census sectors
+        run: python src/data/ibge_census2022_sectors.py
+      - name: Build CNEFE representative origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Recover full CNEFE street and locality metadata
+        run: python scripts/audit_representative_origin_cnefe_metadata.py --chunksize 200000
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/representative_origin_cnefe_metadata/representative_origin_cnefe_metadata_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['origin_count'] == 15743
+          assert d['origin_coordinates_changed'] is False
+          assert d['address_number_published'] is False
+          assert d['raw_full_cnefe_rows_published'] is False
+          assert d['access_connector_promoted'] is False
+          assert d['full_cnefe_metadata_matches'] > 0
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-representative-origin-cnefe-metadata
+          path: artifacts/representative_origin_cnefe_metadata/
+          if-no-files-found: error
+          retention-days: 30
