@@ -40,7 +40,8 @@ jobs:
           assert d['address_number_published'] is False
           assert d['raw_full_cnefe_rows_published'] is False
           assert d['access_connector_promoted'] is False
-          assert d['full_cnefe_metadata_matches'] > 0
+          assert d['full_cnefe_rows_scanned'] > 0
+          assert d['eligible_full_cnefe_residential_rows'] > 0
           print(json.dumps(d, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
