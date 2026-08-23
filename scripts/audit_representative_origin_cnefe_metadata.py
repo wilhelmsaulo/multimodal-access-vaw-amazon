@@ -36,13 +36,20 @@ def _download(url: str, destination: Path) -> None:
                 f.write(chunk)
 
 
+def _numeric_coordinate(values: pd.Series) -> pd.Series:
+    # The two official CNEFE products may serialize decimal coordinates differently.
+    # Normalize only the decimal separator/whitespace; do not alter coordinate values.
+    s = values.astype("string").str.strip().str.replace(",", ".", regex=False)
+    return pd.to_numeric(s, errors="coerce")
+
+
 def _key(sector: pd.Series, lat: pd.Series, lon: pd.Series) -> pd.Series:
     return (
         sector.astype("string").str.strip()
         + "|"
-        + pd.to_numeric(lat, errors="coerce").round(7).astype("string")
+        + _numeric_coordinate(lat).round(7).astype("string")
         + "|"
-        + pd.to_numeric(lon, errors="coerce").round(7).astype("string")
+        + _numeric_coordinate(lon).round(7).astype("string")
     )
 
 
@@ -63,8 +70,15 @@ def main() -> None:
     origins = origins[["origin_id", "latitude", "longitude", "origin_method", "origin_validation_status"]].copy()
     origins["match_key"] = _key(origins["origin_id"], origins["latitude"], origins["longitude"])
     target_keys = set(origins["match_key"].dropna().astype(str))
+    target_sectors = set(origins["origin_id"].dropna().astype("string").str.strip().astype(str))
 
     hits: list[pd.DataFrame] = []
+    full_rows_scanned = 0
+    eligible_full_rows = 0
+    full_rows_in_target_sectors = 0
+    full_rows_with_valid_coordinates = 0
+    full_rows_in_target_sectors_with_valid_coordinates = 0
+
     with tempfile.TemporaryDirectory() as td:
         archive_path = Path(td) / "15_PA_full_cnefe.zip"
         _download(url, archive_path)
@@ -81,12 +95,25 @@ def main() -> None:
                     chunksize=args.chunksize,
                     encoding="utf-8",
                 ):
+                    full_rows_scanned += int(len(chunk))
                     chunk = chunk[
                         chunk["COD_ESPECIE"].astype("string").str.strip().eq("1")
                         & chunk["NV_GEO_COORD"].astype("string").str.strip().isin({"1", "2", "3"})
                     ].copy()
+                    eligible_full_rows += int(len(chunk))
                     if chunk.empty:
                         continue
+
+                    sector_norm = chunk["COD_SETOR"].astype("string").str.strip()
+                    in_target_sector = sector_norm.isin(target_sectors)
+                    full_rows_in_target_sectors += int(in_target_sector.sum())
+
+                    lat_num = _numeric_coordinate(chunk["LATITUDE"])
+                    lon_num = _numeric_coordinate(chunk["LONGITUDE"])
+                    valid_coord = lat_num.between(-90, 90) & lon_num.between(-180, 180)
+                    full_rows_with_valid_coordinates += int(valid_coord.sum())
+                    full_rows_in_target_sectors_with_valid_coordinates += int((in_target_sector & valid_coord).sum())
+
                     chunk["match_key"] = _key(chunk["COD_SETOR"], chunk["LATITUDE"], chunk["LONGITUDE"])
                     sub = chunk[chunk["match_key"].isin(target_keys)].copy()
                     if len(sub):
@@ -124,18 +151,26 @@ def main() -> None:
     named = int(merged["representative_cnefe_street_name"].fillna("").astype(str).str.strip().ne("").sum())
     audit = {
         "origin_count": int(len(origins)),
+        "full_cnefe_rows_scanned": full_rows_scanned,
+        "eligible_full_cnefe_residential_rows": eligible_full_rows,
+        "full_cnefe_rows_in_target_sectors": full_rows_in_target_sectors,
+        "full_cnefe_rows_with_valid_coordinates_after_decimal_normalization": full_rows_with_valid_coordinates,
+        "full_cnefe_rows_in_target_sectors_with_valid_coordinates": full_rows_in_target_sectors_with_valid_coordinates,
         "full_cnefe_metadata_matches": matched,
         "full_cnefe_metadata_match_fraction": float(matched / len(origins)) if len(origins) else None,
         "matched_origins_with_nonempty_street_name": named,
         "coordinate_metadata_groups_with_conflicting_street_or_locality": int(conflicts),
-        "matching_key": "COD_SETOR + latitude/longitude rounded to 7 decimals",
+        "matching_key": "COD_SETOR + numeric latitude/longitude rounded to 7 decimals after decimal-separator normalization",
+        "decimal_separator_normalization_applied": True,
         "origin_coordinates_changed": False,
         "address_number_published": False,
         "raw_full_cnefe_rows_published": False,
         "access_connector_promoted": False,
         "scientific_policy": (
             "The full official CNEFE file is used only to recover street/locality metadata for the already-selected representative origin coordinate. "
-            "The origin coordinate and sector demand are unchanged. No address number or raw residential microdata are published. Metadata agreement can support later nominal CNEFE-to-OSM alignment auditing, but does not itself promote a network connector or assign travel time."
+            "Decimal separators are normalized for comparison only; coordinates are not altered. The origin coordinate and sector demand are unchanged. "
+            "No address number or raw residential microdata are published. Metadata agreement can support later nominal CNEFE-to-OSM alignment auditing, "
+            "but does not itself promote a network connector or assign travel time."
         ),
     }
     (args.output_dir / "representative_origin_cnefe_metadata_audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
