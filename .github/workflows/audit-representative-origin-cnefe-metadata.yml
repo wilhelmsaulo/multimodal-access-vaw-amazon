@@ -42,6 +42,10 @@ jobs:
           assert d['access_connector_promoted'] is False
           assert d['full_cnefe_rows_scanned'] > 0
           assert d['eligible_full_cnefe_residential_rows'] > 0
+          assert d['sector_code_original_preserved'] is True
+          assert d['full_cnefe_normalized_sector_code_length_counts'].get('15', 0) > 0
+          assert d['full_cnefe_rows_in_target_sectors'] > 0
+          assert d['full_cnefe_metadata_matches'] > 0
           print(json.dumps(d, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
