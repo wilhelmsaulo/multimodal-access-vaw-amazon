@@ -1,0 +1,75 @@
+name: audit-access-connector-semantics
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_access_connector_semantics.py"
+      - "scripts/materialize_routing_inputs.py"
+      - "scripts/build_cnefe_sector_origins.py"
+      - "scripts/audit_service_readiness.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - ".github/workflows/audit-access-connector-semantics.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "PyYAML>=6,<7" "openpyxl>=3.1,<4" "xlrd>=2,<3"
+      - name: Build official Pará census sectors
+        run: python src/data/ibge_census2022_sectors.py
+      - name: Build CNEFE sector origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Build service snapshots
+        run: python scripts/build_service_inventory_from_snapshots.py
+      - name: Build specialized services
+        run: python scripts/build_specialized_service_sources.py --output-dir artifacts/service_inventory
+      - name: Consolidate services
+        run: python scripts/consolidate_service_inventory.py --artifact-dir artifacts/service_inventory --output artifacts/service_inventory/services_consolidated.csv
+      - name: Apply accepted operational coordinates
+        run: python scripts/apply_manual_service_coordinate_overrides.py --inventory artifacts/service_inventory/services_consolidated.csv --audit artifacts/service_inventory/manual_coordinate_overrides_audit.json
+      - name: Audit service readiness
+        run: python scripts/audit_service_readiness.py --inventory artifacts/service_inventory/services_consolidated.csv --output-dir artifacts/service_inventory
+      - name: Materialize routing inputs
+        run: python scripts/materialize_routing_inputs.py
+      - name: Build official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire OSM road network
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare multimodal graph inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Audit access connector semantics
+        run: python scripts/audit_access_connector_semantics.py
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/access_connector_semantics/access_connector_semantics_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['origin_count'] == 15743
+          assert d['service_site_count'] == 236
+          assert d['origin_connector_rule_resolved'] is False
+          assert d['service_connector_rule_resolved'] is False
+          assert d['straight_line_distance_to_time_conversion_used'] is False
+          assert d['universal_distance_cutoff_used'] is False
+          assert d['nearest_geometry_promoted_automatically'] is False
+          assert d['cartographic_alignment_assumed_statewide'] is False
+          assert d['ready_for_empirical_access_connector_decision'] is True
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-access-connector-semantics
+          path: artifacts/access_connector_semantics/
+          if-no-files-found: error
+          retention-days: 30
