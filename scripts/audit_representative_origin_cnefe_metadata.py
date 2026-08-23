@@ -4,6 +4,7 @@ import argparse
 import json
 import tempfile
 import zipfile
+from collections import Counter
 from pathlib import Path
 
 import httpx
@@ -37,8 +38,6 @@ def _download(url: str, destination: Path) -> None:
 
 
 def _numeric_coordinate(values: pd.Series) -> pd.Series:
-    # The two official CNEFE products may serialize decimal coordinates differently.
-    # Normalize only the decimal separator/whitespace; do not alter coordinate values.
     s = values.astype("string").str.strip().str.replace(",", ".", regex=False)
     return pd.to_numeric(s, errors="coerce")
 
@@ -63,14 +62,18 @@ def main() -> None:
 
     cfg = yaml.safe_load(args.config.read_text(encoding="utf-8"))
     url = str(cfg["source"]["full_address_metadata_url"])
-    origins = pd.read_csv(args.origins, dtype={"origin_id": "string"}, low_memory=False)
+    origins = pd.read_csv(args.origins, dtype={"origin_id": "string", "municipality_code": "string"}, low_memory=False)
     if "analysis_eligibility" in origins.columns:
         origins = origins[origins["analysis_eligibility"].eq("eligible")].copy()
     origins = origins[origins["latitude"].notna() & origins["longitude"].notna()].copy()
-    origins = origins[["origin_id", "latitude", "longitude", "origin_method", "origin_validation_status"]].copy()
+    keep = ["origin_id", "latitude", "longitude", "origin_method", "origin_validation_status"]
+    if "municipality_code" in origins.columns:
+        keep.append("municipality_code")
+    origins = origins[keep].copy()
     origins["match_key"] = _key(origins["origin_id"], origins["latitude"], origins["longitude"])
     target_keys = set(origins["match_key"].dropna().astype(str))
     target_sectors = set(origins["origin_id"].dropna().astype("string").str.strip().astype(str))
+    target_municipalities = set(origins.get("municipality_code", pd.Series(dtype="string")).dropna().astype("string").str.strip().astype(str))
 
     hits: list[pd.DataFrame] = []
     full_rows_scanned = 0
@@ -78,6 +81,10 @@ def main() -> None:
     full_rows_in_target_sectors = 0
     full_rows_with_valid_coordinates = 0
     full_rows_in_target_sectors_with_valid_coordinates = 0
+    full_rows_with_target_municipality_prefix = 0
+    sector_length_counts: Counter[int] = Counter()
+    sector_sample: list[str] = []
+    unique_sector_codes: set[str] = set()
 
     with tempfile.TemporaryDirectory() as td:
         archive_path = Path(td) / "15_PA_full_cnefe.zip"
@@ -105,8 +112,21 @@ def main() -> None:
                         continue
 
                     sector_norm = chunk["COD_SETOR"].astype("string").str.strip()
+                    nonempty_sector = sector_norm[sector_norm.notna() & sector_norm.ne("")]
+                    for length, count in nonempty_sector.str.len().value_counts().items():
+                        sector_length_counts[int(length)] += int(count)
+                    if len(sector_sample) < 10:
+                        for code in nonempty_sector.drop_duplicates().astype(str):
+                            if code not in sector_sample:
+                                sector_sample.append(code)
+                            if len(sector_sample) >= 10:
+                                break
+                    unique_sector_codes.update(nonempty_sector.drop_duplicates().astype(str).tolist())
+
                     in_target_sector = sector_norm.isin(target_sectors)
                     full_rows_in_target_sectors += int(in_target_sector.sum())
+                    if target_municipalities:
+                        full_rows_with_target_municipality_prefix += int(sector_norm.str[:7].isin(target_municipalities).sum())
 
                     lat_num = _numeric_coordinate(chunk["LATITUDE"])
                     lon_num = _numeric_coordinate(chunk["LONGITUDE"])
@@ -149,10 +169,18 @@ def main() -> None:
 
     matched = int(merged["full_cnefe_metadata_match"].sum())
     named = int(merged["representative_cnefe_street_name"].fillna("").astype(str).str.strip().ne("").sum())
+    target_origin_lengths = {str(int(k)): int(v) for k, v in origins["origin_id"].astype("string").str.len().value_counts().sort_index().items()}
+    full_length_dict = {str(k): int(v) for k, v in sorted(sector_length_counts.items())}
     audit = {
         "origin_count": int(len(origins)),
+        "target_origin_sector_code_length_counts": target_origin_lengths,
+        "target_origin_sector_code_sample": sorted(origins["origin_id"].astype(str).drop_duplicates().head(10).tolist()),
         "full_cnefe_rows_scanned": full_rows_scanned,
         "eligible_full_cnefe_residential_rows": eligible_full_rows,
+        "full_cnefe_unique_nonempty_sector_codes": int(len(unique_sector_codes)),
+        "full_cnefe_sector_code_length_counts": full_length_dict,
+        "full_cnefe_sector_code_sample": sector_sample,
+        "full_cnefe_rows_with_target_municipality_prefix": full_rows_with_target_municipality_prefix,
         "full_cnefe_rows_in_target_sectors": full_rows_in_target_sectors,
         "full_cnefe_rows_with_valid_coordinates_after_decimal_normalization": full_rows_with_valid_coordinates,
         "full_cnefe_rows_in_target_sectors_with_valid_coordinates": full_rows_in_target_sectors_with_valid_coordinates,
@@ -167,10 +195,9 @@ def main() -> None:
         "raw_full_cnefe_rows_published": False,
         "access_connector_promoted": False,
         "scientific_policy": (
-            "The full official CNEFE file is used only to recover street/locality metadata for the already-selected representative origin coordinate. "
-            "Decimal separators are normalized for comparison only; coordinates are not altered. The origin coordinate and sector demand are unchanged. "
-            "No address number or raw residential microdata are published. Metadata agreement can support later nominal CNEFE-to-OSM alignment auditing, "
-            "but does not itself promote a network connector or assign travel time."
+            "The full official CNEFE file is used only to diagnose and recover street/locality metadata for the already-selected representative origin coordinate. "
+            "Sector-code compatibility is audited explicitly before any join is trusted. Decimal separators are normalized for comparison only; coordinates are not altered. "
+            "No address number or raw residential microdata are published, and no connector or travel time is promoted from this audit."
         ),
     }
     (args.output_dir / "representative_origin_cnefe_metadata_audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
