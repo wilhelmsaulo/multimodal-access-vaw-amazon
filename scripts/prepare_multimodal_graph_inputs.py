@@ -97,11 +97,16 @@ def _canonicalize_antaq_waterways(g: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         "segment_type": ("tipo",),
         "reported_length_km": ("extensao",),
         "reported_time": ("tempo",),
+        "reference_speed_kmh": ("vel_cional",),
     }
     out = g[["geometry"]].copy()
     for canonical, candidates in mapping.items():
         source = _find_col(cols, candidates)
         out[canonical] = g[source].values if source else pd.NA
+    if "source_archive" in g.columns:
+        out["source_archive"] = g["source_archive"].values
+    else:
+        out["source_archive"] = pd.NA
     return gpd.GeoDataFrame(out, geometry="geometry", crs=g.crs)
 
 
@@ -132,7 +137,8 @@ def _normalize(frames: list[gpd.GeoDataFrame], source_id: str, geometry_family: 
         canonical_cols = [
             "hydro_id", "river_name", "origin_municipality", "origin_state",
             "destination_municipality", "destination_state", "navigation_type",
-            "segment_type", "reported_length_km", "reported_time", "source_id", "geometry",
+            "segment_type", "reported_length_km", "reported_time", "reference_speed_kmh",
+            "source_archive", "source_id", "geometry",
         ]
         slim = [x.reindex(columns=canonical_cols).copy() for x in kept]
     else:
@@ -172,7 +178,12 @@ def main() -> None:
             roots = _extract_archives(source_dir, work / source_id) if source_dir.exists() else []
             frames: list[gpd.GeoDataFrame] = []
             for root in roots:
-                frames.extend(_read_geodata(root))
+                root_frames = _read_geodata(root)
+                if source_id == "antaq_waterways":
+                    provenance = root.name
+                    for frame in root_frames:
+                        frame["source_archive"] = provenance
+                frames.extend(root_frames)
             out = _normalize(frames, source_id, family)
             path = args.output_dir / f"{layer_name}.gpkg"
             if not out.empty:
@@ -184,6 +195,9 @@ def main() -> None:
                 "ready": bool(len(out) > 0),
                 "output": str(path) if not out.empty else None,
                 "columns": [str(c) for c in out.columns if c != "geometry"],
+                "source_archive_provenance_preserved": bool(
+                    source_id == "antaq_waterways" and "source_archive" in out.columns
+                ),
             }
 
     required = ["roads", "waterways", "ports", "airports"]
