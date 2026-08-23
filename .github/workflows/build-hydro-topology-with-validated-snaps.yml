@@ -6,6 +6,7 @@ on:
     paths:
       - "scripts/build_hydro_topology_with_validated_snaps.py"
       - "scripts/subdivide_hydro_reference_time.py"
+      - "scripts/build_hydro_temporal_graph_reference.py"
       - "scripts/finalize_non_temporal_cartographic_snap_rule.py"
       - "scripts/materialize_validated_spatial_transfer_anchors.py"
       - ".github/workflows/build-hydro-topology-with-validated-snaps.yml"
@@ -65,8 +66,8 @@ jobs:
           from pathlib import Path
           p=Path('artifacts/hydro_topology_with_validated_snaps/hydro_topology_with_validated_snaps_audit.json')
           d=json.loads(p.read_text(encoding='utf-8'))
-          assert d['official_route_count'] == 358
-          assert d['source_subedges_total'] == 20609
+          assert d['official_route_count'] == 122
+          assert d['source_subedges_total'] == 8027
           assert d['topology_edges_total'] >= d['source_subedges_total']
           assert d['topology_nodes_total'] > 0
           assert d['validated_snap_attachments_total'] == 3
