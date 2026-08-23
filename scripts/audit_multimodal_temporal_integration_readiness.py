@@ -67,16 +67,34 @@ def main() -> None:
         and temp.get("distance_to_time_conversion_used") is False
         and temp.get("waiting_time_included") is False
     )
-    ready_final_od = bool(
+
+    # Component readiness is intentionally distinct from final OD readiness.
+    # The road and hydro temporal components plus the validated intermodal snap
+    # semantics are sufficient to assemble a multimodal graph, but the final
+    # graph has not yet been assembled/validated and access connectors from
+    # origins/services still require defensible temporal semantics.
+    ready_graph_assembly = bool(
         terrestrial_ready and hydro_ready and spatial_rule_resolved and temporal_connector_resolved
     )
+    hydro_traversal_policy_resolved = False
+    final_multimodal_graph_assembled_and_validated = False
+    origin_access_temporal_connector_rule_resolved = False
+    service_access_temporal_connector_rule_resolved = False
+    ready_final_od = False
 
+    blocking_issues: list[str] = []
     if not spatial_rule_resolved:
-        blocking_issue = "Intermodal spatial connector rule is not resolved."
-    elif not temporal_connector_resolved:
-        blocking_issue = "Temporal treatment of the validated cartographic snap is not resolved."
-    else:
-        blocking_issue = None
+        blocking_issues.append("intermodal spatial snap rule is unresolved")
+    if not temporal_connector_resolved:
+        blocking_issues.append("temporal treatment of validated cartographic snaps is unresolved")
+    if not hydro_traversal_policy_resolved:
+        blocking_issues.append("hydro traversal/directionality policy is unresolved")
+    if not final_multimodal_graph_assembled_and_validated:
+        blocking_issues.append("final multimodal graph has not yet been assembled and validated")
+    if not origin_access_temporal_connector_rule_resolved:
+        blocking_issues.append("origin-to-network access temporal connector semantics are unresolved")
+    if not service_access_temporal_connector_rule_resolved:
+        blocking_issues.append("service-to-network access temporal connector semantics are unresolved")
 
     audit = {
         "terrestrial_temporal_ready": terrestrial_ready,
@@ -94,14 +112,21 @@ def main() -> None:
         "temporal_connector_is_temporal_edge": temp.get("connector_is_temporal_edge"),
         "zero_time_transfer_adopted": False,
         "intermodal_connector_rule_resolved": bool(spatial_rule_resolved and temporal_connector_resolved),
+        "ready_for_multimodal_graph_assembly": ready_graph_assembly,
+        "hydro_traversal_policy_resolved": hydro_traversal_policy_resolved,
+        "final_multimodal_graph_assembled_and_validated": final_multimodal_graph_assembled_and_validated,
+        "origin_access_temporal_connector_rule_resolved": origin_access_temporal_connector_rule_resolved,
+        "service_access_temporal_connector_rule_resolved": service_access_temporal_connector_rule_resolved,
         "ready_for_final_multimodal_od": ready_final_od,
         "universal_distance_cutoff_used": False,
         "snap_distance_interpreted_as_travel_distance": False,
         "distance_to_time_conversion_used": False,
-        "blocking_issue": blocking_issue,
+        "blocking_issues": blocking_issues,
+        "blocking_issue": "; ".join(blocking_issues) if blocking_issues else None,
         "scientific_policy": (
-            "Terrestrial and hydro temporal impedances are complete. Validated road-water snaps are non-temporal cartographic topology-alignment operations, not travel edges and not zero-minute real-world transfers. "
-            "Their geometric offsets are never converted to time. Final multimodal OD may proceed using explicit terrestrial and hydro movement impedances; waiting/departure frequency remains excluded and must be reported as a limitation."
+            "Terrestrial and canonical ANTAQ hydro temporal impedances are complete, and validated road-water snaps are non-temporal cartographic topology-alignment operations rather than travel edges. "
+            "These components are ready for multimodal graph assembly, not for final OD routing. Hydro traversal semantics, final graph assembly/validation, and temporal access connectors from sector origins and service sites must be resolved before OD computation. "
+            "No nearest-geometry access connector is promoted solely by proximity, no snap distance is converted to time, and waiting/departure frequency remains excluded and must be reported as a limitation."
         ),
     }
     (OUT / "multimodal_temporal_integration_readiness_audit.json").write_text(
