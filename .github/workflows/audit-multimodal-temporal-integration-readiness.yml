@@ -82,8 +82,14 @@ jobs:
           assert d['universal_distance_cutoff_used'] is False
           assert d['snap_distance_interpreted_as_travel_distance'] is False
           assert d['distance_to_time_conversion_used'] is False
-          assert d['ready_for_final_multimodal_od'] is True
-          assert d['blocking_issue'] is None
+          assert d['ready_for_multimodal_graph_assembly'] is True
+          assert d['hydro_traversal_policy_resolved'] is False
+          assert d['final_multimodal_graph_assembled_and_validated'] is False
+          assert d['origin_access_temporal_connector_rule_resolved'] is False
+          assert d['service_access_temporal_connector_rule_resolved'] is False
+          assert d['ready_for_final_multimodal_od'] is False
+          assert d['blocking_issue'] is not None
+          assert len(d['blocking_issues']) >= 4
           print(json.dumps(d, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
