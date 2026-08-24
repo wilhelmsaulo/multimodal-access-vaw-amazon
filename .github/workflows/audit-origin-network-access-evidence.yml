@@ -19,6 +19,7 @@ on:
       - "scripts/audit_cnefe_osm_alignment_regimes.py"
       - "scripts/materialize_empirical_origin_cartographic_alignment.py"
       - "scripts/audit_origin_cartographic_topology_intersection.py"
+      - "scripts/materialize_origin_cartographic_node_attachments.py"
       - "scripts/audit_aligned_topology_gap_residuals.py"
       - ".github/workflows/audit-origin-network-access-evidence.yml"
 
@@ -86,6 +87,8 @@ jobs:
         run: python scripts/materialize_empirical_origin_cartographic_alignment.py
       - name: Intersect cartographic and topological origin evidence
         run: python scripts/audit_origin_cartographic_topology_intersection.py
+      - name: Materialize non-temporal origin node attachments
+        run: python scripts/materialize_origin_cartographic_node_attachments.py
       - name: Classify aligned local path modal composition
         run: python scripts/classify_aligned_local_path_modal_composition.py
       - name: Materialize pedestrian local access times
@@ -107,6 +110,7 @@ jobs:
           from pathlib import Path
           d=json.loads(Path('artifacts/origin_network_access_evidence/origin_network_access_evidence_audit.json').read_text())
           a=json.loads(Path('artifacts/origin_cartographic_topology_intersection/origin_cartographic_topology_intersection_audit.json').read_text())
+          na=json.loads(Path('artifacts/origin_cartographic_node_attachments/origin_cartographic_node_attachments_audit.json').read_text())
           c=json.loads(Path('artifacts/aligned_local_path_modal_composition/aligned_local_path_modal_composition_audit.json').read_text())
           p=json.loads(Path('artifacts/pedestrian_local_access_times/pedestrian_local_access_times_audit.json').read_text())
           m=json.loads(Path('artifacts/mixed_aligned_local_paths/mixed_aligned_local_paths_audit.json').read_text())
@@ -117,6 +121,10 @@ jobs:
           g=json.loads(Path('artifacts/aligned_topology_gap_residuals/aligned_topology_gap_residuals_audit.json').read_text())
           assert d['origin_count'] == 15743
           assert a['aligned_primary_motor_topology_count'] == 4368
+          assert na['origin_cartographic_node_attachments'] == 4368
+          assert na['creates_temporal_edge'] is False
+          assert na['travel_time_assigned'] is False
+          assert na['zero_time_edge_created'] is False
           assert c['aligned_local_path_origins'] == 157
           assert c['evidence_class_counts']['exclusively_pedestrian_osm_path'] == 45
           assert c['evidence_class_counts']['mixed_or_other_local_osm_path'] == 109
@@ -146,7 +154,7 @@ jobs:
           assert nr['travel_time_assigned'] is False
           assert g['residual_count'] == 6
           assert g['nearest_same_name_motor_class_count'] == 6
-          print(json.dumps({'origins':d,'intersection':a,'aligned_paths':c,'pedestrian_times':p,'mixed_paths':m,'services':s,'service_paths':sp,'service_pedestrian_times':spt,'nonprimary_motorlike':nr,'topology_gaps':g}, ensure_ascii=False, indent=2))
+          print(json.dumps({'origins':d,'intersection':a,'node_attachments':na,'aligned_paths':c,'pedestrian_times':p,'mixed_paths':m,'services':s,'service_paths':sp,'service_pedestrian_times':spt,'nonprimary_motorlike':nr,'topology_gaps':g}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -159,6 +167,7 @@ jobs:
             artifacts/cnefe_osm_alignment_regimes/
             artifacts/empirical_origin_cartographic_alignment/
             artifacts/origin_cartographic_topology_intersection/
+            artifacts/origin_cartographic_node_attachments/
             artifacts/aligned_local_path_modal_composition/
             artifacts/pedestrian_local_access_times/
             artifacts/mixed_aligned_local_paths/
