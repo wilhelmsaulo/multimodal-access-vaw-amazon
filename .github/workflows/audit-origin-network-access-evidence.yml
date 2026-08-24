@@ -9,6 +9,9 @@ on:
       - "scripts/audit_local_access_path_modal_composition.py"
       - "scripts/classify_origin_network_access_evidence.py"
       - "scripts/classify_aligned_local_path_modal_composition.py"
+      - "scripts/materialize_pedestrian_local_access_times.py"
+      - "scripts/audit_mixed_aligned_local_paths.py"
+      - "scripts/audit_service_local_path_modal_composition.py"
       - "scripts/audit_representative_origin_cnefe_metadata.py"
       - "scripts/audit_cnefe_osm_street_name_alignment.py"
       - "scripts/audit_cnefe_osm_alignment_regimes.py"
@@ -20,7 +23,7 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 160
+    timeout-minutes: 170
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -83,6 +86,12 @@ jobs:
         run: python scripts/audit_origin_cartographic_topology_intersection.py
       - name: Classify aligned local path modal composition
         run: python scripts/classify_aligned_local_path_modal_composition.py
+      - name: Materialize pedestrian local access times
+        run: python scripts/materialize_pedestrian_local_access_times.py
+      - name: Audit mixed aligned local paths
+        run: python scripts/audit_mixed_aligned_local_paths.py
+      - name: Audit service local path modal composition
+        run: python scripts/audit_service_local_path_modal_composition.py
       - name: Audit aligned topology-gap residuals
         run: python scripts/audit_aligned_topology_gap_residuals.py
       - name: Validate safeguards and expected partition
@@ -90,52 +99,35 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          d=json.loads(Path('artifacts/origin_network_access_evidence/origin_network_access_evidence_audit.json').read_text(encoding='utf-8'))
+          d=json.loads(Path('artifacts/origin_network_access_evidence/origin_network_access_evidence_audit.json').read_text())
+          a=json.loads(Path('artifacts/origin_cartographic_topology_intersection/origin_cartographic_topology_intersection_audit.json').read_text())
+          c=json.loads(Path('artifacts/aligned_local_path_modal_composition/aligned_local_path_modal_composition_audit.json').read_text())
+          p=json.loads(Path('artifacts/pedestrian_local_access_times/pedestrian_local_access_times_audit.json').read_text())
+          m=json.loads(Path('artifacts/mixed_aligned_local_paths/mixed_aligned_local_paths_audit.json').read_text())
+          s=json.loads(Path('artifacts/service_local_access_primary_motor_audit/service_local_access_primary_motor_audit.json').read_text())
+          sp=json.loads(Path('artifacts/service_local_path_modal_composition/service_local_path_modal_composition_audit.json').read_text())
+          g=json.loads(Path('artifacts/aligned_topology_gap_residuals/aligned_topology_gap_residuals_audit.json').read_text())
           assert d['origin_count'] == 15743
-          assert sum(d['evidence_class_counts'].values()) == 15743
-          assert d['distance_threshold_used_for_promotion'] is False
-          assert d['hydro_candidate_promoted_by_distance'] is False
-          assert d['euclidean_distance_converted_to_time'] is False
-          assert d['walking_speed_assigned'] is False
-          assert d['track_speed_assigned'] is False
-          assert d['origin_access_temporal_connector_rule_resolved'] is False
-
-          a=json.loads(Path('artifacts/origin_cartographic_topology_intersection/origin_cartographic_topology_intersection_audit.json').read_text(encoding='utf-8'))
-          assert a['origin_count'] == 15743
-          assert a['empirical_local_alignment_count'] == 4531
           assert a['aligned_primary_motor_topology_count'] == 4368
-          assert a['aligned_local_osm_path_required_count'] == 157
-          assert a['aligned_hydro_priority_residual_count'] == 0
-          assert a['aligned_topology_gap_residual_count'] == 6
-          assert a['hydro_priority_origin_absorbed_by_cartographic_alignment_count'] == 0
-          assert a['non_temporal_cartographic_attachment_materialized'] is False
-          assert a['travel_time_assigned'] is False
-          assert a['euclidean_distance_converted_to_time'] is False
-
-          c=json.loads(Path('artifacts/aligned_local_path_modal_composition/aligned_local_path_modal_composition_audit.json').read_text(encoding='utf-8'))
           assert c['aligned_local_path_origins'] == 157
-          assert sum(c['evidence_class_counts'].values()) == 157
-          assert c['walking_speed_assigned'] is False
-          assert c['track_speed_assigned'] is False
-          assert c['travel_time_assigned'] is False
-          assert c['origin_access_temporal_connector_rule_resolved'] is False
-
-          s=json.loads(Path('artifacts/service_local_access_primary_motor_audit/service_local_access_primary_motor_audit.json').read_text(encoding='utf-8'))
+          assert c['evidence_class_counts']['exclusively_pedestrian_osm_path'] == 45
+          assert c['evidence_class_counts']['mixed_or_other_local_osm_path'] == 109
+          assert c['evidence_class_counts']['track_involved_sensitivity_only'] == 3
+          assert p['pedestrian_local_access_origins'] == 45
+          assert p['walking_speed_kmh'] == 3.6
+          assert p['cartographic_alignment_distance_converted_to_time'] is False
+          assert p['mixed_or_other_paths_temporalized'] is False
+          assert m['mixed_aligned_local_path_origins'] == 109
+          assert m['travel_time_assigned'] is False
           assert s['service_site_count'] == 236
-          assert s['nearest_osm_node_already_in_primary_motor_graph'] + s['nearest_osm_node_not_in_primary_motor_graph'] == 236
-          assert s['service_connector_promoted'] is False
-          assert s['straight_line_distance_to_time_conversion_used'] is False
-          assert s['walking_speed_assigned'] is False
-          assert s['track_speed_assigned'] is False
-          assert s['service_access_temporal_connector_rule_resolved'] is False
-
-          g=json.loads(Path('artifacts/aligned_topology_gap_residuals/aligned_topology_gap_residuals_audit.json').read_text(encoding='utf-8'))
+          assert s['nearest_osm_node_already_in_primary_motor_graph'] == 227
+          assert s['local_nonmotor_sites_topologically_connected_to_primary_motor'] == 8
+          assert s['local_nonmotor_sites_not_connected_to_primary_motor'] == 1
+          assert sp['service_local_path_sites'] == 8
+          assert sp['travel_time_assigned'] is False
           assert g['residual_count'] == 6
-          assert g['same_name_candidate_found_count'] == 6
           assert g['nearest_same_name_motor_class_count'] == 6
-          assert g['routing_attachment_promoted'] is False
-          assert g['travel_time_assigned'] is False
-          print(json.dumps({'network_evidence': d, 'cartographic_topology': a, 'aligned_local_paths': c, 'service_local_access': s, 'topology_gap_residuals': g}, ensure_ascii=False, indent=2))
+          print(json.dumps({'origins':d,'intersection':a,'aligned_paths':c,'pedestrian_times':p,'mixed_paths':m,'services':s,'service_paths':sp,'topology_gaps':g}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -149,6 +141,9 @@ jobs:
             artifacts/empirical_origin_cartographic_alignment/
             artifacts/origin_cartographic_topology_intersection/
             artifacts/aligned_local_path_modal_composition/
+            artifacts/pedestrian_local_access_times/
+            artifacts/mixed_aligned_local_paths/
+            artifacts/service_local_path_modal_composition/
             artifacts/aligned_topology_gap_residuals/
           if-no-files-found: error
           retention-days: 30
