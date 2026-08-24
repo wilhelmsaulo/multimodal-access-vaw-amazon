@@ -6,12 +6,17 @@ on:
     paths:
       - "scripts/audit_local_access_to_primary_motor_network.py"
       - "scripts/classify_origin_network_access_evidence.py"
+      - "scripts/audit_representative_origin_cnefe_metadata.py"
+      - "scripts/audit_cnefe_osm_street_name_alignment.py"
+      - "scripts/audit_cnefe_osm_alignment_regimes.py"
+      - "scripts/materialize_empirical_origin_cartographic_alignment.py"
+      - "scripts/audit_origin_cartographic_topology_intersection.py"
       - ".github/workflows/audit-origin-network-access-evidence.yml"
 
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 140
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,11 +26,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "scipy>=1.14,<2" "osmium>=4,<5" "PyYAML>=6,<7" "openpyxl>=3.1,<4" "xlrd>=2,<3"
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "scipy>=1.14,<2" "scikit-learn>=1.6,<2" "osmium>=4,<5" "PyYAML>=6,<7" "openpyxl>=3.1,<4" "xlrd>=2,<3"
       - name: Build official Pará census sectors
         run: python src/data/ibge_census2022_sectors.py
       - name: Build CNEFE sector origins
         run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Recover full CNEFE street metadata
+        run: python scripts/audit_representative_origin_cnefe_metadata.py --chunksize 200000
       - name: Build service snapshots
         run: python scripts/build_service_inventory_from_snapshots.py
       - name: Build specialized services
@@ -58,6 +65,14 @@ jobs:
         run: python scripts/audit_local_access_to_primary_motor_network.py
       - name: Classify origin network access evidence
         run: python scripts/classify_origin_network_access_evidence.py
+      - name: Audit CNEFE OSM street-name alignment
+        run: python scripts/audit_cnefe_osm_street_name_alignment.py
+      - name: Audit empirical alignment regimes
+        run: python scripts/audit_cnefe_osm_alignment_regimes.py --bootstrap 200
+      - name: Materialize empirical local cartographic-alignment policy
+        run: python scripts/materialize_empirical_origin_cartographic_alignment.py
+      - name: Intersect cartographic and topological origin evidence
+        run: python scripts/audit_origin_cartographic_topology_intersection.py
       - name: Validate safeguards and expected partition
         run: |
           python - <<'PY'
@@ -73,7 +88,20 @@ jobs:
           assert d['walking_speed_assigned'] is False
           assert d['track_speed_assigned'] is False
           assert d['origin_access_temporal_connector_rule_resolved'] is False
-          print(json.dumps(d, ensure_ascii=False, indent=2))
+
+          q=Path('artifacts/origin_cartographic_topology_intersection/origin_cartographic_topology_intersection_audit.json')
+          a=json.loads(q.read_text(encoding='utf-8'))
+          assert a['origin_count'] == 15743
+          assert a['empirical_local_alignment_count'] == 4531
+          assert a['aligned_primary_motor_topology_count'] == 4368
+          assert a['aligned_local_osm_path_required_count'] == 157
+          assert a['aligned_hydro_priority_residual_count'] == 0
+          assert a['aligned_topology_gap_residual_count'] == 6
+          assert a['hydro_priority_origin_absorbed_by_cartographic_alignment_count'] == 0
+          assert a['non_temporal_cartographic_attachment_materialized'] is False
+          assert a['travel_time_assigned'] is False
+          assert a['euclidean_distance_converted_to_time'] is False
+          print(json.dumps({'network_evidence': d, 'cartographic_topology': a}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -81,5 +109,8 @@ jobs:
           path: |
             artifacts/local_access_primary_motor_audit/
             artifacts/origin_network_access_evidence/
+            artifacts/cnefe_osm_alignment_regimes/
+            artifacts/empirical_origin_cartographic_alignment/
+            artifacts/origin_cartographic_topology_intersection/
           if-no-files-found: error
           retention-days: 30
