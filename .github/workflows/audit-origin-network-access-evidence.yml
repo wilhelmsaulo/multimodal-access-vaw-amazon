@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "scripts/audit_local_access_to_primary_motor_network.py"
+      - "scripts/audit_service_local_access_to_primary_motor_network.py"
       - "scripts/audit_local_access_path_modal_composition.py"
       - "scripts/classify_origin_network_access_evidence.py"
       - "scripts/classify_aligned_local_path_modal_composition.py"
@@ -19,7 +20,7 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 160
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -64,8 +65,10 @@ jobs:
         run: python scripts/complete_primary_road_link_times.py
       - name: Audit access connector semantics
         run: python scripts/audit_access_connector_semantics.py
-      - name: Audit local access to primary motor graph
+      - name: Audit local origin access to primary motor graph
         run: python scripts/audit_local_access_to_primary_motor_network.py
+      - name: Audit local service access to primary motor graph
+        run: python scripts/audit_service_local_access_to_primary_motor_network.py
       - name: Reconstruct local path modal composition
         run: python scripts/audit_local_access_path_modal_composition.py
       - name: Classify origin network access evidence
@@ -87,8 +90,7 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          p=Path('artifacts/origin_network_access_evidence/origin_network_access_evidence_audit.json')
-          d=json.loads(p.read_text(encoding='utf-8'))
+          d=json.loads(Path('artifacts/origin_network_access_evidence/origin_network_access_evidence_audit.json').read_text(encoding='utf-8'))
           assert d['origin_count'] == 15743
           assert sum(d['evidence_class_counts'].values()) == 15743
           assert d['distance_threshold_used_for_promotion'] is False
@@ -98,8 +100,7 @@ jobs:
           assert d['track_speed_assigned'] is False
           assert d['origin_access_temporal_connector_rule_resolved'] is False
 
-          q=Path('artifacts/origin_cartographic_topology_intersection/origin_cartographic_topology_intersection_audit.json')
-          a=json.loads(q.read_text(encoding='utf-8'))
+          a=json.loads(Path('artifacts/origin_cartographic_topology_intersection/origin_cartographic_topology_intersection_audit.json').read_text(encoding='utf-8'))
           assert a['origin_count'] == 15743
           assert a['empirical_local_alignment_count'] == 4531
           assert a['aligned_primary_motor_topology_count'] == 4368
@@ -111,8 +112,7 @@ jobs:
           assert a['travel_time_assigned'] is False
           assert a['euclidean_distance_converted_to_time'] is False
 
-          m=Path('artifacts/aligned_local_path_modal_composition/aligned_local_path_modal_composition_audit.json')
-          c=json.loads(m.read_text(encoding='utf-8'))
+          c=json.loads(Path('artifacts/aligned_local_path_modal_composition/aligned_local_path_modal_composition_audit.json').read_text(encoding='utf-8'))
           assert c['aligned_local_path_origins'] == 157
           assert sum(c['evidence_class_counts'].values()) == 157
           assert c['walking_speed_assigned'] is False
@@ -120,20 +120,29 @@ jobs:
           assert c['travel_time_assigned'] is False
           assert c['origin_access_temporal_connector_rule_resolved'] is False
 
-          r=Path('artifacts/aligned_topology_gap_residuals/aligned_topology_gap_residuals_audit.json')
-          g=json.loads(r.read_text(encoding='utf-8'))
+          s=json.loads(Path('artifacts/service_local_access_primary_motor_audit/service_local_access_primary_motor_audit.json').read_text(encoding='utf-8'))
+          assert s['service_site_count'] == 236
+          assert s['nearest_osm_node_already_in_primary_motor_graph'] + s['nearest_osm_node_not_in_primary_motor_graph'] == 236
+          assert s['service_connector_promoted'] is False
+          assert s['straight_line_distance_to_time_conversion_used'] is False
+          assert s['walking_speed_assigned'] is False
+          assert s['track_speed_assigned'] is False
+          assert s['service_access_temporal_connector_rule_resolved'] is False
+
+          g=json.loads(Path('artifacts/aligned_topology_gap_residuals/aligned_topology_gap_residuals_audit.json').read_text(encoding='utf-8'))
           assert g['residual_count'] == 6
           assert g['same_name_candidate_found_count'] == 6
           assert g['nearest_same_name_motor_class_count'] == 6
           assert g['routing_attachment_promoted'] is False
           assert g['travel_time_assigned'] is False
-          print(json.dumps({'network_evidence': d, 'cartographic_topology': a, 'aligned_local_paths': c, 'topology_gap_residuals': g}, ensure_ascii=False, indent=2))
+          print(json.dumps({'network_evidence': d, 'cartographic_topology': a, 'aligned_local_paths': c, 'service_local_access': s, 'topology_gap_residuals': g}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: pa-origin-network-access-evidence
           path: |
             artifacts/local_access_primary_motor_audit/
+            artifacts/service_local_access_primary_motor_audit/
             artifacts/local_access_path_modal_composition/
             artifacts/origin_network_access_evidence/
             artifacts/cnefe_osm_alignment_regimes/
