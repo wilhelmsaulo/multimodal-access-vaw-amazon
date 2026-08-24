@@ -126,10 +126,10 @@ def main() -> None:
     origin_local = pd.read_csv("artifacts/local_access_primary_motor_audit/origin_local_access_to_primary_motor.csv.gz", dtype={"origin_id": "string"}, low_memory=False)
     origin_out = reconstruct_targets(origin_local, "origin_id", origin_targets, nodes, road_edges_path, motor_ids)
 
-    service_comp = pd.read_csv("artifacts/service_local_path_modal_composition/service_local_path_modal_composition.csv.gz", low_memory=False)
-    service_targets = set(service_comp.loc[service_comp["evidence_class"].eq("mixed_or_other_local_osm_path"), "physical_site_id"].astype(str))
-    service_local = pd.read_csv("artifacts/service_local_access_primary_motor_audit/service_local_access_to_primary_motor.csv.gz", low_memory=False)
-    service_out = reconstruct_targets(service_local, "physical_site_id", service_targets, nodes, road_edges_path, motor_ids)
+    service_comp = pd.read_csv("artifacts/service_local_path_modal_composition/service_local_path_modal_composition.csv.gz", dtype={"service_id": "string"}, low_memory=False)
+    service_targets = set(service_comp.loc[service_comp["service_local_path_evidence_class"].eq("mixed_or_other_local_osm_path"), "service_id"].astype(str))
+    service_local = pd.read_csv("artifacts/service_local_access_primary_motor_audit/service_local_access_to_primary_motor.csv.gz", dtype={"service_id": "string"}, low_memory=False)
+    service_out = reconstruct_targets(service_local, "service_id", service_targets, nodes, road_edges_path, motor_ids)
 
     outdir = Path("artifacts/nonprimary_motorlike_exclusion_reasons")
     outdir.mkdir(parents=True, exist_ok=True)
