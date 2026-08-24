@@ -7,7 +7,7 @@ import pandas as pd
 
 
 def q(x: pd.Series) -> dict:
-    v = pd.to_numeric(x, errors='coerce').dropna()
+    v = pd.to_numeric(x, errors='coerce').replace([float('inf'), float('-inf')], pd.NA).dropna()
     if v.empty:
         return {'n': 0}
     return {
@@ -38,20 +38,22 @@ def main() -> None:
     ro.to_csv(outdir / 'residual_origins.csv.gz', index=False, compression='gzip')
     rs.to_csv(outdir / 'disconnected_service.csv', index=False)
 
-    mun_col = 'municipality_name' if 'municipality_name' in ro.columns else None
-    top_municipalities = {}
-    if mun_col:
-        top_municipalities = ro[mun_col].fillna('NA').value_counts().head(20).astype(int).to_dict()
+    top_municipalities = ro['municipality_name'].fillna('NA').value_counts().head(20).astype(int).to_dict() if 'municipality_name' in ro.columns else {}
+    hydro = ro[ro['origin_access_evidence_class'] == 'residual_hydro_priority_candidate'].copy()
+    top_hydro_municipalities = hydro['municipality_name'].fillna('NA').value_counts().head(20).astype(int).to_dict() if 'municipality_name' in hydro.columns else {}
 
     audit = {
         'residual_origin_count': int(len(ro)),
         'residual_origin_class_counts': ro['origin_access_evidence_class'].value_counts().astype(int).to_dict(),
-        'residual_female_population': float(pd.to_numeric(ro.get('female_population', 0), errors='coerce').fillna(0).sum()) if 'female_population' in ro.columns else None,
+        'residual_female_population': float(pd.to_numeric(ro['female_population'], errors='coerce').fillna(0).sum()) if 'female_population' in ro.columns else None,
         'top_residual_municipalities': top_municipalities,
-        'residual_origin_distance_to_road_m': q(ro['distance_to_nearest_osm_road_m']) if 'distance_to_nearest_osm_road_m' in ro.columns else {'n': 0},
-        'residual_origin_distance_to_waterway_m': q(ro['distance_to_nearest_waterway_m']) if 'distance_to_nearest_waterway_m' in ro.columns else {'n': 0},
+        'top_hydro_priority_municipalities': top_hydro_municipalities,
+        'residual_origin_distance_to_road_m': q(ro['distance_to_road_m']),
+        'residual_origin_distance_to_waterway_m': q(ro['distance_to_waterway_m']),
+        'hydro_priority_distance_to_road_m': q(hydro['distance_to_road_m']),
+        'hydro_priority_distance_to_waterway_m': q(hydro['distance_to_waterway_m']),
         'disconnected_service_count': int(len(rs)),
-        'disconnected_service_records': rs[[c for c in ['service_id','physical_site_id','service_type','municipality_name','address_public','nearest_osm_node_id','nearest_nonmotor_incident_highway_classes','distance_to_nearest_osm_node_m','nearest_primary_motor_node_id','distance_to_nearest_primary_motor_node_m'] if c in rs.columns]].to_dict(orient='records'),
+        'disconnected_service_records': rs[[c for c in ['service_id','physical_site_id','service_type','municipality_code','municipality_name','address_public','nearest_osm_node_id','nearest_nonmotor_incident_highway_classes','distance_to_nearest_osm_node_m','nearest_primary_motor_node_id','distance_to_nearest_primary_motor_node_m'] if c in rs.columns]].to_dict(orient='records'),
         'distance_threshold_used_for_promotion': False,
         'hydro_candidate_promoted': False,
         'service_connector_promoted': False,
