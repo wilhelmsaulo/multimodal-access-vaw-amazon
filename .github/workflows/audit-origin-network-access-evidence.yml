@@ -12,6 +12,7 @@ on:
       - "scripts/materialize_pedestrian_local_access_times.py"
       - "scripts/audit_mixed_aligned_local_paths.py"
       - "scripts/audit_service_local_path_modal_composition.py"
+      - "scripts/materialize_service_pedestrian_local_access_times.py"
       - "scripts/audit_nonprimary_motorlike_path_exclusion_reasons.py"
       - "scripts/audit_representative_origin_cnefe_metadata.py"
       - "scripts/audit_cnefe_osm_street_name_alignment.py"
@@ -93,6 +94,8 @@ jobs:
         run: python scripts/audit_mixed_aligned_local_paths.py
       - name: Audit service local path modal composition
         run: python scripts/audit_service_local_path_modal_composition.py
+      - name: Materialize pedestrian service local access times
+        run: python scripts/materialize_service_pedestrian_local_access_times.py
       - name: Audit motor-like local path exclusion reasons
         run: python scripts/audit_nonprimary_motorlike_path_exclusion_reasons.py
       - name: Audit aligned topology-gap residuals
@@ -109,6 +112,7 @@ jobs:
           m=json.loads(Path('artifacts/mixed_aligned_local_paths/mixed_aligned_local_paths_audit.json').read_text())
           s=json.loads(Path('artifacts/service_local_access_primary_motor_audit/service_local_access_primary_motor_audit.json').read_text())
           sp=json.loads(Path('artifacts/service_local_path_modal_composition/service_local_path_modal_composition_audit.json').read_text())
+          spt=json.loads(Path('artifacts/service_pedestrian_local_access_times/service_pedestrian_local_access_times_audit.json').read_text())
           nr=json.loads(Path('artifacts/nonprimary_motorlike_exclusion_reasons/nonprimary_motorlike_exclusion_reasons_audit.json').read_text())
           g=json.loads(Path('artifacts/aligned_topology_gap_residuals/aligned_topology_gap_residuals_audit.json').read_text())
           assert d['origin_count'] == 15743
@@ -129,14 +133,20 @@ jobs:
           assert s['local_nonmotor_sites_not_connected_to_primary_motor'] == 1
           assert sp['service_local_path_sites'] == 8
           assert sp['travel_time_assigned'] is False
+          assert spt['service_pedestrian_local_access_sites'] == 5
+          assert spt['walking_speed_kmh'] == 3.6
+          assert spt['straight_line_distance_converted_to_time'] is False
+          assert spt['restricted_motorlike_paths_temporalized'] is False
           assert nr['origin_motorlike_targets'] == 103
+          assert nr['origin_targets_with_explicit_restriction'] == 103
           assert nr['service_motorlike_targets'] == 2
+          assert nr['service_targets_with_explicit_restriction'] == 2
           assert nr['new_speed_assumption_used'] is False
           assert nr['restricted_edges_promoted'] is False
           assert nr['travel_time_assigned'] is False
           assert g['residual_count'] == 6
           assert g['nearest_same_name_motor_class_count'] == 6
-          print(json.dumps({'origins':d,'intersection':a,'aligned_paths':c,'pedestrian_times':p,'mixed_paths':m,'services':s,'service_paths':sp,'nonprimary_motorlike':nr,'topology_gaps':g}, ensure_ascii=False, indent=2))
+          print(json.dumps({'origins':d,'intersection':a,'aligned_paths':c,'pedestrian_times':p,'mixed_paths':m,'services':s,'service_paths':sp,'service_pedestrian_times':spt,'nonprimary_motorlike':nr,'topology_gaps':g}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -153,6 +163,7 @@ jobs:
             artifacts/pedestrian_local_access_times/
             artifacts/mixed_aligned_local_paths/
             artifacts/service_local_path_modal_composition/
+            artifacts/service_pedestrian_local_access_times/
             artifacts/nonprimary_motorlike_exclusion_reasons/
             artifacts/aligned_topology_gap_residuals/
           if-no-files-found: error
