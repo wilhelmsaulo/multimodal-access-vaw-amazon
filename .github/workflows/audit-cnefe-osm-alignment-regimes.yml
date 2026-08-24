@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "scripts/audit_cnefe_osm_alignment_regimes.py"
+      - "scripts/materialize_empirical_origin_cartographic_alignment.py"
       - "scripts/audit_cnefe_osm_street_name_alignment.py"
       - "scripts/audit_representative_origin_cnefe_metadata.py"
       - ".github/workflows/audit-cnefe-osm-alignment-regimes.yml"
@@ -39,6 +40,8 @@ jobs:
         run: python scripts/audit_cnefe_osm_street_name_alignment.py
       - name: Audit empirical alignment regimes
         run: python scripts/audit_cnefe_osm_alignment_regimes.py --bootstrap 200
+      - name: Materialize empirical local cartographic-alignment policy
+        run: python scripts/materialize_empirical_origin_cartographic_alignment.py
       - name: Validate safeguards
         run: |
           python - <<'PY'
@@ -48,15 +51,28 @@ jobs:
           d=json.loads(p.read_text(encoding='utf-8'))
           assert d['nominally_matched_origins_with_distance'] > 0
           assert d['bic_2_components'] < d['bic_1_component']
-          assert d['bootstrap_valid_intersections'] > 0
+          assert d['bootstrap_valid_intersections'] == d['bootstrap_replicates_requested']
           assert d['distance_cutoff_adopted'] is False
           assert d['network_connector_promoted'] is False
           assert d['travel_time_assigned'] is False
-          print(json.dumps(d, ensure_ascii=False, indent=2))
+
+          q=Path('artifacts/empirical_origin_cartographic_alignment/empirical_origin_cartographic_alignment_audit.json')
+          a=json.loads(q.read_text(encoding='utf-8'))
+          assert a['empirical_local_cartographic_alignment_origins'] > 0
+          assert a['boundary_is_data_derived'] is True
+          assert a['boundary_is_universal_distance_cutoff'] is False
+          assert a['boundary_applies_only_after_same_name_same_municipality_evidence'] is True
+          assert a['cartographic_alignment_interpreted_as_travel'] is False
+          assert a['distance_converted_to_time'] is False
+          assert a['temporal_connector_promoted'] is False
+          assert a['origin_access_temporal_connector_rule_resolved'] is False
+          print(json.dumps({'regimes': d, 'policy': a}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: pa-cnefe-osm-alignment-regimes
-          path: artifacts/cnefe_osm_alignment_regimes/
+          path: |
+            artifacts/cnefe_osm_alignment_regimes/
+            artifacts/empirical_origin_cartographic_alignment/
           if-no-files-found: error
           retention-days: 30
