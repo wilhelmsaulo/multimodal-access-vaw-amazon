@@ -1,0 +1,62 @@
+name: audit-cnefe-osm-alignment-regimes
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_cnefe_osm_alignment_regimes.py"
+      - "scripts/audit_cnefe_osm_street_name_alignment.py"
+      - "scripts/audit_representative_origin_cnefe_metadata.py"
+      - ".github/workflows/audit-cnefe-osm-alignment-regimes.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "PyYAML>=6,<7" "scikit-learn>=1.6,<2"
+      - name: Build official Pará census sectors
+        run: python src/data/ibge_census2022_sectors.py
+      - name: Build CNEFE representative origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
+      - name: Recover full CNEFE street metadata
+        run: python scripts/audit_representative_origin_cnefe_metadata.py --chunksize 200000
+      - name: Rebuild official reference transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire OSM road network
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare multimodal graph inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Audit CNEFE OSM street-name alignment
+        run: python scripts/audit_cnefe_osm_street_name_alignment.py
+      - name: Audit empirical alignment regimes
+        run: python scripts/audit_cnefe_osm_alignment_regimes.py --bootstrap 200
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('artifacts/cnefe_osm_alignment_regimes/cnefe_osm_alignment_regimes_audit.json')
+          d=json.loads(p.read_text(encoding='utf-8'))
+          assert d['nominally_matched_origins_with_distance'] > 0
+          assert d['bic_2_components'] < d['bic_1_component']
+          assert d['bootstrap_valid_intersections'] > 0
+          assert d['distance_cutoff_adopted'] is False
+          assert d['network_connector_promoted'] is False
+          assert d['travel_time_assigned'] is False
+          print(json.dumps(d, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-cnefe-osm-alignment-regimes
+          path: artifacts/cnefe_osm_alignment_regimes/
+          if-no-files-found: error
+          retention-days: 30
