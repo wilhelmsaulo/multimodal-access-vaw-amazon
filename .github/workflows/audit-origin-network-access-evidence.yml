@@ -5,7 +5,9 @@ on:
   pull_request:
     paths:
       - "scripts/audit_local_access_to_primary_motor_network.py"
+      - "scripts/audit_local_access_path_modal_composition.py"
       - "scripts/classify_origin_network_access_evidence.py"
+      - "scripts/classify_aligned_local_path_modal_composition.py"
       - "scripts/audit_representative_origin_cnefe_metadata.py"
       - "scripts/audit_cnefe_osm_street_name_alignment.py"
       - "scripts/audit_cnefe_osm_alignment_regimes.py"
@@ -17,7 +19,7 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 140
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -64,6 +66,8 @@ jobs:
         run: python scripts/audit_access_connector_semantics.py
       - name: Audit local access to primary motor graph
         run: python scripts/audit_local_access_to_primary_motor_network.py
+      - name: Reconstruct local path modal composition
+        run: python scripts/audit_local_access_path_modal_composition.py
       - name: Classify origin network access evidence
         run: python scripts/classify_origin_network_access_evidence.py
       - name: Audit CNEFE OSM street-name alignment
@@ -74,6 +78,8 @@ jobs:
         run: python scripts/materialize_empirical_origin_cartographic_alignment.py
       - name: Intersect cartographic and topological origin evidence
         run: python scripts/audit_origin_cartographic_topology_intersection.py
+      - name: Classify aligned local path modal composition
+        run: python scripts/classify_aligned_local_path_modal_composition.py
       - name: Audit aligned topology-gap residuals
         run: python scripts/audit_aligned_topology_gap_residuals.py
       - name: Validate safeguards and expected partition
@@ -105,23 +111,35 @@ jobs:
           assert a['travel_time_assigned'] is False
           assert a['euclidean_distance_converted_to_time'] is False
 
+          m=Path('artifacts/aligned_local_path_modal_composition/aligned_local_path_modal_composition_audit.json')
+          c=json.loads(m.read_text(encoding='utf-8'))
+          assert c['aligned_local_path_origins'] == 157
+          assert sum(c['evidence_class_counts'].values()) == 157
+          assert c['walking_speed_assigned'] is False
+          assert c['track_speed_assigned'] is False
+          assert c['travel_time_assigned'] is False
+          assert c['origin_access_temporal_connector_rule_resolved'] is False
+
           r=Path('artifacts/aligned_topology_gap_residuals/aligned_topology_gap_residuals_audit.json')
           g=json.loads(r.read_text(encoding='utf-8'))
           assert g['residual_count'] == 6
           assert g['same_name_candidate_found_count'] == 6
+          assert g['nearest_same_name_motor_class_count'] == 6
           assert g['routing_attachment_promoted'] is False
           assert g['travel_time_assigned'] is False
-          print(json.dumps({'network_evidence': d, 'cartographic_topology': a, 'topology_gap_residuals': g}, ensure_ascii=False, indent=2))
+          print(json.dumps({'network_evidence': d, 'cartographic_topology': a, 'aligned_local_paths': c, 'topology_gap_residuals': g}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: pa-origin-network-access-evidence
           path: |
             artifacts/local_access_primary_motor_audit/
+            artifacts/local_access_path_modal_composition/
             artifacts/origin_network_access_evidence/
             artifacts/cnefe_osm_alignment_regimes/
             artifacts/empirical_origin_cartographic_alignment/
             artifacts/origin_cartographic_topology_intersection/
+            artifacts/aligned_local_path_modal_composition/
             artifacts/aligned_topology_gap_residuals/
           if-no-files-found: error
           retention-days: 30
