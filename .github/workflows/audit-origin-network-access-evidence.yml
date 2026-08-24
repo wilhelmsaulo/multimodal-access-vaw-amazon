@@ -11,6 +11,7 @@ on:
       - "scripts/audit_cnefe_osm_alignment_regimes.py"
       - "scripts/materialize_empirical_origin_cartographic_alignment.py"
       - "scripts/audit_origin_cartographic_topology_intersection.py"
+      - "scripts/audit_aligned_topology_gap_residuals.py"
       - ".github/workflows/audit-origin-network-access-evidence.yml"
 
 jobs:
@@ -73,6 +74,8 @@ jobs:
         run: python scripts/materialize_empirical_origin_cartographic_alignment.py
       - name: Intersect cartographic and topological origin evidence
         run: python scripts/audit_origin_cartographic_topology_intersection.py
+      - name: Audit aligned topology-gap residuals
+        run: python scripts/audit_aligned_topology_gap_residuals.py
       - name: Validate safeguards and expected partition
         run: |
           python - <<'PY'
@@ -101,7 +104,14 @@ jobs:
           assert a['non_temporal_cartographic_attachment_materialized'] is False
           assert a['travel_time_assigned'] is False
           assert a['euclidean_distance_converted_to_time'] is False
-          print(json.dumps({'network_evidence': d, 'cartographic_topology': a}, ensure_ascii=False, indent=2))
+
+          r=Path('artifacts/aligned_topology_gap_residuals/aligned_topology_gap_residuals_audit.json')
+          g=json.loads(r.read_text(encoding='utf-8'))
+          assert g['residual_count'] == 6
+          assert g['same_name_candidate_found_count'] == 6
+          assert g['routing_attachment_promoted'] is False
+          assert g['travel_time_assigned'] is False
+          print(json.dumps({'network_evidence': d, 'cartographic_topology': a, 'topology_gap_residuals': g}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -112,5 +122,6 @@ jobs:
             artifacts/cnefe_osm_alignment_regimes/
             artifacts/empirical_origin_cartographic_alignment/
             artifacts/origin_cartographic_topology_intersection/
+            artifacts/aligned_topology_gap_residuals/
           if-no-files-found: error
           retention-days: 30
