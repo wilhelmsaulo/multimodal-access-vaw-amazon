@@ -16,7 +16,7 @@ def main() -> None:
     args = p.parse_args()
 
     df = pd.read_csv(args.classified, low_memory=False)
-    ped = df[df["evidence_class"] == "exclusively_pedestrian_osm_path"].copy()
+    ped = df[df["aligned_local_path_evidence_class"] == "exclusively_pedestrian_osm_path"].copy()
     if ped.empty:
         raise ValueError("No exclusively pedestrian aligned local paths found")
 
