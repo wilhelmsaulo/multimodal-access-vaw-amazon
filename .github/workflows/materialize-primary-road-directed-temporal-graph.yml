@@ -1,0 +1,54 @@
+name: materialize-primary-road-directed-temporal-graph
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/materialize_primary_road_directed_temporal_graph.py"
+      - ".github/workflows/materialize-primary-road-directed-temporal-graph.yml"
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Download validated road temporal graph
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-primary-motor-road-times
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32868022294
+      - name: Materialize directed road graph
+        run: python scripts/materialize_primary_road_directed_temporal_graph.py
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('artifacts/primary_road_directed_temporal_graph/primary_road_directed_temporal_graph_audit.json').read_text())
+          assert a['source_segment_count'] == 3723344
+          assert a['directed_edge_count'] >= a['source_segment_count']
+          assert a['travel_time_min_positive_all'] is True
+          assert a['source_travel_time_changed'] is False
+          assert a['new_speed_assumption_used'] is False
+          assert a['restricted_edges_promoted'] is False
+          assert a['track_promoted'] is False
+          print(json.dumps(a,ensure_ascii=False,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-primary-road-directed-temporal-graph
+          path: artifacts/primary_road_directed_temporal_graph/
+          if-no-files-found: error
+          retention-days: 30
