@@ -22,14 +22,14 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e .
 
-      - name: Download validated road temporal graph
+      - name: Download complete validated road temporal graph
         uses: actions/download-artifact@v4
         with:
-          name: pa-primary-motor-road-times
+          name: pa-primary-motor-road-times-complete
           path: artifacts
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
-          run-id: 32868022294
+          run-id: 32896460967
 
       - name: Download validated hydro temporal reference
         uses: actions/download-artifact@v4
@@ -58,7 +58,16 @@ jobs:
           repository: ${{ github.repository }}
           run-id: 32868022264
 
-      - name: Download validated origin attachments
+      - name: Download nominal origin attachments
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-origin-network-access-evidence
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32785322254
+
+      - name: Download empirical origin attachments
         uses: actions/download-artifact@v4
         with:
           name: pa-direct-attachment-transferability
@@ -85,10 +94,16 @@ jobs:
           import json
           from pathlib import Path
           m=json.loads(Path('artifacts/final_multimodal_graph_manifest/final_multimodal_graph_manifest.json').read_text())
-          assert m['road_temporal_edge_count'] > 3_000_000
+          assert m['road_temporal_edge_count'] > 3_700_000
           assert m['road_edges_missing_time'] == 0
+          assert m['road_edges_nonpositive_time'] == 0
           assert m['road_time_coverage_fraction'] == 1.0
-          assert m['accepted_origin_structural_attachment_count'] > 10_000
+          assert m['terrestrial_temporal_ready'] is True
+          assert m['hydro_temporal_ready'] is True
+          assert m['accepted_origin_nominal_structural_attachment_count'] == 4368
+          assert m['accepted_origin_empirical_direct_attachment_count'] == 8173
+          assert m['accepted_origin_empirical_local_attachment_count'] == 693
+          assert m['accepted_origin_structural_attachment_count'] == 13234
           assert m['service_primary_usable_count'] == 225
           assert m['service_primary_residual_count'] == 11
           assert m['air_temporal_routing_included'] is False
