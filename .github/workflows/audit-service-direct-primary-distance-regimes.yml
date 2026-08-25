@@ -6,6 +6,7 @@ on:
     paths:
       - "scripts/audit_service_direct_primary_distance_regimes.py"
       - "scripts/materialize_service_empirical_node_attachments.py"
+      - "scripts/finalize_service_access_policy.py"
       - ".github/workflows/audit-service-direct-primary-distance-regimes.yml"
 
 jobs:
@@ -42,6 +43,8 @@ jobs:
         run: python scripts/audit_service_direct_primary_distance_regimes.py
       - name: Materialize gated service node attachments
         run: python scripts/materialize_service_empirical_node_attachments.py
+      - name: Finalize service access policy
+        run: python scripts/finalize_service_access_policy.py
       - name: Validate safeguards
         run: |
           python - <<'PY'
@@ -49,6 +52,7 @@ jobs:
           from pathlib import Path
           a=json.loads(Path('artifacts/service_direct_primary_distance_regimes/service_direct_primary_distance_regimes_audit.json').read_text())
           m=json.loads(Path('artifacts/service_empirical_node_attachments/service_empirical_node_attachments_audit.json').read_text())
+          f=json.loads(Path('artifacts/final_service_access_policy/final_service_access_policy_audit.json').read_text())
           assert a['direct_primary_service_count'] == 227
           assert a['nominal_positive_control_count'] == 13
           assert a['nominal_positive_control_local_fraction'] == 1.0
@@ -58,12 +62,22 @@ jobs:
           assert a['distance_regime_is_physical_access_cutoff'] is False
           assert a['connector_promoted'] is False
           assert a['travel_time_assigned'] is False
-          assert m['service_empirical_node_attachments'] == a['empirical_local_service_count']
+          assert m['service_empirical_node_attachments'] == a['empirical_local_service_count'] == 220
           assert m['distance_regime_is_physical_access_cutoff'] is False
           assert m['creates_temporal_edge'] is False
           assert m['travel_time_assigned'] is False
           assert m['zero_time_edge_created'] is False
-          print(json.dumps({'audit':a,'materialization':m}, ensure_ascii=False, indent=2))
+          assert f['physical_service_opportunities'] == 236
+          assert f['primary_analysis_usable_services'] == 225
+          assert f['primary_analysis_unusable_or_sensitivity_services'] == 11
+          assert f['structural_direct_primary_attachments'] == 220
+          assert f['physical_pedestrian_access_paths'] == 5
+          assert f['residual_or_excluded_services'] == 11
+          assert f['zero_time_edges_created'] is False
+          assert f['euclidean_distance_converted_to_time'] is False
+          assert f['restricted_edges_promoted'] is False
+          assert f['track_promoted_to_primary'] is False
+          print(json.dumps({'audit':a,'materialization':m,'final_policy':f}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -71,5 +85,6 @@ jobs:
           path: |
             artifacts/service_direct_primary_distance_regimes/
             artifacts/service_empirical_node_attachments/
+            artifacts/final_service_access_policy/
           if-no-files-found: error
           retention-days: 30
