@@ -1,0 +1,86 @@
+name: assemble-frozen-final-multimodal-backbone
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/assemble_frozen_final_multimodal_backbone.py"
+      - ".github/workflows/assemble-frozen-final-multimodal-backbone.yml"
+
+jobs:
+  assemble:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install only final-stage dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "scipy>=1.14,<2"
+
+      - name: Download frozen directed road graph
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-primary-road-directed-temporal-graph
+          path: artifacts/road_directed
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32902566409
+
+      - name: Download frozen hydro topology
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-hydro-topology-with-validated-snaps
+          path: artifacts/hydro
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32868022260
+
+      - name: Download frozen terminal road splits
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-intermodal-terminal-road-edge-splits
+          path: artifacts/terminal_splits
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32907985189
+
+      - name: Assemble frozen final multimodal backbone
+        run: python scripts/assemble_frozen_final_multimodal_backbone.py
+
+      - name: Validate frozen-backbone safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('artifacts/frozen_final_multimodal_backbone/frozen_final_multimodal_backbone_audit.json').read_text())
+          assert a['road_source_directed_edges'] > 3_000_000
+          assert a['road_source_directed_edges_replaced'] >= 3
+          assert a['road_terminal_split_directed_edges_created'] > a['road_source_directed_edges_replaced']
+          assert a['hydro_source_topology_edges'] > 8_000
+          assert a['hydro_final_directed_edges'] == 2 * a['hydro_source_topology_edges']
+          assert a['terminal_identity_count'] == 3
+          assert a['terminal_identity_zero_time_edges_created'] is False
+          assert a['terminals_with_road_component'] == 3
+          assert a['terminals_with_hydro_component'] == 3
+          assert a['road_time_positive_all'] is True
+          assert a['hydro_time_positive_all'] is True
+          assert a['waiting_time_included'] is False
+          assert a['air_temporal_routing_included'] is False
+          assert a['new_speed_assumption_used'] is False
+          assert a['cartographic_distance_converted_to_time'] is False
+          assert a['ready_for_origin_service_attachment_and_od'] is True
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-frozen-final-multimodal-backbone
+          path: artifacts/frozen_final_multimodal_backbone/
+          if-no-files-found: error
+          retention-days: 30
