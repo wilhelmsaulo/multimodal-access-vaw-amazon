@@ -6,6 +6,7 @@ on:
     paths:
       - "scripts/audit_direct_origin_attachment_transferability.py"
       - "scripts/audit_direct_primary_origin_distance_regimes.py"
+      - "scripts/materialize_direct_primary_empirical_node_attachments.py"
       - "scripts/audit_service_osm_street_name_alignment.py"
       - ".github/workflows/audit-direct-attachment-transferability.yml"
 
@@ -57,6 +58,8 @@ jobs:
         run: python scripts/audit_direct_origin_attachment_transferability.py
       - name: Audit direct-primary empirical distance regimes
         run: python scripts/audit_direct_primary_origin_distance_regimes.py
+      - name: Materialize gated empirical direct-primary node attachments
+        run: python scripts/materialize_direct_primary_empirical_node_attachments.py
       - name: Audit service address to OSM street alignment
         run: python scripts/audit_service_osm_street_name_alignment.py
       - name: Validate safeguards
@@ -66,6 +69,7 @@ jobs:
           from pathlib import Path
           o=json.loads(Path('artifacts/direct_origin_attachment_transferability/direct_origin_attachment_transferability_audit.json').read_text())
           r=json.loads(Path('artifacts/direct_primary_origin_distance_regimes/direct_primary_origin_distance_regimes_audit.json').read_text())
+          m=json.loads(Path('artifacts/direct_primary_empirical_node_attachments/direct_primary_empirical_node_attachments_audit.json').read_text())
           s=json.loads(Path('artifacts/service_osm_street_name_alignment/service_osm_street_name_alignment_audit.json').read_text())
           assert o['direct_primary_origin_count'] == 14306
           assert o['validated_positive_control_count'] == 4368
@@ -77,16 +81,26 @@ jobs:
           assert r['direct_primary_origin_count'] == 14306
           assert r['positive_control_count'] == 4368
           assert r['unvalidated_direct_count'] == 9938
+          assert r['positive_control_lower_regime_fraction'] == 1.0
+          assert r['bootstrap_valid_intersections'] >= 190
+          assert r['bootstrap_bic_gain']['p05'] > 0
           assert r['posterior_boundary_hardcoded'] is False
           assert r['distance_regime_is_routing_cutoff'] is False
           assert r['connector_promoted'] is False
           assert r['travel_time_assigned'] is False
+          assert m['additional_empirical_direct_primary_attachments'] == r['unvalidated_direct_in_lower_regime']
+          assert m['empirical_boundary_hardcoded'] is False
+          assert m['distance_regime_is_physical_access_cutoff'] is False
+          assert m['creates_temporal_edge'] is False
+          assert m['travel_time_assigned'] is False
+          assert m['zero_time_edge_created'] is False
+          assert m['distance_used_as_travel_length'] is False
           assert s['service_count'] == 236
           assert s['direct_primary_service_count'] == 227
           assert s['distance_cutoff_used'] is False
           assert s['connector_promoted'] is False
           assert s['travel_time_assigned'] is False
-          print(json.dumps({'origin_transferability':o,'origin_distance_regimes':r,'service_nominal_alignment':s}, ensure_ascii=False, indent=2))
+          print(json.dumps({'origin_transferability':o,'origin_distance_regimes':r,'empirical_node_attachments':m,'service_nominal_alignment':s}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -94,6 +108,7 @@ jobs:
           path: |
             artifacts/direct_origin_attachment_transferability/
             artifacts/direct_primary_origin_distance_regimes/
+            artifacts/direct_primary_empirical_node_attachments/
             artifacts/service_osm_street_name_alignment/
           if-no-files-found: error
           retention-days: 30
