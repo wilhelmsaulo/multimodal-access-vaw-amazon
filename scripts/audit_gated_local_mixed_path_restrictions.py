@@ -38,7 +38,8 @@ def main() -> None:
     n_non = len(non_ids)
     source = n_non
 
-    base = local_access.merge(modal, on="origin_id", how="inner", validate="one_to_one")
+    modal_flags = modal[["origin_id", "path_uses_track", "path_exclusively_pedestrian_classes"]].copy()
+    base = local_access.merge(modal_flags, on="origin_id", how="inner", validate="one_to_one")
     base = base.merge(gated[["origin_id"]], on="origin_id", how="inner", validate="one_to_one")
     if len(base) != 693:
         raise RuntimeError(f"Expected 693 gated local-topology origins, found {len(base)}")
