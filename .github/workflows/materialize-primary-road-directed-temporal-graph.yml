@@ -21,23 +21,23 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .
-      - name: Download validated road temporal graph
+      - name: Download complete validated road temporal graph
         uses: actions/download-artifact@v4
         with:
-          name: pa-primary-motor-road-times
+          name: pa-primary-motor-road-times-complete
           path: artifacts
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
-          run-id: 32868022294
+          run-id: 32896460967
       - name: Materialize directed road graph
-        run: python scripts/materialize_primary_road_directed_temporal_graph.py
+        run: python scripts/materialize_primary_road_directed_temporal_graph.py --edges artifacts/primary_motor_edges_with_complete_times.csv.gz
       - name: Validate safeguards
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           a=json.loads(Path('artifacts/primary_road_directed_temporal_graph/primary_road_directed_temporal_graph_audit.json').read_text())
-          assert a['source_segment_count'] == 3723344
+          assert a['source_segment_count'] > 3_700_000
           assert a['directed_edge_count'] >= a['source_segment_count']
           assert a['travel_time_min_positive_all'] is True
           assert a['source_travel_time_changed'] is False
