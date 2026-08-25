@@ -1,0 +1,84 @@
+name: materialize-intermodal-terminal-road-edge-splits
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/materialize_intermodal_terminal_road_edge_splits.py"
+      - ".github/workflows/materialize-intermodal-terminal-road-edge-splits.yml"
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4"
+
+      - name: Download synchronized terrestrial routing inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-primary-motor-road-times-complete
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32902566333
+
+      - name: Download validated spatial transfer anchors
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-validated-spatial-transfer-anchors
+          path: artifacts/validated_spatial_transfer_anchors
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32868022264
+
+      - name: Download validated intermodal terminal identity policy
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-intermodal-terminal-identity-policy
+          path: artifacts/intermodal_terminal_identity_policy
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32901986820
+
+      - name: Materialize terminal road-edge splits
+        run: |
+          python scripts/materialize_intermodal_terminal_road_edge_splits.py \
+            --edges artifacts/primary_motor_road_times_complete/primary_motor_edges_with_complete_times.csv.gz \
+            --nodes artifacts/transport_topology/road_nodes.csv.gz \
+            --anchors artifacts/validated_spatial_transfer_anchors/validated_spatial_transfer_anchors.gpkg \
+            --terminal-policy artifacts/intermodal_terminal_identity_policy/intermodal_terminal_identity_policy.csv
+
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('artifacts/intermodal_terminal_road_edge_splits/intermodal_terminal_road_edge_splits_audit.json').read_text())
+          assert a['terminal_count'] == 3
+          assert a['audited_road_distance_reproduced_all'] is True
+          assert a['source_edges_unique'] == 3
+          assert a['split_time_conservation_max_abs_error_min'] < 1e-12
+          assert a['split_length_conservation_max_abs_error_m'] < 1e-9
+          assert a['creates_connector_edge'] is False
+          assert a['zero_time_edge_created'] is False
+          assert a['cartographic_offset_interpreted_as_physical_travel'] is False
+          assert a['new_speed_assumption_used'] is False
+          assert a['ready_for_multimodal_graph_union'] is True
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-intermodal-terminal-road-edge-splits
+          path: artifacts/intermodal_terminal_road_edge_splits/
+          if-no-files-found: error
+          retention-days: 30
