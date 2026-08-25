@@ -32,6 +32,8 @@ jobs:
           run-id: 32785322254
       - name: Build official Pará census sectors
         run: python src/data/ibge_census2022_sectors.py
+      - name: Rebuild CNEFE sector origins
+        run: python scripts/build_cnefe_sector_origins.py --chunksize 200000
       - name: Build service snapshots
         run: python scripts/build_service_inventory_from_snapshots.py
       - name: Build specialized services
