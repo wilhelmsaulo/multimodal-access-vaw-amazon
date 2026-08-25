@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -31,7 +30,7 @@ def main() -> None:
     modal = pd.read_csv("artifacts/local_access_path_modal_composition/local_access_path_modal_composition.csv.gz", low_memory=False)
     gated = pd.read_csv("artifacts/local_topology_empirical_node_attachments/local_topology_empirical_node_attachments.csv.gz", low_memory=False)
     nodes = pd.read_csv("artifacts/transport_topology/road_nodes.csv.gz", usecols=["node_id"])
-    motor = pd.read_csv("artifacts/primary_motor_road_times_complete/primary_motor_edges_with_complete_times.csv.gz", usecols=["u", "v"])
+    motor = pd.read_csv("artifacts/primary_motor_road_graph/primary_motor_edges.csv.gz", usecols=["u", "v"])
 
     motor_ids = pd.Index(pd.unique(pd.concat([motor["u"], motor["v"]], ignore_index=True)))
     non_ids = nodes.loc[~nodes["node_id"].isin(motor_ids), "node_id"].to_numpy(dtype=np.int64)
