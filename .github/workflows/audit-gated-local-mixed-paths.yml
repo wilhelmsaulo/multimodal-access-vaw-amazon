@@ -1,0 +1,72 @@
+name: audit-gated-local-mixed-paths
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_gated_local_mixed_path_restrictions.py"
+      - ".github/workflows/audit-gated-local-mixed-paths.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "geopandas>=1.0,<2" "pyogrio>=0.10,<1" "shapely>=2,<3" "pyproj>=3.7,<4" "scipy>=1.14,<2" "osmium>=4,<5" "PyYAML>=6,<7"
+      - name: Download validated access-evidence artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-origin-network-access-evidence
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32785322254
+      - name: Download validated empirical attachment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-direct-attachment-transferability
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32861477674
+      - name: Build official transport layers
+        run: python scripts/build_transport_layers.py
+      - name: Acquire OSM roads
+        run: python scripts/acquire_osm_roads.py
+      - name: Prepare multimodal graph inputs
+        run: python scripts/prepare_multimodal_graph_inputs.py
+      - name: Build OSM transport topology
+        run: python scripts/build_transport_topology.py
+      - name: Build primary motor graph
+        run: python scripts/build_primary_motor_road_graph.py
+      - name: Audit gated mixed local path restrictions
+        run: python scripts/audit_gated_local_mixed_path_restrictions.py
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('artifacts/gated_local_mixed_path_restrictions/gated_local_mixed_path_restrictions_audit.json').read_text())
+          assert a['gated_local_origin_count'] == 693
+          assert a['mixed_other_target_count'] == 286
+          assert sum(a['reason_counts'].values()) == 286
+          assert a['new_speed_assumption_used'] is False
+          assert a['restricted_edges_promoted'] is False
+          assert a['track_speed_assigned'] is False
+          assert a['travel_time_assigned'] is False
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-gated-local-mixed-path-audit
+          path: artifacts/gated_local_mixed_path_restrictions/
+          if-no-files-found: error
+          retention-days: 30
