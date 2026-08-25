@@ -1,0 +1,75 @@
+name: audit-service-direct-primary-distance-regimes
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_service_direct_primary_distance_regimes.py"
+      - "scripts/materialize_service_empirical_node_attachments.py"
+      - ".github/workflows/audit-service-direct-primary-distance-regimes.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e . "scikit-learn>=1.6,<2"
+      - name: Download validated access-evidence artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-origin-network-access-evidence
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32861477746
+      - name: Download validated service nominal-alignment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-direct-attachment-transferability
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32861477674
+      - name: Audit service direct-primary distance regimes
+        run: python scripts/audit_service_direct_primary_distance_regimes.py
+      - name: Materialize gated service node attachments
+        run: python scripts/materialize_service_empirical_node_attachments.py
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('artifacts/service_direct_primary_distance_regimes/service_direct_primary_distance_regimes_audit.json').read_text())
+          m=json.loads(Path('artifacts/service_empirical_node_attachments/service_empirical_node_attachments_audit.json').read_text())
+          assert a['direct_primary_service_count'] == 227
+          assert a['nominal_positive_control_count'] == 13
+          assert a['nominal_positive_control_local_fraction'] == 1.0
+          assert a['three_component_bic_gain_over_one'] > 0
+          assert a['three_component_bic_gain_over_two'] > 0
+          assert a['bootstrap_valid'] >= 190
+          assert a['distance_regime_is_physical_access_cutoff'] is False
+          assert a['connector_promoted'] is False
+          assert a['travel_time_assigned'] is False
+          assert m['service_empirical_node_attachments'] == a['empirical_local_service_count']
+          assert m['distance_regime_is_physical_access_cutoff'] is False
+          assert m['creates_temporal_edge'] is False
+          assert m['travel_time_assigned'] is False
+          assert m['zero_time_edge_created'] is False
+          print(json.dumps({'audit':a,'materialization':m}, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-service-direct-primary-distance-regimes
+          path: |
+            artifacts/service_direct_primary_distance_regimes/
+            artifacts/service_empirical_node_attachments/
+          if-no-files-found: error
+          retention-days: 30
