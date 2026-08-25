@@ -6,54 +6,63 @@ from pathlib import Path
 import pandas as pd
 
 
-OUT = Path("artifacts/final_multimodal_graph_manifest")
+ARTIFACTS = Path("artifacts")
+OUT = ARTIFACTS / "final_multimodal_graph_manifest"
 
 
-def require(path: str) -> Path:
-    p = Path(path)
-    if not p.exists():
-        raise FileNotFoundError(path)
-    return p
-
-
-def first_existing(*paths: str) -> Path:
-    for path in paths:
-        p = Path(path)
-        if p.exists():
-            return p
-    raise FileNotFoundError("None of the required candidate paths exists: " + ", ".join(paths))
+def find_unique(*basenames: str) -> Path:
+    matches: list[Path] = []
+    for basename in basenames:
+        matches.extend(ARTIFACTS.rglob(basename))
+    unique = sorted({p.resolve() for p in matches})
+    if not unique:
+        raise FileNotFoundError("Could not find any required artifact file: " + ", ".join(basenames))
+    if len(unique) > 1:
+        # Prefer the shallowest path because actions/download-artifact may flatten
+        # a single uploaded directory into the requested destination.
+        unique.sort(key=lambda p: (len(p.parts), str(p)))
+    return Path(unique[0])
 
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
 
-    road_edges = require("artifacts/primary_motor_road_times/primary_motor_edges_with_times.csv.gz")
-    road_audit = require("artifacts/primary_motor_road_times/primary_motor_road_time_audit.json")
+    road_edges = find_unique("primary_motor_edges_with_times.csv.gz")
+    road_audit = find_unique("primary_motor_road_time_audit.json")
 
-    hydro_topology = first_existing(
-        "artifacts/hydro_topology_with_validated_snaps/hydro_subedges_with_validated_snaps.csv.gz",
-        "artifacts/hydro_topology_with_validated_snaps/hydro_subedges.csv.gz",
-        "artifacts/hydro_topology_with_validated_snaps/hydro_edges.csv.gz",
+    hydro_topology = find_unique(
+        "hydro_subedges_with_validated_snaps.csv.gz",
+        "hydro_subedges_with_validated_snaps.csv",
+        "hydro_subedges.csv.gz",
+        "hydro_subedges.csv",
+        "hydro_edges.csv.gz",
+        "hydro_edges.csv",
     )
-    hydro_time_audit = first_existing(
-        "artifacts/hydro_temporal_graph_reference/hydro_temporal_graph_reference_audit.json",
-        "artifacts/hydro_topology_with_validated_snaps/hydro_topology_with_validated_snaps_audit.json",
+    hydro_time_audit = find_unique(
+        "hydro_temporal_graph_reference_audit.json",
+        "hydro_topology_with_validated_snaps_audit.json",
     )
-    transfer_policy = first_existing(
-        "artifacts/validated_spatial_transfer_anchors/validated_spatial_transfer_anchors.csv",
-        "artifacts/validated_spatial_transfer_anchors/validated_spatial_transfer_anchors.csv.gz",
-        "artifacts/validated_spatial_transfer_anchors/validated_spatial_transfer_anchors_audit.json",
+    transfer_policy = find_unique(
+        "validated_spatial_transfer_anchors.csv",
+        "validated_spatial_transfer_anchors.csv.gz",
+        "validated_spatial_transfer_anchors_audit.json",
     )
 
-    direct_origins = first_existing(
-        "artifacts/direct_primary_empirical_node_attachments/direct_primary_empirical_node_attachments.csv.gz",
-        "artifacts/origin_cartographic_node_attachments/origin_cartographic_node_attachments.csv.gz",
+    direct_origins = find_unique(
+        "direct_primary_empirical_node_attachments.csv.gz",
+        "direct_primary_empirical_node_attachments.csv",
+        "origin_cartographic_node_attachments.csv.gz",
+        "origin_cartographic_node_attachments.csv",
     )
-    local_origins = first_existing(
-        "artifacts/local_topology_empirical_node_attachments/local_topology_empirical_node_attachments.csv.gz",
+    local_origins = find_unique(
+        "local_topology_empirical_node_attachments.csv.gz",
+        "local_topology_empirical_node_attachments.csv",
     )
-    service_attachments = require("artifacts/service_empirical_node_attachments/service_empirical_node_attachments.csv.gz")
-    service_policy = require("artifacts/final_service_access_policy/final_service_access_policy_audit.json")
+    service_attachments = find_unique(
+        "service_empirical_node_attachments.csv.gz",
+        "service_empirical_node_attachments.csv",
+    )
+    service_policy = find_unique("final_service_access_policy_audit.json")
 
     road = pd.read_csv(road_edges, low_memory=False)
     if "travel_time_min" not in road.columns:
@@ -64,11 +73,26 @@ def main() -> None:
     local = pd.read_csv(local_origins, low_memory=False)
     services = pd.read_csv(service_attachments, low_memory=False)
 
-    origin_ids = pd.Index(pd.concat([direct["origin_id"], local["origin_id"]], ignore_index=True).dropna().astype(str).unique())
-    service_ids = pd.Index(services["service_id"].dropna().astype(str).unique()) if "service_id" in services.columns else pd.Index([])
+    if "origin_id" not in direct.columns or "origin_id" not in local.columns:
+        raise RuntimeError("Origin attachment artifacts must contain origin_id")
+    origin_ids = pd.Index(
+        pd.concat([direct["origin_id"], local["origin_id"]], ignore_index=True)
+        .dropna().astype(str).unique()
+    )
+    service_ids = (
+        pd.Index(services["service_id"].dropna().astype(str).unique())
+        if "service_id" in services.columns else pd.Index([])
+    )
 
     road_meta = json.loads(road_audit.read_text(encoding="utf-8"))
+    hydro_meta = json.loads(hydro_time_audit.read_text(encoding="utf-8"))
     service_meta = json.loads(service_policy.read_text(encoding="utf-8"))
+
+    hydro_ready = bool(
+        hydro_meta.get("ready_for_multimodal_temporal_integration", False)
+        or hydro_meta.get("time_conservation_all_routes", False)
+        or hydro_meta.get("reference_time_conservation_all_routes", False)
+    )
 
     manifest = {
         "road_temporal_edges_file": str(road_edges),
@@ -78,6 +102,7 @@ def main() -> None:
         "road_time_role": "free_flow_impedance_proxy",
         "hydro_topology_file": str(hydro_topology),
         "hydro_temporal_audit_file": str(hydro_time_audit),
+        "hydro_temporal_ready": hydro_ready,
         "validated_transfer_anchor_file": str(transfer_policy),
         "accepted_origin_structural_attachment_count": int(len(origin_ids)),
         "accepted_service_structural_attachment_count": int(len(service_ids)),
@@ -92,6 +117,7 @@ def main() -> None:
         "ready_for_physical_multimodal_edge_union": bool(
             len(road) > 0
             and road_time_missing == 0
+            and hydro_ready
             and len(origin_ids) > 0
             and int(service_meta.get("primary_usable_services", 225)) == 225
         ),
@@ -102,9 +128,12 @@ def main() -> None:
             "Only validated intermodal transfer anchors may connect terrestrial and hydro layers."
         ),
         "upstream_road_audit": road_meta,
+        "upstream_hydro_audit": hydro_meta,
     }
 
-    (OUT / "final_multimodal_graph_manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    (OUT / "final_multimodal_graph_manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
 
 
