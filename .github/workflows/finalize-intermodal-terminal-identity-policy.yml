@@ -1,0 +1,72 @@
+name: finalize-intermodal-terminal-identity-policy
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/finalize_intermodal_terminal_identity_policy.py"
+      - ".github/workflows/finalize-intermodal-terminal-identity-policy.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Download validated transfer anchors
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-validated-spatial-transfer-anchors
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32868022264
+      - name: Download positive-control comparison
+        uses: actions/download-artifact@v4
+        with:
+          name: front1-anchor-positive-control-comparison
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32868022335
+      - name: Download validated hydro topology
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-hydro-topology-with-validated-snaps
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32868022260
+      - name: Finalize terminal identity policy
+        run: python scripts/finalize_intermodal_terminal_identity_policy.py
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('artifacts/intermodal_terminal_identity_policy/intermodal_terminal_identity_policy_audit.json').read_text())
+          assert a['validated_terminal_count'] == 3
+          assert a['official_endpoint_match_all'] is True
+          assert a['positive_control_geometry_consistent_all'] is True
+          assert a['semantic_identity_adopted_all'] is True
+          assert a['creates_temporal_edge'] is False
+          assert a['transfer_time_assigned'] is False
+          assert a['zero_time_edge_created'] is False
+          assert a['cartographic_offset_interpreted_as_physical_travel'] is False
+          assert a['distance_to_time_conversion_used'] is False
+          print(json.dumps(a,ensure_ascii=False,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-intermodal-terminal-identity-policy
+          path: artifacts/intermodal_terminal_identity_policy/
+          if-no-files-found: error
+          retention-days: 30
