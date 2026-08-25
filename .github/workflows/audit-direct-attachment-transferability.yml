@@ -7,6 +7,8 @@ on:
       - "scripts/audit_direct_origin_attachment_transferability.py"
       - "scripts/audit_direct_primary_origin_distance_regimes.py"
       - "scripts/materialize_direct_primary_empirical_node_attachments.py"
+      - "scripts/materialize_local_topology_empirical_node_attachments.py"
+      - "scripts/materialize_gated_local_pedestrian_access_times.py"
       - "scripts/audit_service_osm_street_name_alignment.py"
       - ".github/workflows/audit-direct-attachment-transferability.yml"
 
@@ -60,6 +62,10 @@ jobs:
         run: python scripts/audit_direct_primary_origin_distance_regimes.py
       - name: Materialize gated empirical direct-primary node attachments
         run: python scripts/materialize_direct_primary_empirical_node_attachments.py
+      - name: Materialize gated empirical local-topology node attachments
+        run: python scripts/materialize_local_topology_empirical_node_attachments.py
+      - name: Materialize gated pedestrian local access times
+        run: python scripts/materialize_gated_local_pedestrian_access_times.py
       - name: Audit service address to OSM street alignment
         run: python scripts/audit_service_osm_street_name_alignment.py
       - name: Validate safeguards
@@ -70,6 +76,8 @@ jobs:
           o=json.loads(Path('artifacts/direct_origin_attachment_transferability/direct_origin_attachment_transferability_audit.json').read_text())
           r=json.loads(Path('artifacts/direct_primary_origin_distance_regimes/direct_primary_origin_distance_regimes_audit.json').read_text())
           m=json.loads(Path('artifacts/direct_primary_empirical_node_attachments/direct_primary_empirical_node_attachments_audit.json').read_text())
+          l=json.loads(Path('artifacts/local_topology_empirical_node_attachments/local_topology_empirical_node_attachments_audit.json').read_text())
+          p=json.loads(Path('artifacts/gated_local_pedestrian_access_times/gated_local_pedestrian_access_times_audit.json').read_text())
           s=json.loads(Path('artifacts/service_osm_street_name_alignment/service_osm_street_name_alignment_audit.json').read_text())
           assert o['direct_primary_origin_count'] == 14306
           assert o['validated_positive_control_count'] == 4368
@@ -95,12 +103,25 @@ jobs:
           assert m['travel_time_assigned'] is False
           assert m['zero_time_edge_created'] is False
           assert m['distance_used_as_travel_length'] is False
+          assert l['local_topology_origin_count'] == 1049
+          assert l['local_positive_control_count'] == 157
+          assert l['local_positive_controls_in_lower_regime'] == 157
+          assert l['local_positive_control_lower_regime_fraction'] == 1.0
+          assert l['empirical_boundary_hardcoded'] is False
+          assert l['distance_regime_is_physical_access_cutoff'] is False
+          assert l['creates_temporal_edge'] is False
+          assert l['travel_time_assigned'] is False
+          assert p['gated_local_pedestrian_origin_count'] > 0
+          assert p['uses_actual_osm_topological_path_distance'] is True
+          assert p['cartographic_attachment_distance_converted_to_time'] is False
+          assert p['track_speed_assigned'] is False
+          assert p['straight_line_time_used'] is False
           assert s['service_count'] == 236
           assert s['direct_primary_service_count'] == 227
           assert s['distance_cutoff_used'] is False
           assert s['connector_promoted'] is False
           assert s['travel_time_assigned'] is False
-          print(json.dumps({'origin_transferability':o,'origin_distance_regimes':r,'empirical_node_attachments':m,'service_nominal_alignment':s}, ensure_ascii=False, indent=2))
+          print(json.dumps({'origin_transferability':o,'origin_distance_regimes':r,'empirical_node_attachments':m,'local_topology_attachments':l,'gated_local_pedestrian_times':p,'service_nominal_alignment':s}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -109,6 +130,8 @@ jobs:
             artifacts/direct_origin_attachment_transferability/
             artifacts/direct_primary_origin_distance_regimes/
             artifacts/direct_primary_empirical_node_attachments/
+            artifacts/local_topology_empirical_node_attachments/
+            artifacts/gated_local_pedestrian_access_times/
             artifacts/service_osm_street_name_alignment/
           if-no-files-found: error
           retention-days: 30
