@@ -1,23 +1,17 @@
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
 import pandas as pd
 
 ARTIFACTS = Path('artifacts')
-OUT = ARTIFACTS / 'primary_road_directed_temporal_graph'
+OUT_DEFAULT = ARTIFACTS / 'primary_road_directed_temporal_graph'
 
 FORWARD_ONEWAY = {'yes','true','1'}
 REVERSE_ONEWAY = {'-1','reverse'}
 EXPLICIT_TWOWAY = {'no','false','0'}
-
-
-def find_unique(name: str) -> Path:
-    hits=sorted(ARTIFACTS.rglob(name))
-    if not hits:
-        raise FileNotFoundError(name)
-    return hits[0]
 
 
 def norm(v: object) -> str:
@@ -27,9 +21,14 @@ def norm(v: object) -> str:
 
 
 def main() -> None:
-    OUT.mkdir(parents=True,exist_ok=True)
-    src=find_unique('primary_motor_edges_with_times.csv.gz')
-    df=pd.read_csv(src,low_memory=False)
+    p=argparse.ArgumentParser()
+    p.add_argument('--edges',type=Path,default=ARTIFACTS/'primary_motor_edges_with_complete_times.csv.gz')
+    p.add_argument('--output-dir',type=Path,default=OUT_DEFAULT)
+    args=p.parse_args()
+    args.output_dir.mkdir(parents=True,exist_ok=True)
+    if not args.edges.exists():
+        raise FileNotFoundError(args.edges)
+    df=pd.read_csv(args.edges,low_memory=False)
     required={'u','v','travel_time_min','length_m','oneway','junction'}
     missing=required-set(df.columns)
     if missing:
@@ -68,10 +67,11 @@ def main() -> None:
             rows.append(rec)
 
     out=pd.DataFrame(rows)
-    out.to_csv(OUT/'primary_road_directed_edges.csv.gz',index=False,compression='gzip')
+    out.to_csv(args.output_dir/'primary_road_directed_edges.csv.gz',index=False,compression='gzip')
 
     counts=out['direction_rule'].value_counts().to_dict()
     audit={
+        'input_edges_file':str(args.edges),
         'source_segment_count':int(len(df)),
         'directed_edge_count':int(len(out)),
         'source_explicit_or_roundabout_oneway_count':int(source_forward),
@@ -90,7 +90,7 @@ def main() -> None:
             'Other segments are represented in both directions. The validated source travel time is copied unchanged to each permitted direction; no new speed or time assumption is introduced.'
         )
     }
-    (OUT/'primary_road_directed_temporal_graph_audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding='utf-8')
+    (args.output_dir/'primary_road_directed_temporal_graph_audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(audit,ensure_ascii=False,indent=2))
 
 if __name__=='__main__':
