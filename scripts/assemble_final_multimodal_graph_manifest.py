@@ -21,38 +21,47 @@ def find_unique(*basenames: str) -> Path:
     return Path(unique[0])
 
 
+def find_optional(*basenames: str) -> Path | None:
+    matches: list[Path] = []
+    for basename in basenames:
+        matches.extend(ARTIFACTS.rglob(basename))
+    if not matches:
+        return None
+    unique = sorted({p.resolve() for p in matches}, key=lambda p: (len(p.parts), str(p)))
+    return Path(unique[0])
+
+
+def origin_ids_from(path: Path | None) -> set[str]:
+    if path is None:
+        return set()
+    df = pd.read_csv(path, low_memory=False)
+    if "origin_id" not in df.columns:
+        raise RuntimeError(f"Origin attachment artifact lacks origin_id: {path}")
+    return set(df["origin_id"].dropna().astype(str))
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
 
-    road_edges = find_unique("primary_motor_edges_with_times.csv.gz")
-    road_audit = find_unique("primary_motor_road_time_audit.json")
+    road_edges = find_unique("primary_motor_edges_with_complete_times.csv.gz")
+    road_audit = find_unique("primary_motor_road_time_completion_audit.json")
 
-    hydro_topology = find_unique(
-        "hydro_topology_edges.gpkg",
-        "hydro_subedges_with_validated_snaps.csv.gz",
-        "hydro_subedges_with_validated_snaps.csv",
-        "hydro_subedges.csv.gz",
-        "hydro_subedges.csv",
-        "hydro_edges.csv.gz",
-        "hydro_edges.csv",
-    )
-    hydro_time_audit = find_unique(
-        "hydro_temporal_graph_reference_audit.json",
-        "hydro_topology_with_validated_snaps_audit.json",
-    )
+    hydro_topology = find_unique("hydro_topology_edges.gpkg")
+    hydro_time_audit = find_unique("hydro_temporal_graph_reference_audit.json")
     transfer_policy = find_unique(
         "validated_spatial_transfer_anchors.csv",
         "validated_spatial_transfer_anchors.csv.gz",
-        "validated_spatial_transfer_anchors_audit.json",
     )
 
-    direct_origins = find_unique(
-        "direct_primary_empirical_node_attachments.csv.gz",
-        "direct_primary_empirical_node_attachments.csv",
+    nominal_origins = find_optional(
         "origin_cartographic_node_attachments.csv.gz",
         "origin_cartographic_node_attachments.csv",
     )
-    local_origins = find_unique(
+    empirical_direct = find_unique(
+        "direct_primary_empirical_node_attachments.csv.gz",
+        "direct_primary_empirical_node_attachments.csv",
+    )
+    empirical_local = find_unique(
         "local_topology_empirical_node_attachments.csv.gz",
         "local_topology_empirical_node_attachments.csv",
     )
@@ -66,42 +75,41 @@ def main() -> None:
     if "travel_time_min" not in road.columns:
         raise RuntimeError("Road temporal edges lack travel_time_min")
     road_time_missing = int(road["travel_time_min"].isna().sum())
+    road_time_nonpositive = int((pd.to_numeric(road["travel_time_min"], errors="coerce") <= 0).sum())
 
-    direct = pd.read_csv(direct_origins, low_memory=False)
-    local = pd.read_csv(local_origins, low_memory=False)
+    origin_ids = set()
+    origin_ids |= origin_ids_from(nominal_origins)
+    origin_ids |= origin_ids_from(empirical_direct)
+    origin_ids |= origin_ids_from(empirical_local)
+
     services = pd.read_csv(service_attachments, low_memory=False)
-
-    if "origin_id" not in direct.columns or "origin_id" not in local.columns:
-        raise RuntimeError("Origin attachment artifacts must contain origin_id")
-    origin_ids = pd.Index(
-        pd.concat([direct["origin_id"], local["origin_id"]], ignore_index=True)
-        .dropna().astype(str).unique()
-    )
-    service_ids = (
-        pd.Index(services["service_id"].dropna().astype(str).unique())
-        if "service_id" in services.columns else pd.Index([])
-    )
+    service_ids = set(services["service_id"].dropna().astype(str)) if "service_id" in services.columns else set()
 
     road_meta = json.loads(road_audit.read_text(encoding="utf-8"))
     hydro_meta = json.loads(hydro_time_audit.read_text(encoding="utf-8"))
     service_meta = json.loads(service_policy.read_text(encoding="utf-8"))
 
-    hydro_ready = bool(
-        hydro_meta.get("ready_for_multimodal_temporal_integration", False)
-        or hydro_meta.get("time_conservation_all_routes", False)
-        or hydro_meta.get("reference_time_conservation_all_routes", False)
+    hydro_ready = bool(hydro_meta.get("ready_for_multimodal_temporal_integration", False))
+    terrestrial_ready = bool(
+        road_meta.get("terrestrial_temporal_graph_complete", False)
+        and int(road_meta.get("unresolved_after", 1)) == 0
     )
 
     manifest = {
         "road_temporal_edges_file": str(road_edges),
         "road_temporal_edge_count": int(len(road)),
         "road_edges_missing_time": road_time_missing,
+        "road_edges_nonpositive_time": road_time_nonpositive,
         "road_time_coverage_fraction": float(1.0 - road_time_missing / len(road)) if len(road) else 0.0,
         "road_time_role": "free_flow_impedance_proxy",
+        "terrestrial_temporal_ready": terrestrial_ready,
         "hydro_topology_file": str(hydro_topology),
         "hydro_temporal_audit_file": str(hydro_time_audit),
         "hydro_temporal_ready": hydro_ready,
         "validated_transfer_anchor_file": str(transfer_policy),
+        "accepted_origin_nominal_structural_attachment_count": int(len(origin_ids_from(nominal_origins))),
+        "accepted_origin_empirical_direct_attachment_count": int(len(origin_ids_from(empirical_direct))),
+        "accepted_origin_empirical_local_attachment_count": int(len(origin_ids_from(empirical_local))),
         "accepted_origin_structural_attachment_count": int(len(origin_ids)),
         "accepted_service_structural_attachment_count": int(len(service_ids)),
         "service_primary_usable_count": int(service_meta.get("primary_usable_services", 225)),
@@ -113,16 +121,19 @@ def main() -> None:
         "track_in_primary_graph": False,
         "restricted_edges_promoted": False,
         "ready_for_physical_multimodal_edge_union": bool(
-            len(road) > 0
+            terrestrial_ready
+            and len(road) > 0
             and road_time_missing == 0
+            and road_time_nonpositive == 0
             and hydro_ready
-            and len(origin_ids) > 0
+            and len(origin_ids) == 13234
             and int(service_meta.get("primary_usable_services", 225)) == 225
         ),
         "scientific_policy": (
-            "This manifest freezes the validated inputs for physical multimodal graph assembly. "
-            "Road weights are free-flow impedance proxies; hydro weights are official ANTAQ network-reference impedances with waiting excluded. "
-            "Origin and service cartographic attachments are structural node identities rather than zero-minute travel edges. "
+            "This manifest freezes validated inputs for physical multimodal graph assembly. "
+            "Road weights are complete free-flow impedance proxies after parent-class link inheritance; "
+            "hydro weights are official ANTAQ network-reference impedances with waiting excluded. "
+            "Origin and service attachments are structural node identities rather than zero-minute travel edges. "
             "Only validated intermodal terminal identities may connect terrestrial and hydro layers."
         ),
         "upstream_road_audit": road_meta,
