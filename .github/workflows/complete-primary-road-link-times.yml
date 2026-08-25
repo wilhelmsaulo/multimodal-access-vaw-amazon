@@ -50,9 +50,10 @@ jobs:
           assert a['edge_time_coverage_fraction'] == 1.0
           assert a['terrestrial_temporal_graph_complete'] is True
           assert Path('artifacts/transport_topology/road_nodes.csv.gz').exists()
+          assert Path('artifacts/multimodal_graph_inputs/ports.gpkg').exists()
           print(json.dumps(a, indent=2))
           PY
-      - name: Upload complete terrestrial road graph and nodes
+      - name: Upload synchronized terrestrial routing inputs
         uses: actions/upload-artifact@v4
         with:
           name: pa-primary-motor-road-times-complete
@@ -60,6 +61,7 @@ jobs:
             artifacts/primary_motor_road_times_complete/
             artifacts/transport_topology/road_nodes.csv.gz
             artifacts/transport_topology/transport_topology_audit.json
+            artifacts/multimodal_graph_inputs/ports.gpkg
             artifacts/osm_roads/osm_roads_acquisition_audit.json
           if-no-files-found: error
           retention-days: 30
