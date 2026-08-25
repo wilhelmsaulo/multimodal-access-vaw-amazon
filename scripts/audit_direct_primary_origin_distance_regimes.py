@@ -16,7 +16,6 @@ def fit_intersection(model: GaussianMixture) -> float | None:
     m1, m2 = means[order]
     v1, v2 = vars_[order]
     w1, w2 = weights[order]
-    # Solve equality of the two weighted Gaussian densities in log10(distance) space.
     a = 1.0 / (2.0 * v2) - 1.0 / (2.0 * v1)
     b = m1 / v1 - m2 / v2
     c = (m2 * m2) / (2.0 * v2) - (m1 * m1) / (2.0 * v1) + np.log((w1 / np.sqrt(v1)) / (w2 / np.sqrt(v2)))
@@ -44,7 +43,7 @@ def q(x: np.ndarray) -> dict:
 def main() -> None:
     ev = pd.read_csv("artifacts/origin_network_access_evidence/origin_network_access_evidence.csv.gz", low_memory=False)
     inter = pd.read_csv("artifacts/origin_cartographic_topology_intersection/origin_cartographic_topology_intersection.csv.gz", low_memory=False)
-    keep = ["origin_id", "origin_cartographic_topology_class"]
+    keep = ["origin_id", "cartographic_topology_class"]
     x = ev.merge(inter[keep], on="origin_id", how="left", validate="one_to_one")
     direct = x[x["origin_access_evidence_class"].eq("nearest_local_osm_node_in_primary_motor_graph")].copy()
     if len(direct) != 14306:
@@ -70,7 +69,7 @@ def main() -> None:
     direct["lower_distance_regime_posterior"] = labels
     direct["empirical_lower_distance_regime"] = direct["lower_distance_regime_posterior"] >= 0.5
 
-    control = direct["origin_cartographic_topology_class"].eq("local_alignment_and_primary_motor_topology")
+    control = direct["cartographic_topology_class"].eq("local_alignment_and_primary_motor_topology")
     unvalidated = ~control
     lower = direct["empirical_lower_distance_regime"].fillna(False)
 
@@ -89,7 +88,7 @@ def main() -> None:
 
     outdir = Path("artifacts/direct_primary_origin_distance_regimes")
     outdir.mkdir(parents=True, exist_ok=True)
-    direct[["origin_id", "distance_to_road_m", "lower_distance_regime_posterior", "empirical_lower_distance_regime", "origin_cartographic_topology_class"]].to_csv(
+    direct[["origin_id", "distance_to_road_m", "lower_distance_regime_posterior", "empirical_lower_distance_regime", "cartographic_topology_class"]].to_csv(
         outdir / "direct_primary_origin_distance_regimes.csv.gz", index=False, compression="gzip"
     )
 
