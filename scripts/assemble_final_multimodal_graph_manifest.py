@@ -17,10 +17,7 @@ def find_unique(*basenames: str) -> Path:
     unique = sorted({p.resolve() for p in matches})
     if not unique:
         raise FileNotFoundError("Could not find any required artifact file: " + ", ".join(basenames))
-    if len(unique) > 1:
-        # Prefer the shallowest path because actions/download-artifact may flatten
-        # a single uploaded directory into the requested destination.
-        unique.sort(key=lambda p: (len(p.parts), str(p)))
+    unique.sort(key=lambda p: (len(p.parts), str(p)))
     return Path(unique[0])
 
 
@@ -31,6 +28,7 @@ def main() -> None:
     road_audit = find_unique("primary_motor_road_time_audit.json")
 
     hydro_topology = find_unique(
+        "hydro_topology_edges.gpkg",
         "hydro_subedges_with_validated_snaps.csv.gz",
         "hydro_subedges_with_validated_snaps.csv",
         "hydro_subedges.csv.gz",
@@ -125,7 +123,7 @@ def main() -> None:
             "This manifest freezes the validated inputs for physical multimodal graph assembly. "
             "Road weights are free-flow impedance proxies; hydro weights are official ANTAQ network-reference impedances with waiting excluded. "
             "Origin and service cartographic attachments are structural node identities rather than zero-minute travel edges. "
-            "Only validated intermodal transfer anchors may connect terrestrial and hydro layers."
+            "Only validated intermodal terminal identities may connect terrestrial and hydro layers."
         ),
         "upstream_road_audit": road_meta,
         "upstream_hydro_audit": hydro_meta,
