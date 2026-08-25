@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "scripts/audit_gated_local_mixed_path_restrictions.py"
+      - "scripts/finalize_gated_local_mixed_path_policy.py"
       - ".github/workflows/audit-gated-local-mixed-paths.yml"
 
 jobs:
@@ -49,12 +50,15 @@ jobs:
         run: python scripts/build_primary_motor_road_graph.py
       - name: Audit gated mixed local path restrictions
         run: python scripts/audit_gated_local_mixed_path_restrictions.py
+      - name: Finalize primary policy for gated mixed local paths
+        run: python scripts/finalize_gated_local_mixed_path_policy.py
       - name: Validate safeguards
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           a=json.loads(Path('artifacts/gated_local_mixed_path_restrictions/gated_local_mixed_path_restrictions_audit.json').read_text())
+          f=json.loads(Path('artifacts/gated_local_mixed_path_final_policy/gated_local_mixed_path_final_policy_audit.json').read_text())
           assert a['gated_local_origin_count'] == 693
           assert a['mixed_other_target_count'] == 286
           assert sum(a['reason_counts'].values()) == 286
@@ -62,11 +66,23 @@ jobs:
           assert a['restricted_edges_promoted'] is False
           assert a['track_speed_assigned'] is False
           assert a['travel_time_assigned'] is False
-          print(json.dumps(a, ensure_ascii=False, indent=2))
+          assert f['audited_mixed_path_count'] == 286
+          assert f['explicitly_restricted_excluded_count'] == 282
+          assert f['nonoperational_osm_class_excluded_count'] == 4
+          assert f['nonoperational_class_counts'].get('proposed', 0) == 3
+          assert f['nonoperational_class_counts'].get('construction', 0) == 1
+          assert f['all_286_primary_policy_resolved'] is True
+          assert f['restricted_edges_promoted'] is False
+          assert f['proposed_or_construction_promoted'] is False
+          assert f['connector_promoted'] is False
+          assert f['travel_time_assigned'] is False
+          print(json.dumps({'restriction_audit':a,'final_policy':f}, ensure_ascii=False, indent=2))
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: pa-gated-local-mixed-path-audit
-          path: artifacts/gated_local_mixed_path_restrictions/
+          path: |
+            artifacts/gated_local_mixed_path_restrictions/
+            artifacts/gated_local_mixed_path_final_policy/
           if-no-files-found: error
           retention-days: 30
