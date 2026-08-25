@@ -1,0 +1,53 @@
+name: audit-direct-upper-regime-residuals
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "scripts/audit_direct_upper_regime_residuals.py"
+      - ".github/workflows/audit-direct-upper-regime-residuals.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Download validated direct-attachment artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-direct-attachment-transferability
+          path: artifacts
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32861477674
+      - name: Audit direct upper-regime residuals
+        run: python scripts/audit_direct_upper_regime_residuals.py
+      - name: Validate safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('artifacts/direct_upper_regime_residuals/direct_upper_regime_residuals_audit.json').read_text())
+          assert a['direct_upper_regime_origin_count'] == 1765
+          assert a['hydro_closer_priority_count'] == 257
+          assert a['road_closer_priority_count'] == 1508
+          assert a['proximity_used_for_connector_promotion'] is False
+          assert a['connector_promoted'] is False
+          assert a['travel_time_assigned'] is False
+          print(json.dumps(a, ensure_ascii=False, indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-direct-upper-regime-residuals
+          path: artifacts/direct_upper_regime_residuals/
+          if-no-files-found: error
+          retention-days: 30
