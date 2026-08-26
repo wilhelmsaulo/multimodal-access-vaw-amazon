@@ -42,4 +42,4 @@ jobs:
           cache: pip
       - run: python -m pip install --upgrade pip
       - run: python -m pip install -e . "pytest>=8,<9"
-      - run: pytest
+      - run: python -m pytest
