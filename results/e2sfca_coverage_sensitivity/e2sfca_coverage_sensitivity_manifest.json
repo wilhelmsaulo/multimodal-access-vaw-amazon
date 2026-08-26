@@ -1,0 +1,77 @@
+{
+  "status": "COVERAGE_SENSITIVITY_EXECUTED_NOT_FINAL",
+  "supply_mode": "unit_presence",
+  "unit_supply_value": 1.0,
+  "reference_network_only": true,
+  "routing_ready_origins": 12673,
+  "full_audited_origins": 15743,
+  "routing_ready_services": 225,
+  "service_types": {
+    "creas": 131,
+    "health": 67,
+    "specialized_justice": 6,
+    "specialized_security": 21
+  },
+  "specification_count": 6,
+  "specifications": [
+    {
+      "scenario": "reference_network__t120__exponential",
+      "threshold_minutes": 120.0,
+      "decay_function": "exponential",
+      "cutoff_weight_at_threshold": 0.1,
+      "decay_parameter_name": "beta",
+      "decay_parameter_value": 0.019188209108283713
+    },
+    {
+      "scenario": "reference_network__t120__gaussian",
+      "threshold_minutes": 120.0,
+      "decay_function": "gaussian",
+      "cutoff_weight_at_threshold": 0.1,
+      "decay_parameter_name": "sigma",
+      "decay_parameter_value": 55.91887221415873
+    },
+    {
+      "scenario": "reference_network__t240__exponential",
+      "threshold_minutes": 240.0,
+      "decay_function": "exponential",
+      "cutoff_weight_at_threshold": 0.1,
+      "decay_parameter_name": "beta",
+      "decay_parameter_value": 0.009594104554141857
+    },
+    {
+      "scenario": "reference_network__t240__gaussian",
+      "threshold_minutes": 240.0,
+      "decay_function": "gaussian",
+      "cutoff_weight_at_threshold": 0.1,
+      "decay_parameter_name": "sigma",
+      "decay_parameter_value": 111.83774442831746
+    },
+    {
+      "scenario": "reference_network__t480__exponential",
+      "threshold_minutes": 480.0,
+      "decay_function": "exponential",
+      "cutoff_weight_at_threshold": 0.1,
+      "decay_parameter_name": "beta",
+      "decay_parameter_value": 0.004797052277070928
+    },
+    {
+      "scenario": "reference_network__t480__gaussian",
+      "threshold_minutes": 480.0,
+      "decay_function": "gaussian",
+      "cutoff_weight_at_threshold": 0.1,
+      "decay_parameter_name": "sigma",
+      "decay_parameter_value": 223.67548885663493
+    }
+  ],
+  "maximum_supply_conservation_error": 0.0,
+  "municipal_envelope_rows": 3456,
+  "all_144_municipalities_retained": true,
+  "afua_retained": true,
+  "is_confidence_interval": false,
+  "corrects_unknown_connector_competition": false,
+  "publishable_as_final": false,
+  "output_sha256": {
+    "municipal_e2sfca_coverage_envelopes.csv.gz": "4dd938fd350befd17cb6d94d1a8a1ce672d7d589ca4fa9ca30bc2ec06b43e795",
+    "service_supply_demand_ratios.csv.gz": "469762bff11ad6fbde3ee321a838feccd67f9a3a26b416b13ded9685bfe59d8e"
+  }
+}

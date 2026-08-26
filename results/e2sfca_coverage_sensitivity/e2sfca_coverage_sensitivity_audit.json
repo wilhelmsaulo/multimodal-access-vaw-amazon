@@ -1,0 +1,54 @@
+{
+  "status": "PARAMETER_STABILITY_HIGH_COVERAGE_UNCERTAINTY_MATERIAL",
+  "municipality_count": 144,
+  "service_type_count": 4,
+  "specification_count": 6,
+  "coverage": {
+    "female_population_fraction_min": 0.0,
+    "female_population_fraction_median": 0.8838465971228179,
+    "municipalities_below_50_percent": 10,
+    "municipalities_below_80_percent": 46,
+    "municipalities_below_90_percent": 76,
+    "fully_observed_municipality_count": 3,
+    "fully_observed_municipalities": [
+      "Curionópolis",
+      "Quatipuru",
+      "Sapucaia"
+    ]
+  },
+  "relative_envelope_width_quantiles_by_service": {
+    "creas": {
+      "p25": 0.5198258150608961,
+      "median": 0.7412090221294938,
+      "p75": 0.8489634434792932,
+      "p90": 0.9146789524606185
+    },
+    "health": {
+      "p25": 0.6218563013261363,
+      "median": 0.8234563044659353,
+      "p75": 0.965580904002257,
+      "p90": 1.0
+    },
+    "specialized_justice": {
+      "p25": 0.197180828520572,
+      "median": 0.5740189666009909,
+      "p75": 1.0,
+      "p90": 1.0
+    },
+    "specialized_security": {
+      "p25": 0.4889509842256491,
+      "median": 0.7361029793505638,
+      "p75": 0.948652930289374,
+      "p90": 1.0
+    }
+  },
+  "afua": {
+    "coverage_fraction": 0.0,
+    "lower_envelope_always_zero": true,
+    "relative_envelope_width_always_one": true
+  },
+  "is_confidence_interval": false,
+  "coverage_uncertainty_resolved": false,
+  "authorized_for_single_point_mcdm_or_som": false,
+  "interpretation": "Agreement across threshold/decay specifications does not remove uncertainty caused by unobserved origin connectors. Parameter stability and routing-coverage uncertainty must be reported as separate properties."
+}

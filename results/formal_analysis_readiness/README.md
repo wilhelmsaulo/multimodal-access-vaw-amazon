@@ -34,3 +34,7 @@ See `routing_population_coverage_audit.json` for the machine-readable coverage g
 The subsequent recoverability classification is stored under `results/origin_routing_coverage_recovery/`. It separates direct upper-regime, local-path, hydro-priority and unresolved-network residuals without interpreting any of them as true unreachability or promoting unsupported connectors.
 
 See `formal_analysis_readiness_audit.json` for the machine-readable decision record.
+
+## Subsequent execution update
+
+The six-specification presence-based E2SFCA grid has now been executed with explicit municipal coverage envelopes; see `results/e2sfca_coverage_sensitivity/`. Unit-supply conservation passed with error zero and all 144 municipalities were retained. The coverage gate remains active because the resulting empirical stress-test envelopes are materially wide and do not correct unknown connector effects on service competition. These outputs are authorized for sensitivity diagnosis only, not as a single MCDM/SOM input.

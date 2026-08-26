@@ -91,3 +91,11 @@ Use one entry for every methodological decision that can change the interpretati
 **Evidence:** among 322 excluded origins in the ten municipalities below 50% female-population coverage, only six origins satisfy an optimistic screening requiring an observed local path, eligible `footway`/`path`/`service` semantics and the locked 173.996907 m proximity boundary. All six are in Afuá and represent 3,398 women; their inclusion would raise Afuá coverage only to 18.82%.
 
 **Consequence:** the remaining problem is not primarily a terrestrial threshold problem. Primary E2SFCA remains gated while a coverage-aware uncertainty treatment or additional locally validated connector evidence is developed.
+
+## 2026-08-26 — Separate E2SFCA parameter stability from connector uncertainty
+
+**Decision:** execute the presence-based E2SFCA sensitivity grid but retain lower and upper municipal coverage envelopes instead of selecting a single municipal score.
+
+**Evidence:** all six threshold/decay specifications conserve unit supply exactly and retain all 144 municipalities. However, only three municipalities have complete female-population routing coverage, 76 remain below 90%, and Afuá has no observed origin score. Relative envelope widths remain material across all four service categories.
+
+**Consequence:** the six specifications are valid for sensitivity auditing, but no single E2SFCA point estimate is yet authorized as input to MCDM or SOM. Parameter agreement must not be described as resolving routing-coverage uncertainty.
