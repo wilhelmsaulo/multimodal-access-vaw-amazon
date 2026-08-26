@@ -1,4 +1,5 @@
 name: audit-and-freeze-stage2-routing
+# Isolated closure retry after PR workflow storm
 
 on:
   workflow_dispatch:
