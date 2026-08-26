@@ -37,7 +37,7 @@ def main() -> None:
     splits = pd.read_csv(args.terminal_splits)
     hydro = gpd.read_file(args.hydro_topology, layer='hydro_topology_edges')
 
-    req_road = {'from_node','to_node','travel_time_min','u','v','way_id'}
+    req_road = {'from_node','to_node','travel_time_min','way_id','source_edge_index'}
     if not req_road.issubset(road.columns):
         raise RuntimeError(f'Missing road fields: {sorted(req_road-set(road.columns))}')
     req_h = {'from_node','to_node','travel_time_min'}
@@ -48,9 +48,8 @@ def main() -> None:
 
     road['from_node'] = pd.to_numeric(road['from_node'], errors='raise').astype('int64')
     road['to_node'] = pd.to_numeric(road['to_node'], errors='raise').astype('int64')
-    road['u'] = pd.to_numeric(road['u'], errors='raise').astype('int64')
-    road['v'] = pd.to_numeric(road['v'], errors='raise').astype('int64')
     road['way_id'] = pd.to_numeric(road['way_id'], errors='raise').astype('int64')
+    road['source_edge_index'] = pd.to_numeric(road['source_edge_index'], errors='raise').astype('int64')
     road['travel_time_min'] = pd.to_numeric(road['travel_time_min'], errors='raise')
     if not road['travel_time_min'].gt(0).all():
         raise RuntimeError('Road directed graph contains non-positive times')
@@ -58,12 +57,19 @@ def main() -> None:
     replacement_rows = []
     remove = pd.Series(False, index=road.index)
     terminal_meta = []
-    for i, s in splits.iterrows():
+    for _, s in splits.iterrows():
         u, v, w = int(s.source_u), int(s.source_v), int(s.source_way_id)
-        mask = (road['u'].eq(u) & road['v'].eq(v) & road['way_id'].eq(w))
+        mask = road['way_id'].eq(w) & (
+            (road['from_node'].eq(u) & road['to_node'].eq(v))
+            | (road['from_node'].eq(v) & road['to_node'].eq(u))
+        )
         src = road.loc[mask]
         if src.empty:
             raise RuntimeError(f'No directed source edge found for terminal {s.port_name}')
+        # A source OSM segment can contribute one or two directed edges depending on
+        # oneway semantics. The matched rows must all refer to one source_edge_index.
+        if src['source_edge_index'].nunique() != 1:
+            raise RuntimeError(f'Ambiguous directed source segment for terminal {s.port_name}')
         remove |= mask
         term = f"terminal:{s.anchor_id}"
         t1, t2 = float(s.u_to_terminal_time_min), float(s.terminal_to_v_time_min)
@@ -77,7 +83,17 @@ def main() -> None:
                 raise RuntimeError(f'Unexpected directed orientation for terminal {s.port_name}: {a}->{b}')
             for x, y, t in pieces:
                 replacement_rows.append({'from_node':x,'to_node':y,'travel_time_min':t,'mode':'road','edge_role':'terminal_split'})
-        terminal_meta.append({'anchor_id':str(s.anchor_id),'port_name':str(s.port_name),'terminal_node_id':term,'hydro_node_id':str(s.hydro_node_id),'source_u':u,'source_v':v,'source_way_id':w})
+        terminal_meta.append({
+            'anchor_id':str(s.anchor_id),
+            'port_name':str(s.port_name),
+            'terminal_node_id':term,
+            'hydro_node_id':str(s.hydro_node_id),
+            'source_u':u,
+            'source_v':v,
+            'source_way_id':w,
+            'source_edge_index':int(src['source_edge_index'].iloc[0]),
+            'directed_source_edges_replaced':int(len(src)),
+        })
 
     base = road.loc[~remove, ['from_node','to_node','travel_time_min']].copy()
     base['from_node'] = base['from_node'].astype(str)
@@ -104,8 +120,8 @@ def main() -> None:
     hydro_final.to_csv(args.output_dir/'final_hydro_directed_edges.csv.gz', index=False, compression='gzip')
     pd.DataFrame(terminal_meta).to_csv(args.output_dir/'terminal_node_aliases.csv', index=False)
 
-    # Connectivity is computed on the original numeric road backbone, because splitting
-    # one road edge at an interior terminal preserves its weak component exactly.
+    # Connectivity is computed on the original numeric road backbone because splitting
+    # an interior source edge preserves its weak component exactly.
     road_uniques, road_labels, road_cc = weak_components_numeric(road['from_node'], road['to_node'])
     road_label = pd.Series(road_labels, index=road_uniques)
     hydro_uniques, hydro_labels, hydro_cc = weak_components_numeric(hydro_final['from_node'], hydro_final['to_node'])
