@@ -25,3 +25,11 @@ This audit reconciles all 15,743 upstream origins with the 12,673 frozen routing
 - `non_routing_ready_origins_recovery_audit.csv.gz`: origin-level recovery evidence for sensitivity design.
 
 The next task is to specify explicit connector sensitivity bounds for the lowest-coverage municipalities while keeping the frozen primary OD unchanged.
+
+## Existing-evidence recovery ceiling
+
+The subsequent screening audit examined the 322 excluded origins in the ten municipalities below 50% female-population coverage. A candidate had to satisfy all three conditions: an observed local OSM path to the primary graph, an eligible `footway`, `path`, or `service` semantic class, and an origin-to-node distance within the locked 173.996907 m empirical proximity boundary.
+
+Only six origins, all in Afuá, passed this optimistic screening. They represent 3,398 women. Even if later connector evidence authorized all six, Afuá's female-population coverage would rise only from 0% to 18.82%. Thus the current evidence cannot resolve the riverine selection problem by relaxing terrestrial attachment rules.
+
+The screening does not promote these six candidates and does not assign a travel mode or speed. See `low_coverage_connector_ceiling_audit.json` and `low_coverage_existing_evidence_ceiling.csv`.

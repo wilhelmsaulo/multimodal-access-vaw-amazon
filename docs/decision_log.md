@@ -83,3 +83,11 @@ Use one entry for every methodological decision that can change the interpretati
 **Reason:** many excluded origins have OSM topological signals but lack an empirically supported connector or defensible modal time. Treating them as truly unreachable, snapping them to the nearest network node, or assigning a speed silently would create different forms of territorial bias.
 
 **Consequence:** primary E2SFCA remains gated. Connector sensitivity bounds will be constructed explicitly, beginning with municipalities below 50% female-population coverage. The primary OD remains immutable unless new connector evidence is separately documented and audited.
+
+## 2026-08-26 — Existing terrestrial evidence cannot close riverine origin coverage
+
+**Decision:** do not recover low-coverage municipalities by relaxing nearest-network attachment or by accepting `track` and `proposed` OSM paths.
+
+**Evidence:** among 322 excluded origins in the ten municipalities below 50% female-population coverage, only six origins satisfy an optimistic screening requiring an observed local path, eligible `footway`/`path`/`service` semantics and the locked 173.996907 m proximity boundary. All six are in Afuá and represent 3,398 women; their inclusion would raise Afuá coverage only to 18.82%.
+
+**Consequence:** the remaining problem is not primarily a terrestrial threshold problem. Primary E2SFCA remains gated while a coverage-aware uncertainty treatment or additional locally validated connector evidence is developed.

@@ -1,0 +1,22 @@
+{
+  "status": "EXISTING_EVIDENCE_RECOVERY_CEILING_QUANTIFIED",
+  "coverage_threshold": 0.5,
+  "proximity_boundary_m": 173.996907,
+  "low_coverage_municipality_count": 10,
+  "low_coverage_excluded_origin_count": 322,
+  "low_coverage_excluded_female_population": 96614.0,
+  "existing_evidence_sensitivity_candidate_origin_count": 6,
+  "existing_evidence_sensitivity_candidate_female_population": 3398.0,
+  "candidate_municipalities": [
+    "Afuá"
+  ],
+  "afua_existing_evidence_ceiling_coverage_fraction": 0.18818186852744087,
+  "safeguards": {
+    "candidates_promoted_to_primary_routing": false,
+    "walking_or_motor_speed_assigned": false,
+    "track_or_proposed_paths_accepted": false,
+    "nearest_node_snap_accepted": false,
+    "hydro_route_inferred": false
+  },
+  "interpretation": "This is an optimistic screening ceiling using only already observed OSM local paths, eligible path semantics, and the locked empirical proximity boundary. It is not a routing result and does not authorize connector promotion or travel-time assignment."
+}
