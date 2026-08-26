@@ -12,6 +12,21 @@ import pandas as pd
 NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
 USER_AGENT = "multimodal-access-vaw-amazon/0.1 (scientific service-location audit)"
 
+GEOCODING_DEFAULTS: dict[str, object] = {
+    "geocoding_query": pd.NA,
+    "geocoding_query_strategy": pd.NA,
+    "latitude_candidate": pd.NA,
+    "longitude_candidate": pd.NA,
+    "geocoding_source": "OpenStreetMap Nominatim",
+    "geocoding_quality": "not_attempted",
+    "geocoding_display_name": pd.NA,
+    "geocoding_osm_type": pd.NA,
+    "geocoding_osm_id": pd.NA,
+    "geocoding_result_type": pd.NA,
+    "geocoding_result_category": pd.NA,
+    "candidate_accepted_for_manual_validation": False,
+}
+
 
 def norm(value: object) -> str:
     text = "" if value is None else str(value)
@@ -113,6 +128,13 @@ def institution_aliases(service_type: str, municipality: str) -> list[tuple[str,
 
 
 def geocode_queue(queue: pd.DataFrame, *, timeout: float = 30.0, delay: float = 1.1) -> pd.DataFrame:
+    if queue.empty:
+        result = queue.copy()
+        for column, default in GEOCODING_DEFAULTS.items():
+            if column not in result.columns:
+                result[column] = pd.Series(dtype="boolean" if isinstance(default, bool) else "object")
+        return result
+
     rows: list[dict] = []
     with httpx.Client(timeout=timeout, follow_redirects=True, headers={"User-Agent": USER_AGENT}) as client:
         for _, row in queue.iterrows():
@@ -121,20 +143,7 @@ def geocode_queue(queue: pd.DataFrame, *, timeout: float = 30.0, delay: float = 
             service_name = str(row.get("service_name") or "").strip()
             service_type = str(row.get("service_type") or "").strip()
             municipality = str(row.get("municipality_name") or "").strip()
-            record.update({
-                "geocoding_query": pd.NA,
-                "geocoding_query_strategy": pd.NA,
-                "latitude_candidate": pd.NA,
-                "longitude_candidate": pd.NA,
-                "geocoding_source": "OpenStreetMap Nominatim",
-                "geocoding_quality": "not_attempted",
-                "geocoding_display_name": pd.NA,
-                "geocoding_osm_type": pd.NA,
-                "geocoding_osm_id": pd.NA,
-                "geocoding_result_type": pd.NA,
-                "geocoding_result_category": pd.NA,
-                "candidate_accepted_for_manual_validation": False,
-            })
+            record.update(GEOCODING_DEFAULTS)
 
             strategies: list[tuple[str, str]] = institution_aliases(service_type, municipality)
             if service_name and service_name.lower() not in {"nan", "<na>"}:
@@ -198,6 +207,28 @@ def geocode_queue(queue: pd.DataFrame, *, timeout: float = 30.0, delay: float = 
     return pd.DataFrame(rows)
 
 
+def build_audit(result: pd.DataFrame) -> dict[str, object]:
+    def column(name: str, dtype: str = "string") -> pd.Series:
+        if name in result.columns:
+            return result[name]
+        return pd.Series(index=result.index, dtype=dtype)
+
+    return {
+        "rows_queue": int(len(result)),
+        "rows_with_public_address": int(column("address_public").astype("string").str.strip().notna().sum()),
+        "rows_with_candidate_coordinates": int(pd.to_numeric(column("latitude_candidate"), errors="coerce").notna().sum()),
+        "rows_accepted_for_manual_validation": int(column("candidate_accepted_for_manual_validation", "boolean").fillna(False).astype(bool).sum()),
+        "quality_counts": {str(k): int(v) for k, v in column("geocoding_quality").astype("string").value_counts(dropna=False).to_dict().items()},
+        "query_strategy_counts": {str(k): int(v) for k, v in column("geocoding_query_strategy").astype("string").value_counts(dropna=False).to_dict().items()},
+        "source": "OpenStreetMap Nominatim",
+        "promotion_rule": (
+            "Generic courthouse aliases are disabled. Exact institutional/address queries are preferred; "
+            "user-supplied addresses are used only as auditable geocoding queries and are not promoted automatically; "
+            "no candidate is promoted without municipality, IBGE containment, precision and provenance validation."
+        ),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate auditable geocoding candidates for unresolved public services.")
     parser.add_argument("--queue", type=Path, default=Path("artifacts/service_inventory/services_geocoding_queue.csv"))
@@ -208,20 +239,7 @@ def main() -> None:
     result = geocode_queue(queue)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     result.to_csv(args.output, index=False)
-    audit = {
-        "rows_queue": int(len(result)),
-        "rows_with_public_address": int(result["address_public"].astype("string").str.strip().notna().sum()),
-        "rows_with_candidate_coordinates": int(pd.to_numeric(result["latitude_candidate"], errors="coerce").notna().sum()),
-        "rows_accepted_for_manual_validation": int(result["candidate_accepted_for_manual_validation"].fillna(False).astype(bool).sum()),
-        "quality_counts": {str(k): int(v) for k, v in result["geocoding_quality"].astype("string").value_counts(dropna=False).to_dict().items()},
-        "query_strategy_counts": {str(k): int(v) for k, v in result["geocoding_query_strategy"].astype("string").value_counts(dropna=False).to_dict().items()},
-        "source": "OpenStreetMap Nominatim",
-        "promotion_rule": (
-            "Generic courthouse aliases are disabled. Exact institutional/address queries are preferred; "
-            "user-supplied addresses are used only as auditable geocoding queries and are not promoted automatically; "
-            "no candidate is promoted without municipality, IBGE containment, precision and provenance validation."
-        ),
-    }
+    audit = build_audit(result)
     args.audit.write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(audit, ensure_ascii=False, indent=2))
 
