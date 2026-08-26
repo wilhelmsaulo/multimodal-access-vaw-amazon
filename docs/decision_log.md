@@ -68,3 +68,18 @@ Use one entry for every methodological decision that can change the interpretati
 
 **Consequence:** operational graph and OD construction are closed. Final E2SFCA results and the formal redundancy/correlation, PCA/ANOVA, stability, and scale/weight audit remain separate subsequent analyses.
 
+## 2026-08-26 — Keep sociodemographic indicators outside E2SFCA
+
+**Decision:** use female population as the E2SFCA demand term, but defer other sociodemographic indicators to the analytical table used by MCDM and SOM.
+
+**Reason:** inserting income, race, schooling, rurality or composite vulnerability directly into E2SFCA would mix territorial accessibility with social vulnerability and change the estimand.
+
+**Consequence:** after E2SFCA coverage and sensitivity are closed, and before MCDM/SOM, select a small theoretically justified sociodemographic block; audit temporal compatibility, missingness, correlation, VIF and conceptual redundancy before inclusion.
+
+## 2026-08-26 — Do not equate unresolved origin attachment with true unreachability
+
+**Decision:** classify the 3,070 non-routing-ready origins by recoverability evidence without modifying the frozen primary OD matrix.
+
+**Reason:** many excluded origins have OSM topological signals but lack an empirically supported connector or defensible modal time. Treating them as truly unreachable, snapping them to the nearest network node, or assigning a speed silently would create different forms of territorial bias.
+
+**Consequence:** primary E2SFCA remains gated. Connector sensitivity bounds will be constructed explicitly, beginning with municipalities below 50% female-population coverage. The primary OD remains immutable unless new connector evidence is separately documented and audited.

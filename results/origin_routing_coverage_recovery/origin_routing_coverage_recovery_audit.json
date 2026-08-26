@@ -1,0 +1,73 @@
+{
+  "status": "RECOVERY_EVIDENCE_AUDITED_PRIMARY_E2SFCA_STILL_GATED",
+  "all_audited_origins": {
+    "origin_count": 15743,
+    "female_population": 4064561.0,
+    "municipality_count": 144
+  },
+  "routing_ready_origins": {
+    "origin_count": 12673,
+    "female_population": 3491303.0,
+    "municipality_count": 143
+  },
+  "non_routing_ready_origins": {
+    "origin_count": 3070,
+    "female_population": 573258.0,
+    "municipality_count": 141
+  },
+  "non_routing_ready_recovery_classes": {
+    "direct_upper_regime_requires_empirical_validation": {
+      "origin_count": 1765,
+      "female_population": 309339.0,
+      "municipality_count": 135
+    },
+    "hydro_residual_requires_route_evidence": {
+      "origin_count": 84,
+      "female_population": 23064.0,
+      "municipality_count": 19
+    },
+    "local_osm_path_requires_modal_and_alignment_validation": {
+      "origin_count": 917,
+      "female_population": 192568.0,
+      "municipality_count": 109
+    },
+    "unresolved_network_gap_requires_route_evidence": {
+      "origin_count": 304,
+      "female_population": 48287.0,
+      "municipality_count": 40
+    }
+  },
+  "afua": {
+    "origin_count": 44,
+    "female_population": 18057.0,
+    "municipality_count": 1,
+    "routing_ready_origin_count": 0,
+    "recovery_classes": {
+      "direct_upper_regime_requires_empirical_validation": {
+        "origin_count": 27,
+        "female_population": 9390.0,
+        "municipality_count": 1
+      },
+      "hydro_residual_requires_route_evidence": {
+        "origin_count": 3,
+        "female_population": 1048.0,
+        "municipality_count": 1
+      },
+      "local_osm_path_requires_modal_and_alignment_validation": {
+        "origin_count": 14,
+        "female_population": 7619.0,
+        "municipality_count": 1
+      }
+    }
+  },
+  "municipalities_below_50_percent_female_population_coverage": 10,
+  "safeguards": {
+    "unresolved_origins_reclassified_as_truly_unreachable": false,
+    "nearest_network_snap_promoted": false,
+    "euclidean_distance_converted_to_time": false,
+    "osm_service_path_speed_assigned": false,
+    "hydro_proximity_converted_to_route": false,
+    "primary_e2sfca_publication_authorized": false
+  },
+  "next_decision": "Construct explicit sensitivity bounds for unresolved origin connectors, starting with municipalities below 50% female-population coverage; do not alter the frozen primary OD matrix until connector evidence and modal-time assumptions are separately documented."
+}

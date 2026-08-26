@@ -31,4 +31,6 @@ Before final execution, the study must version a defensible rule for non-routing
 
 See `routing_population_coverage_audit.json` for the machine-readable coverage gate.
 
+The subsequent recoverability classification is stored under `results/origin_routing_coverage_recovery/`. It separates direct upper-regime, local-path, hydro-priority and unresolved-network residuals without interpreting any of them as true unreachability or promoting unsupported connectors.
+
 See `formal_analysis_readiness_audit.json` for the machine-readable decision record.
