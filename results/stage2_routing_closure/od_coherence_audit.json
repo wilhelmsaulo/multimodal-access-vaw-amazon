@@ -1,0 +1,43 @@
+{
+  "od_rows": 2851425,
+  "origin_count": 12673,
+  "service_count": 225,
+  "reachable_pairs": 1536775,
+  "unreachable_pairs": 1314650,
+  "reachable_fraction": 0.538949823333947,
+  "duplicate_pair_count": 0,
+  "max_total_time_arithmetic_error_min": 9.840005077421665e-08,
+  "negative_network_time_count": 0,
+  "unreachable_rows_with_time_count": 0,
+  "origins_with_zero_reachable_services": 282,
+  "origins_reaching_all_services": 0,
+  "services_with_zero_reachable_origins": 0,
+  "services_reachable_from_all_origins": 0,
+  "origin_reachable_fraction_min": 0.0,
+  "origin_reachable_fraction_median": 0.6533333333333333,
+  "origin_reachable_fraction_max": 0.6533333333333333,
+  "service_reachable_fraction_min": 0.00031563165785528286,
+  "service_reachable_fraction_median": 0.8045450958731161,
+  "service_reachable_fraction_max": 0.8045450958731161,
+  "total_travel_time_quantiles_min": {
+    "0.01": 4.94196854814,
+    "0.05": 29.073035441,
+    "0.25": 121.35006469999999,
+    "0.5": 257.8560584,
+    "0.75": 491.20576775,
+    "0.9": 635.6193081000004,
+    "0.95": 711.17058949,
+    "0.99": 812.081823626
+  },
+  "network_time_quantiles_min": {
+    "0.01": 4.8018955037,
+    "0.05": 29.017972824999998,
+    "0.25": 121.29509185,
+    "0.5": 257.8389902,
+    "0.75": 491.17388719999997,
+    "0.9": 635.55419176,
+    "0.95": 711.14594975,
+    "0.99": 812.058092332
+  },
+  "coherence_checks_passed": true
+}
