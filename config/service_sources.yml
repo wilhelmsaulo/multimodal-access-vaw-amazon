@@ -19,7 +19,7 @@ sources:
       - professionals
       - teams
       - registered_specialized_service
-    capacity_rule: prefer_observed_or_documented_proxy
+    capacity_rule: primary_unit_presence_optional_category_specific_capacity_sensitivity
 
   censo_suas:
     provider: Ministerio do Desenvolvimento e Assistencia Social, Familia e Combate a Fome
@@ -36,7 +36,7 @@ sources:
       - team_composition
       - monthly_attendance
       - service_structure
-    capacity_rule: prefer_censo_suas_structure_or_workers
+    capacity_rule: primary_unit_presence_optional_category_specific_capacity_sensitivity
 
   ligue180_network:
     provider: Ministerio das Mulheres
@@ -79,5 +79,7 @@ safeguards:
   confidential_shelters: never_publish_exact_location
   functional_substitutability: false
   missing_capacity: do_not_invent
+  primary_supply_rule: one_per_validated_routing_ready_unit
+  primary_supply_interpretation: territorial_unit_availability_not_operational_capacity
   missing_coordinates: require_validation_or_documented_geocoding
   police_records_as_demand: prohibited

@@ -4,17 +4,17 @@ Reference date: 2026-08-18.
 
 ## Purpose
 
-Build a defensible destination inventory for the E2SFCA accessibility model without assuming that all facilities are equivalent or that simple presence measures operational capacity.
+Build a defensible destination inventory for the presence-based E2SFCA accessibility model without assuming that all facilities are equivalent or that unit presence measures operational capacity.
 
 ## Primary official sources
 
 ### Health — CNES / Ministry of Health
 
-The CNES open-data portal is active and was updated on 2026-08-18. It offers API/CSV/JSON/XML resources and daily updates. The primary health layer must filter establishments by functions relevant to VAW response rather than include every health unit. Candidate capacity measures include beds, professionals, teams, and registered specialized services. Presence alone is a fallback sensitivity specification, not the preferred main capacity measure.
+The CNES open-data portal is active and was updated on 2026-08-18. It offers API/CSV/JSON/XML resources and daily updates. The primary health layer must filter establishments by functions relevant to VAW response rather than include every health unit. The primary model assigns one unit of supply to every validated establishment. Beds, professionals, teams, and registered specialized services are outside the primary cross-category model because they are neither complete nor comparable across service types.
 
 ### Social assistance — Censo SUAS / MDS
 
-Use Censo SUAS 2024 as the primary structural source, incorporating published corrections through 2026. CREAS is the primary specialized social-assistance destination category. CRAS may be analyzed as a broader social-assistance layer but must not be treated as functionally interchangeable with CREAS or specialized women's services. Censo SUAS worker counts, team composition, service structure, and RMA attendance measures are candidate capacity proxies.
+Use Censo SUAS 2024 as the primary structural source, incorporating published corrections through 2026. CREAS is the primary specialized social-assistance destination category. CRAS may be analyzed as a broader social-assistance layer but must not be treated as functionally interchangeable with CREAS or specialized women's services. Worker counts, team composition, service structure and RMA attendance are not used as primary supply weights.
 
 ### Specialized VAW network — Ministry of Women / Ligue 180
 
@@ -24,17 +24,11 @@ The official Rede de Atendimento panel is a living national directory of service
 
 The official TJPA service/contacts directory identifies specialized domestic-and-family-violence courts, including units in Belém/Icoaraci, Castanhal and Santarém. The primary justice layer should include units explicitly specialized in violence against women. General courts are not assumed to be equivalent substitutes.
 
-## Capacity hierarchy
+## Primary supply rule
 
-For each service, use the strongest defensible information available, in this order:
+The primary supply rule is `S_j = 1` for every validated routing-ready unit. The resulting score measures territorial availability of service units relative to female population, not operational capacity. Observed capacity, staffing, structure and utilization may only support a future category-specific sensitivity study with separate justification.
 
-1. observed operational capacity directly tied to the service;
-2. documented staffing/team capacity;
-3. documented structural proxy (e.g. beds, specialized teams);
-4. documented activity proxy when conceptually appropriate;
-5. unit presence = 1 only as an explicit fallback/sensitivity specification.
-
-Missing capacity must never be replaced by invented values.
+Missing capacity is not imputed and is not a blocker for the primary presence-based model.
 
 ## Geolocation hierarchy
 
@@ -66,9 +60,8 @@ The acquisition workflow should produce a harmonized public derived table with a
 - `address_public`
 - `latitude`
 - `longitude`
-- `capacity`
-- `capacity_type`
-- `capacity_source`
+- `primary_supply_weight` (fixed at `1`)
+- optional capacity fields retained only as provenance for future sensitivity analyses
 - `reference_date`
 - `validation_status`
 - `redistribution_status`

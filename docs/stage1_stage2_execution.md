@@ -44,9 +44,10 @@ Columns:
 
 - `service_id`: validated service identifier;
 - `service_type`: functional category; different service types are not assumed to be substitutes;
-- `capacity`: observed capacity or a documented proxy. A unit-presence proxy must be explicitly labelled as such.
+- `primary_supply_weight`: fixed at `1` for every validated routing-ready unit;
+- optional capacity metadata may be retained but is not used by the primary model.
 
-The service reconstruction pipeline covers CNES/DEMAS, hospital beds, Censo SUAS/CREAS, TJPA specialized units and the official Ligue 180 network publication. Missing capacity or coordinates are preserved as blockers, not silently imputed.
+The service reconstruction pipeline covers CNES/DEMAS, Censo SUAS/CREAS, TJPA specialized units and the official Ligue 180 network publication. Missing coordinates remain blockers. Missing operational capacity is not imputed and is not a blocker because the estimand is presence-based territorial accessibility, not service throughput.
 
 ### Multimodal travel matrix
 
@@ -63,7 +64,7 @@ The origin-destination contract in `src/network/od_matrix.py` materializes candi
 
 ## E2SFCA outputs
 
-Scores are calculated independently by scenario and service type. The implementation supports continuous exponential or Gaussian decay and an optional maximum travel-time threshold. Outputs include service supply-demand ratios and sector accessibility scores.
+Scores are calculated independently by scenario and service type, with `S_j = 1` generated explicitly by the executor. The implementation supports continuous exponential or Gaussian decay and an optional maximum travel-time threshold. Outputs include service supply-demand ratios, sector accessibility scores and female-population-weighted municipal scores. Zero-access origins are retained explicitly.
 
 ## Spatial analysis
 
@@ -71,4 +72,4 @@ Global Moran and Local Moran/LISA require a spatial-neighbor edge list with `sou
 
 ## Current execution status
 
-The public repository now contains the complete analysis code, service-source reconstruction pipeline, census-sector workflow, official-locality origin audit, CNEFE schema/quality audit workflow, OD input contract and scientific safeguards. Numerical Stage 1 and E2SFCA results remain conditional on materializing the validated service artifact, final sector representative origins and the post-routing multimodal travel-time matrix. No numerical result is reported before those real inputs exist.
+The reference-network routing layer is closed with 12,673 origins, 225 services and 2,851,425 OD pairs. The presence-based supply rule is authorized, but final E2SFCA execution is blocked by the population-coverage gate: the OD includes 80.50% of upstream access-evidence origins and 85.90% of their female population, with Afuá entirely absent. Formal Stage 1 remains conditional on a versioned analytical indicator table and explicit indicator blocks. The `reference_network` scenario must not be relabelled as flood or dry season.

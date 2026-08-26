@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, Literal
 
 import numpy as np
 import pandas as pd
@@ -51,6 +51,7 @@ def e2sfca(
     scenario_col: str = "scenario",
     threshold_minutes: float | None = None,
     decay: DecayFunction | None = None,
+    supply_mode: Literal["observed_capacity", "unit_presence"] = "observed_capacity",
 ) -> E2SFCAResult:
     """Compute enhanced two-step floating catchment accessibility.
 
@@ -60,7 +61,11 @@ def e2sfca(
     """
     required_travel = {origin_col, service_col, time_col, scenario_col}
     required_origins = {origin_col, population_col}
-    required_services = {service_col, capacity_col, service_type_col}
+    required_services = {service_col, service_type_col}
+    if supply_mode == "observed_capacity":
+        required_services.add(capacity_col)
+    elif supply_mode != "unit_presence":
+        raise ValueError(f"Unsupported supply_mode: {supply_mode}")
     if missing := required_travel.difference(travel.columns):
         raise ValueError(f"Travel matrix missing columns: {sorted(missing)}")
     if missing := required_origins.difference(origins.columns):
@@ -78,8 +83,17 @@ def e2sfca(
     pairs = pairs.merge(
         origins[[origin_col, population_col]], on=origin_col, how="left", validate="many_to_one"
     )
+    service_columns = [service_col, service_type_col]
+    if supply_mode == "observed_capacity":
+        service_columns.append(capacity_col)
+    service_meta = services[service_columns].drop_duplicates().copy()
+    if service_meta[service_col].duplicated().any():
+        raise ValueError("Each service_id must have exactly one service type and supply value.")
+    if supply_mode == "unit_presence":
+        service_meta[capacity_col] = 1.0
+
     pairs = pairs.merge(
-        services[[service_col, capacity_col, service_type_col]],
+        service_meta,
         on=service_col,
         how="left",
         validate="many_to_one",
@@ -97,7 +111,6 @@ def e2sfca(
 
     group = [scenario_col, service_type_col, service_col]
     demand = pairs.groupby(group, as_index=False)["weighted_demand"].sum()
-    service_meta = services[[service_col, capacity_col, service_type_col]].drop_duplicates()
     service_ratios = demand.merge(
         service_meta, on=[service_type_col, service_col], how="left", validate="many_to_one"
     )
@@ -106,6 +119,7 @@ def e2sfca(
         service_ratios[capacity_col] / service_ratios["weighted_demand"],
         np.nan,
     )
+    service_ratios["supply_mode"] = supply_mode
 
     pairs = pairs.merge(
         service_ratios[[scenario_col, service_type_col, service_col, "supply_demand_ratio"]],
@@ -117,6 +131,20 @@ def e2sfca(
     score_group = [scenario_col, service_type_col, origin_col]
     sector_scores = pairs.groupby(score_group, as_index=False)["access_contribution"].sum()
     sector_scores = sector_scores.rename(columns={"access_contribution": "e2sfca_score"})
+    # Preserve zero-access origins explicitly. Dropping them would bias municipal summaries
+    # upward, especially for disconnected rural and riverine population origins.
+    scenarios = travel[[scenario_col]].drop_duplicates()
+    service_types = service_meta[[service_type_col]].drop_duplicates()
+    origin_ids = origins[[origin_col]].drop_duplicates()
+    complete = scenarios.merge(service_types, how="cross").merge(origin_ids, how="cross")
+    sector_scores = complete.merge(
+        sector_scores,
+        on=[scenario_col, service_type_col, origin_col],
+        how="left",
+        validate="one_to_one",
+    )
+    sector_scores["e2sfca_score"] = sector_scores["e2sfca_score"].fillna(0.0)
+    sector_scores["supply_mode"] = supply_mode
     return E2SFCAResult(service_ratios=service_ratios, sector_scores=sector_scores)
 
 

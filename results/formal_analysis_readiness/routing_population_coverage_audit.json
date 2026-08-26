@@ -1,0 +1,44 @@
+{
+  "audit_version": 1,
+  "audited_at_utc": "2026-08-26T21:25:40Z",
+  "upstream_origin_access_evidence_run_id": 32785322254,
+  "frozen_routing_endpoints_run_id": 32945266691,
+  "frozen_reference_od_run_id": 32951714732,
+  "upstream_origins": 15743,
+  "routing_ready_origins": 12673,
+  "origin_coverage_fraction": 0.8049926951661056,
+  "upstream_female_population": 4064561.0,
+  "routing_ready_female_population": 3491303.0,
+  "female_population_coverage_fraction": 0.8589618903492898,
+  "upstream_municipalities": 144,
+  "routing_ready_municipalities": 143,
+  "municipality_with_zero_routing_ready_origins": {
+    "municipality_code": "1500305",
+    "municipality_name": "Afuá",
+    "upstream_origins": 44,
+    "upstream_female_population": 18057.0,
+    "routing_ready_origins": 0,
+    "female_population_coverage_fraction": 0.0
+  },
+  "lowest_nonzero_female_population_coverage": [
+    {"municipality_code": "1502509", "municipality_name": "Chaves", "coverage_fraction": 0.24057626414702524},
+    {"municipality_code": "1504000", "municipality_name": "Limoeiro do Ajuru", "coverage_fraction": 0.3060652752486343},
+    {"municipality_code": "1504505", "municipality_name": "Melgaço", "coverage_fraction": 0.37084053181176295},
+    {"municipality_code": "1502806", "municipality_name": "Curralinho", "coverage_fraction": 0.411441419347989},
+    {"municipality_code": "1503101", "municipality_name": "Gurupá", "coverage_fraction": 0.42997542997543}
+  ],
+  "municipalities_below_50_percent_female_coverage": 10,
+  "municipalities_below_80_percent_female_coverage": 46,
+  "municipalities_below_90_percent_female_coverage": 76,
+  "provisional_e2sfca_math_audit": {
+    "sensitivity_specifications_tested": 6,
+    "thresholds_minutes": [120, 240, 480],
+    "decay_functions": ["exponential", "gaussian"],
+    "service_types_kept_separate": true,
+    "supply_mode": "unit_presence",
+    "maximum_supply_conservation_error": 0.0,
+    "publishable_as_final": false
+  },
+  "status": "BLOCKED_SELECTION_COVERAGE",
+  "scientific_reason": "The routable subset underrepresents non-routing-ready origins and removes Afua entirely. Final municipal accessibility scores must not be produced until the missing-origin treatment is explicit and sensitivity-audited."
+}

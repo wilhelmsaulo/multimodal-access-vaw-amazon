@@ -1,6 +1,6 @@
 {
-  "audit_version": 1,
-  "audited_at_utc": "2026-08-26T17:15:00Z",
+  "audit_version": 2,
+  "audited_at_utc": "2026-08-26T21:25:40Z",
   "branch": "agent/stage1-stage2-accessibility",
   "stage2_routing": {
     "status": "closed",
@@ -20,10 +20,12 @@
     "reason": "Spearman, VIF, PCA, block variance and implicit-weight audit require a versioned analytical indicator table and an explicit block declaration."
   },
   "e2sfca": {
-    "status": "blocked_for_primary_model",
+    "status": "blocked_by_routing_population_coverage",
     "routing_inputs_ready": true,
     "female_population_available": true,
-    "service_capacity_available_in_frozen_routing_artifacts": false,
+    "supply_mode": "unit_presence",
+    "unit_supply_value": 1.0,
+    "observed_capacity_required": false,
     "service_rows_audited": 236,
     "primary_routing_usable_services": 225,
     "service_types": {
@@ -34,22 +36,23 @@
     },
     "current_scenario": "reference_network",
     "seasonal_comparison_ready": false,
-    "reason": "The frozen service access policy and routing endpoints contain no capacity, capacity_type or capacity_source. Unit presence = 1 is permitted only as an explicitly labelled fallback/sensitivity specification."
+    "reason": "Unit presence S_j = 1 is authorized, but the frozen OD covers only 12,673 of 15,743 upstream access-evidence origins and 85.90% of their female population; Afua has no routing-ready origin. Final execution on the routable subset would create selection bias."
   },
   "decision_required": {
     "now": true,
-    "question": "Which defensible supply/capacity specification should be used by service type?",
-    "options": [
-      "Acquire and validate observed or documented capacity by service type (preferred primary model).",
-      "Run unit presence = 1 only as an explicitly labelled sensitivity model, never as observed capacity.",
-      "Use a mixed hierarchy of observed capacity and documented proxies, with type-specific models and a missingness audit."
+    "supply_decision": "Use unit presence S_j = 1 in the primary E2SFCA model.",
+    "coverage_question": "How should non-routing-ready population origins be represented without systematically excluding riverine municipalities?",
+    "excluded_from_primary": [
+      "Beds, professionals or teams as cross-category capacity weights",
+      "Mixed capacity proxies across functionally different services"
     ],
     "prohibited": [
       "Silent capacity imputation",
       "Treating different service types as substitutes",
       "Calling reference_network flood_season or dry_season",
-      "Inventing waiting times or seasonal impedances"
+      "Inventing waiting times or seasonal impedances",
+      "Treating missing routing coverage as observed zero accessibility without sensitivity bounds"
     ]
   },
-  "next_safe_action": "Define and version the capacity policy and indicator-table contract before numerical PCA/VIF/E2SFCA execution."
+  "next_safe_action": "Resolve and version the treatment of non-routing-ready origins, prioritizing the complete exclusion of Afua and low coverage in riverine municipalities; then execute the presence-based E2SFCA sensitivity grid."
 }
