@@ -27,10 +27,10 @@
     "service_rows_audited": 236,
     "primary_routing_usable_services": 225,
     "service_types": {
-      "creas": 130,
-      "health": 69,
+      "creas": 131,
+      "health": 67,
       "specialized_security": 21,
-      "specialized_justice": 5
+      "specialized_justice": 6
     },
     "current_scenario": "reference_network",
     "seasonal_comparison_ready": false,
