@@ -1,0 +1,256 @@
+name: generate-frozen-reference-od
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/generate-frozen-reference-od.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  generate-od:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install OD dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "numpy>=2,<3" "pandas>=2.2,<3" "scipy>=1.14,<2"
+
+      - name: Download frozen multimodal backbone
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-frozen-final-multimodal-backbone
+          path: artifacts/backbone
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32920014705
+
+      - name: Download frozen routing endpoints
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-frozen-routing-endpoints
+          path: artifacts/endpoints
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32945266691
+
+      - name: Generate frozen reference OD matrix
+        shell: bash
+        run: |
+          cat > /tmp/generate_od.py <<'PY'
+          from __future__ import annotations
+          import csv, gzip, json, math
+          from pathlib import Path
+          import numpy as np
+          import pandas as pd
+          from scipy.sparse import csr_matrix
+          from scipy.sparse.csgraph import dijkstra
+
+          BB = Path('artifacts/backbone')
+          EP = Path('artifacts/endpoints')
+          OUT = Path('artifacts/frozen_reference_od')
+          OUT.mkdir(parents=True, exist_ok=True)
+
+          road_path = BB / 'final_road_directed_edges.csv.gz'
+          hydro_path = BB / 'final_hydro_directed_edges.csv.gz'
+          origins_path = EP / 'origin_routing_endpoints.csv.gz'
+          services_path = EP / 'service_routing_endpoints.csv.gz'
+          for p in (road_path, hydro_path, origins_path, services_path):
+              if not p.exists():
+                  raise FileNotFoundError(p)
+
+          origins = pd.read_csv(origins_path, dtype={'origin_id': str, 'routing_node_id': str})
+          services = pd.read_csv(services_path, dtype={'service_id': str, 'routing_node_id': str})
+          if len(origins) != 12673:
+              raise RuntimeError(f'Expected 12673 routing-ready origins, got {len(origins)}')
+          if len(services) != 225:
+              raise RuntimeError(f'Expected 225 routing-ready services, got {len(services)}')
+          if origins['routing_node_id'].isna().any() or services['routing_node_id'].isna().any():
+              raise RuntimeError('Routing endpoints contain missing node ids')
+
+          # First pass over the very large road file: collect numeric OSM node ids only.
+          numeric_parts = []
+          special_nodes = set()
+          usecols = ['from_node','to_node','travel_time_min']
+          for chunk in pd.read_csv(road_path, usecols=usecols, dtype={'from_node':str,'to_node':str}, chunksize=750_000):
+              for col in ('from_node','to_node'):
+                  s = chunk[col].astype(str)
+                  n = pd.to_numeric(s, errors='coerce')
+                  ok = n.notna()
+                  numeric_parts.append(n.loc[ok].astype('int64').to_numpy())
+                  special_nodes.update(s.loc[~ok].tolist())
+          numeric_nodes = np.unique(np.concatenate(numeric_parts))
+          del numeric_parts
+          n_numeric = len(numeric_nodes)
+          special_map = {x: n_numeric+i for i,x in enumerate(sorted(special_nodes))}
+
+          def encode_series(s: pd.Series) -> np.ndarray:
+              ss = s.astype(str)
+              n = pd.to_numeric(ss, errors='coerce')
+              out = np.empty(len(ss), dtype=np.int64)
+              ok = n.notna().to_numpy()
+              if ok.any():
+                  vals = n.loc[ok].astype('int64').to_numpy()
+                  pos = np.searchsorted(numeric_nodes, vals)
+                  if np.any(pos >= n_numeric) or np.any(numeric_nodes[pos] != vals):
+                      raise RuntimeError('Numeric road node missing from node universe')
+                  out[ok] = pos
+              if (~ok).any():
+                  out[~ok] = np.fromiter((special_map[x] for x in ss.loc[~ok]), dtype=np.int64, count=(~ok).sum())
+              return out
+
+          rev_rows=[]; rev_cols=[]; weights=[]
+          road_edges = 0
+          for chunk in pd.read_csv(road_path, usecols=usecols, dtype={'from_node':str,'to_node':str}, chunksize=750_000):
+              t = pd.to_numeric(chunk['travel_time_min'], errors='raise').to_numpy(float)
+              if not np.all(t > 0):
+                  raise RuntimeError('Road graph contains non-positive time')
+              u=encode_series(chunk['from_node']); v=encode_series(chunk['to_node'])
+              rev_rows.append(v); rev_cols.append(u); weights.append(t)
+              road_edges += len(chunk)
+
+          # Hydro nodes are a small string namespace. Validated terminal aliases already share road special ids.
+          hydro = pd.read_csv(hydro_path, dtype={'from_node':str,'to_node':str})
+          ht = pd.to_numeric(hydro['travel_time_min'], errors='raise').to_numpy(float)
+          if not np.all(ht > 0):
+              raise RuntimeError('Hydro graph contains non-positive time')
+          next_id = n_numeric + len(special_map)
+          hydro_map = {}
+          def encode_hydro(vals):
+              nonlocal_dummy = None
+              out=[]
+              nonlocal_next=[None]
+              return out
+          for x in pd.concat([hydro['from_node'],hydro['to_node']], ignore_index=True).astype(str).unique():
+              if x in special_map:
+                  continue
+              hydro_map[x] = next_id
+              next_id += 1
+          def enc_h(s):
+              return np.fromiter((special_map[x] if x in special_map else hydro_map[x] for x in s.astype(str)), dtype=np.int64, count=len(s))
+          hu=enc_h(hydro['from_node']); hv=enc_h(hydro['to_node'])
+          rev_rows.append(hv); rev_cols.append(hu); weights.append(ht)
+          hydro_edges=len(hydro)
+
+          rows=np.concatenate(rev_rows); cols=np.concatenate(rev_cols); w=np.concatenate(weights)
+          del rev_rows, rev_cols, weights, hydro
+          n_nodes=next_id
+
+          # Sparse matrices sum duplicates, which is wrong for parallel edges. Sort directed pairs and retain minimum time.
+          key = rows.astype(np.int64) * np.int64(n_nodes) + cols.astype(np.int64)
+          order=np.argsort(key, kind='mergesort')
+          key=key[order]; rows=rows[order]; cols=cols[order]; w=w[order]
+          starts=np.r_[0, np.flatnonzero(key[1:] != key[:-1]) + 1]
+          minw=np.minimum.reduceat(w, starts)
+          rows_u=rows[starts]; cols_u=cols[starts]
+          duplicate_edges_removed=int(len(w)-len(minw))
+          del key, order, rows, cols, w, starts
+          graph=csr_matrix((minw,(rows_u,cols_u)), shape=(n_nodes,n_nodes))
+          del minw, rows_u, cols_u
+
+          def encode_endpoint(x: str) -> int:
+              s=str(x)
+              try:
+                  v=int(float(s))
+                  pos=int(np.searchsorted(numeric_nodes, v))
+                  if pos < n_numeric and int(numeric_nodes[pos]) == v:
+                      return pos
+              except Exception:
+                  pass
+              if s in special_map: return special_map[s]
+              if s in hydro_map: return hydro_map[s]
+              raise KeyError(f'Endpoint node not present in frozen backbone: {s}')
+
+          origin_idx=np.array([encode_endpoint(x) for x in origins['routing_node_id']], dtype=np.int64)
+          service_idx=np.array([encode_endpoint(x) for x in services['routing_node_id']], dtype=np.int64)
+          origin_access=pd.to_numeric(origins['access_time_min'],errors='raise').to_numpy(float)
+          service_access=pd.to_numeric(services['access_time_min'],errors='raise').to_numpy(float)
+
+          out_path=OUT/'od_reference_network.csv.gz'
+          reachable_total=0
+          network_time_min=math.inf; network_time_max=0.0
+          total_pairs=len(origins)*len(services)
+          with gzip.open(out_path,'wt',newline='',encoding='utf-8') as fh:
+              wr=csv.writer(fh)
+              wr.writerow(['scenario','origin_id','service_id','network_time_min','origin_access_time_min','service_access_time_min','total_travel_time_min','reachable'])
+              for j,(svc,src) in enumerate(zip(services.itertuples(index=False),service_idx)):
+                  dist=dijkstra(graph, directed=True, indices=int(src), return_predecessors=False)
+                  vals=dist[origin_idx]
+                  reachable=np.isfinite(vals)
+                  reachable_total += int(reachable.sum())
+                  if reachable.any():
+                      network_time_min=min(network_time_min,float(vals[reachable].min()))
+                      network_time_max=max(network_time_max,float(vals[reachable].max()))
+                  total=vals + origin_access + float(service_access[j])
+                  for i,o in enumerate(origins.itertuples(index=False)):
+                      if reachable[i]:
+                          wr.writerow(['reference_network',o.origin_id,svc.service_id,f'{vals[i]:.10g}',f'{origin_access[i]:.10g}',f'{service_access[j]:.10g}',f'{total[i]:.10g}',True])
+                      else:
+                          wr.writerow(['reference_network',o.origin_id,svc.service_id,'',f'{origin_access[i]:.10g}',f'{service_access[j]:.10g}','',False])
+                  if (j+1) % 25 == 0 or j+1 == len(services):
+                      print(f'completed_services={j+1}/{len(services)} reachable_pairs={reachable_total}')
+
+          audit={
+              'scenario':'reference_network',
+              'origin_count':int(len(origins)),
+              'service_count':int(len(services)),
+              'total_od_pairs':int(total_pairs),
+              'reachable_od_pairs':int(reachable_total),
+              'unreachable_od_pairs':int(total_pairs-reachable_total),
+              'reachable_fraction':float(reachable_total/total_pairs),
+              'road_directed_edges_input':int(road_edges),
+              'hydro_directed_edges_input':int(hydro_edges),
+              'graph_nodes_compact':int(n_nodes),
+              'parallel_directed_edges_reduced_by_minimum':duplicate_edges_removed,
+              'network_time_min_reachable':None if not math.isfinite(network_time_min) else float(network_time_min),
+              'network_time_max_reachable':float(network_time_max),
+              'origin_access_time_included':True,
+              'service_access_time_included':True,
+              'waiting_time_included':False,
+              'air_temporal_routing_included':False,
+              'seasonal_label_applied_without_validated_impedance_difference':False,
+              'ready_for_accessibility_analysis':True,
+              'scientific_policy':(
+                  'OD travel times are shortest-path impedances on the frozen validated multimodal backbone. '
+                  'For computational efficiency, one Dijkstra search is run per service on the reversed directed graph and distances are extracted only at frozen routing-ready origins. '
+                  'Origin and service access times are added separately. Parallel directed edges are collapsed using their minimum validated impedance, preserving shortest-path semantics. '
+                  'This output is labeled reference_network rather than flood/dry because no unvalidated seasonal impedance difference is introduced at this stage.'
+              )
+          }
+          (OUT/'od_reference_network_audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps(audit,ensure_ascii=False,indent=2))
+          PY
+          python /tmp/generate_od.py
+
+      - name: Validate OD safeguards
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('artifacts/frozen_reference_od/od_reference_network_audit.json'))
+          assert a['origin_count']==12673
+          assert a['service_count']==225
+          assert a['total_od_pairs']==2851425
+          assert a['origin_access_time_included'] is True
+          assert a['service_access_time_included'] is True
+          assert a['waiting_time_included'] is False
+          assert a['air_temporal_routing_included'] is False
+          assert a['seasonal_label_applied_without_validated_impedance_difference'] is False
+          assert a['ready_for_accessibility_analysis'] is True
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-frozen-reference-od
+          path: artifacts/frozen_reference_od/
+          retention-days: 30
