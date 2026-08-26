@@ -3,8 +3,30 @@ name: complete-primary-road-link-times
 on:
   push:
     branches: [agent/stage1-stage2-accessibility]
+    paths:
+      - "scripts/build_transport_layers.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/build_transport_topology.py"
+      - "scripts/build_primary_motor_road_graph.py"
+      - "scripts/assign_primary_road_travel_times.py"
+      - "scripts/complete_primary_road_link_times.py"
+      - "src/network/**"
+      - "config/scenarios.yml"
+      - ".github/workflows/complete-primary-road-link-times.yml"
   pull_request:
     branches: [main]
+    paths:
+      - "scripts/build_transport_layers.py"
+      - "scripts/acquire_osm_roads.py"
+      - "scripts/prepare_multimodal_graph_inputs.py"
+      - "scripts/build_transport_topology.py"
+      - "scripts/build_primary_motor_road_graph.py"
+      - "scripts/assign_primary_road_travel_times.py"
+      - "scripts/complete_primary_road_link_times.py"
+      - "src/network/**"
+      - "config/scenarios.yml"
+      - ".github/workflows/complete-primary-road-link-times.yml"
   workflow_dispatch:
 
 concurrency:
