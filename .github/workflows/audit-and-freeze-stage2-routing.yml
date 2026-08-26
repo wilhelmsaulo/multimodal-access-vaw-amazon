@@ -2,7 +2,9 @@ name: audit-and-freeze-stage2-routing
 
 on:
   workflow_dispatch:
-  pull_request:
+  push:
+    branches:
+      - 'agent/stage1-stage2-accessibility'
     paths:
       - '.github/workflows/audit-and-freeze-stage2-routing.yml'
 
