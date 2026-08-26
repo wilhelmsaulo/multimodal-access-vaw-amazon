@@ -55,3 +55,16 @@ Use one entry for every methodological decision that can change the interpretati
 **Reason:** age-group cells are incomplete for some sectors, and missing sex values may reflect confidentiality or special-sector treatment rather than zero population.
 
 **Consequence:** sector coverage and female-population coverage will be reported separately in every subsequent analysis.
+
+## 2026-08-26 — Freeze the reference multimodal OD matrix and close operational Stage 2
+
+**Decision:** freeze the definitive reference-network origin-destination matrix after a successful coherence audit and use it as the immutable routing input for the subsequent formal statistical and accessibility analyses.
+
+**Validated scope:** 12,673 primary origins, 225 primary services, and 2,851,425 origin-service pairs. Of these, 1,536,775 pairs are reachable and 1,314,650 remain explicitly unreachable.
+
+**Safeguards:** do not impute unreachable travel times; do not convert cartographic distance into travel time; do not fabricate flood/dry labels without validated impedance differences; exclude waiting time and ordinary-access air routing from the reference network; do not use zero-time connector edges or promote tracks/restricted roads into the primary routing regime.
+
+**Audit outcome:** no duplicate OD pairs, negative network times, or unreachable rows containing travel times were found. The maximum travel-time arithmetic error was below `1e-6` minute. The closure workflow run was `32991298479`, and the permanent compact audit records are stored under `results/stage2_routing_closure/`.
+
+**Consequence:** operational graph and OD construction are closed. Final E2SFCA results and the formal redundancy/correlation, PCA/ANOVA, stability, and scale/weight audit remain separate subsequent analyses.
+
