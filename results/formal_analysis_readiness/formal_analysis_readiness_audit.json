@@ -1,0 +1,55 @@
+{
+  "audit_version": 1,
+  "audited_at_utc": "2026-08-26T17:15:00Z",
+  "branch": "agent/stage1-stage2-accessibility",
+  "stage2_routing": {
+    "status": "closed",
+    "od_run_id": 32951714732,
+    "od_artifact_id": 9600468357,
+    "scenario": "reference_network",
+    "origins": 12673,
+    "services_routing_ready": 225,
+    "od_pairs": 2851425,
+    "reachable_pairs": 1536775,
+    "reachable_fraction": 0.538949823333947
+  },
+  "formal_stage1": {
+    "status": "blocked",
+    "indicator_table_found": false,
+    "declared_indicator_blocks_found": false,
+    "reason": "Spearman, VIF, PCA, block variance and implicit-weight audit require a versioned analytical indicator table and an explicit block declaration."
+  },
+  "e2sfca": {
+    "status": "blocked_for_primary_model",
+    "routing_inputs_ready": true,
+    "female_population_available": true,
+    "service_capacity_available_in_frozen_routing_artifacts": false,
+    "service_rows_audited": 236,
+    "primary_routing_usable_services": 225,
+    "service_types": {
+      "creas": 130,
+      "health": 69,
+      "specialized_security": 21,
+      "specialized_justice": 5
+    },
+    "current_scenario": "reference_network",
+    "seasonal_comparison_ready": false,
+    "reason": "The frozen service access policy and routing endpoints contain no capacity, capacity_type or capacity_source. Unit presence = 1 is permitted only as an explicitly labelled fallback/sensitivity specification."
+  },
+  "decision_required": {
+    "now": true,
+    "question": "Which defensible supply/capacity specification should be used by service type?",
+    "options": [
+      "Acquire and validate observed or documented capacity by service type (preferred primary model).",
+      "Run unit presence = 1 only as an explicitly labelled sensitivity model, never as observed capacity.",
+      "Use a mixed hierarchy of observed capacity and documented proxies, with type-specific models and a missingness audit."
+    ],
+    "prohibited": [
+      "Silent capacity imputation",
+      "Treating different service types as substitutes",
+      "Calling reference_network flood_season or dry_season",
+      "Inventing waiting times or seasonal impedances"
+    ]
+  },
+  "next_safe_action": "Define and version the capacity policy and indicator-table contract before numerical PCA/VIF/E2SFCA execution."
+}
