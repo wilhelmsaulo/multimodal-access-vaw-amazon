@@ -1,0 +1,18 @@
+{
+  "status": "ACCESSIBILITY_INTERVAL_INPUT_READY_STRUCTURAL_AUDIT_NOT_STARTED",
+  "municipality_count": 144,
+  "row_count": 144,
+  "service_type_count": 4,
+  "specification_count": 6,
+  "accessibility_feature_count": 48,
+  "lower_feature_count": 24,
+  "upper_feature_count": 24,
+  "all_endpoints_paired": true,
+  "coverage_fraction_retained": true,
+  "contains_sociodemographic_block": false,
+  "authorized_as_single_point_input": false,
+  "next_gate": "Audit missingness, temporal compatibility, correlation, redundancy, VIF and, if justified, PCA only after the sociodemographic and institutional blocks are versioned.",
+  "sha256": {
+    "municipal_accessibility_sensitivity_table.csv.gz": "b9a7a2dcfd87d782f3e0f90965d5a9591a0a1919f9021c0d6568e1427edf3a72"
+  }
+}
