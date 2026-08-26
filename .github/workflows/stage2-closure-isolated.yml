@@ -1,0 +1,207 @@
+name: stage2-closure-isolated
+# Temporary isolated closure workflow on the default branch
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - '.github/workflows/stage2-closure-isolated.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  audit-freeze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install audit dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "pandas>=2.2,<3" "numpy>=2,<3"
+
+      - name: Download frozen reference OD
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-frozen-reference-od
+          path: artifacts/od
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32951714732
+
+      - name: Audit OD coherence and freeze Stage 2
+        shell: bash
+        run: |
+          cat > /tmp/audit_stage2.py <<'PY'
+          from __future__ import annotations
+          import json
+          from pathlib import Path
+          import numpy as np
+          import pandas as pd
+
+          OD = Path('artifacts/od/od_reference_network.csv.gz')
+          ODA = Path('artifacts/od/od_reference_network_audit.json')
+          OUT = Path('artifacts/stage2_routing_closure')
+          OUT.mkdir(parents=True, exist_ok=True)
+          if not OD.exists() or not ODA.exists():
+              raise FileNotFoundError('Frozen OD artifact incomplete')
+
+          upstream = json.loads(ODA.read_text(encoding='utf-8'))
+          required_upstream = {
+              'origin_count':12673,
+              'service_count':225,
+              'total_od_pairs':2851425,
+              'reachable_od_pairs':1536775,
+              'unreachable_od_pairs':1314650,
+          }
+          for k,v in required_upstream.items():
+              if int(upstream[k]) != int(v):
+                  raise RuntimeError(f'Upstream OD audit mismatch for {k}: {upstream[k]} != {v}')
+          if upstream.get('ready_for_accessibility_analysis') is not True:
+              raise RuntimeError('Upstream OD is not marked ready for accessibility analysis')
+
+          # Stream only columns needed for coherence checks.
+          chunks=[]
+          usecols=['origin_id','service_id','network_time_min','origin_access_time_min','service_access_time_min','total_travel_time_min','reachable']
+          for c in pd.read_csv(OD, usecols=usecols, chunksize=300_000):
+              c['reachable'] = c['reachable'].astype(str).str.lower().eq('true')
+              chunks.append(c)
+          df=pd.concat(chunks, ignore_index=True)
+          del chunks
+
+          if len(df) != 2851425:
+              raise RuntimeError(f'Unexpected OD row count: {len(df)}')
+          if df[['origin_id','service_id']].duplicated().any():
+              raise RuntimeError('Duplicate origin-service pairs found')
+          if df['origin_id'].nunique() != 12673 or df['service_id'].nunique() != 225:
+              raise RuntimeError('OD endpoint cardinalities do not match frozen counts')
+
+          r=df[df['reachable']].copy()
+          u=df[~df['reachable']].copy()
+          if len(r) != 1536775 or len(u) != 1314650:
+              raise RuntimeError('Reachable/unreachable counts differ from frozen OD audit')
+
+          for col in ['network_time_min','origin_access_time_min','service_access_time_min','total_travel_time_min']:
+              r[col]=pd.to_numeric(r[col], errors='raise')
+          if not (r['network_time_min'] >= 0).all():
+              raise RuntimeError('Negative network time found')
+          if not (r['origin_access_time_min'] >= 0).all() or not (r['service_access_time_min'] >= 0).all():
+              raise RuntimeError('Negative access time found')
+          expected=r['network_time_min']+r['origin_access_time_min']+r['service_access_time_min']
+          err=(expected-r['total_travel_time_min']).abs()
+          if float(err.max()) > 1e-6:
+              raise RuntimeError(f'Total travel time arithmetic mismatch; max error={err.max()}')
+          if u['network_time_min'].notna().any() or u['total_travel_time_min'].notna().any():
+              raise RuntimeError('Unreachable OD rows unexpectedly contain travel times')
+
+          oq=df.groupby('origin_id', sort=False)['reachable'].agg(['sum','count'])
+          oq['reachable_fraction']=oq['sum']/oq['count']
+          sq=df.groupby('service_id', sort=False)['reachable'].agg(['sum','count'])
+          sq['reachable_fraction']=sq['sum']/sq['count']
+          origin_zero=int((oq['sum']==0).sum())
+          service_zero=int((sq['sum']==0).sum())
+          origin_full=int((oq['sum']==oq['count']).sum())
+          service_full=int((sq['sum']==sq['count']).sum())
+
+          q_probs=[0.01,0.05,0.25,0.5,0.75,0.9,0.95,0.99]
+          q=r['total_travel_time_min'].quantile(q_probs).to_dict()
+          nq=r['network_time_min'].quantile(q_probs).to_dict()
+
+          origin_summary=oq.reset_index().rename(columns={'sum':'reachable_services','count':'service_count'})
+          service_summary=sq.reset_index().rename(columns={'sum':'reachable_origins','count':'origin_count'})
+          origin_summary.to_csv(OUT/'origin_reachability_summary.csv.gz', index=False, compression='gzip')
+          service_summary.to_csv(OUT/'service_reachability_summary.csv.gz', index=False, compression='gzip')
+
+          coherence={
+              'od_rows':int(len(df)),
+              'origin_count':12673,
+              'service_count':225,
+              'reachable_pairs':int(len(r)),
+              'unreachable_pairs':int(len(u)),
+              'reachable_fraction':float(len(r)/len(df)),
+              'duplicate_pair_count':0,
+              'max_total_time_arithmetic_error_min':float(err.max()),
+              'negative_network_time_count':int((r['network_time_min']<0).sum()),
+              'unreachable_rows_with_time_count':0,
+              'origins_with_zero_reachable_services':origin_zero,
+              'origins_reaching_all_services':origin_full,
+              'services_with_zero_reachable_origins':service_zero,
+              'services_reachable_from_all_origins':service_full,
+              'origin_reachable_fraction_min':float(oq['reachable_fraction'].min()),
+              'origin_reachable_fraction_median':float(oq['reachable_fraction'].median()),
+              'origin_reachable_fraction_max':float(oq['reachable_fraction'].max()),
+              'service_reachable_fraction_min':float(sq['reachable_fraction'].min()),
+              'service_reachable_fraction_median':float(sq['reachable_fraction'].median()),
+              'service_reachable_fraction_max':float(sq['reachable_fraction'].max()),
+              'total_travel_time_quantiles_min':{str(k):float(v) for k,v in q.items()},
+              'network_time_quantiles_min':{str(k):float(v) for k,v in nq.items()},
+              'coherence_checks_passed':True,
+          }
+          (OUT/'od_coherence_audit.json').write_text(json.dumps(coherence, ensure_ascii=False, indent=2), encoding='utf-8')
+
+          # This manifest closes the operational graph/OD construction stage only.
+          # It does not claim the formal Stage 1 statistical analysis is complete.
+          manifest={
+              'operational_stage':'Stage 2 - definitive multimodal temporal graph and reference OD construction',
+              'status':'CLOSED',
+              'closed_after_od_coherence_audit':True,
+              'frozen_reference_od_run_id':32951714732,
+              'frozen_reference_od_artifact':'pa-frozen-reference-od',
+              'frozen_reference_od_artifact_digest':'sha256:faa831600003291544277c6fae4bbd9ee4fc71ec3ae0d8b167c040b9f65121e2',
+              'routing_ready_origins_primary':12673,
+              'routing_ready_services_primary':225,
+              'reference_od_pairs':2851425,
+              'reachable_pairs':1536775,
+              'unreachable_pairs':1314650,
+              'reference_network_only':True,
+              'flood_dry_labels_not_fabricated':True,
+              'waiting_time_excluded':True,
+              'air_temporal_routing_excluded':True,
+              'zero_time_connector_edges_used':False,
+              'cartographic_distance_converted_to_time':False,
+              'track_primary_routing_used':False,
+              'restricted_or_nonoperational_road_promotion_used':False,
+              'next_formal_stage':'Formal Stage 1 - redundancy/correlation, PCA/ANOVA, stability and scale/weight audit',
+              'scientific_note':(
+                  'The operational routing foundation is frozen after successful coherence validation of the reference-network OD matrix. '
+                  'Unreachable origin-service pairs are retained explicitly rather than imputed. Seasonal flood/dry labels are not duplicated without validated impedance differences. '
+                  'This closure freezes graph and OD inputs for the subsequent formal statistical and accessibility analyses.'
+              )
+          }
+          (OUT/'stage2_routing_closure_manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps({'coherence':coherence,'manifest':manifest}, ensure_ascii=False, indent=2))
+          PY
+          python /tmp/audit_stage2.py
+
+      - name: Validate Stage 2 closure
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('artifacts/stage2_routing_closure/od_coherence_audit.json'))
+          m=json.load(open('artifacts/stage2_routing_closure/stage2_routing_closure_manifest.json'))
+          assert a['coherence_checks_passed'] is True
+          assert a['od_rows']==2851425
+          assert a['reachable_pairs']==1536775
+          assert a['unreachable_pairs']==1314650
+          assert a['duplicate_pair_count']==0
+          assert a['max_total_time_arithmetic_error_min'] <= 1e-6
+          assert m['status']=='CLOSED'
+          assert m['flood_dry_labels_not_fabricated'] is True
+          assert m['zero_time_connector_edges_used'] is False
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-stage2-routing-closure
+          path: artifacts/stage2_routing_closure/
+          retention-days: 30
