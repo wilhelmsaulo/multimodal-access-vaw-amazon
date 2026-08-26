@@ -1,0 +1,206 @@
+name: assemble-frozen-routing-endpoints
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/assemble-frozen-routing-endpoints.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install endpoint-stage dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'pandas>=2.2,<3'
+
+      - name: Download frozen nominal origin/access evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-origin-network-access-evidence
+          path: artifacts/origin_nominal
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32785322254
+
+      - name: Download frozen empirical origin attachments
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-direct-attachment-transferability
+          path: artifacts/origin_empirical
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32861477674
+
+      - name: Download frozen final service policy
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-service-direct-primary-distance-regimes
+          path: artifacts/service_final
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32887184265
+
+      - name: Assemble frozen routing endpoints
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import pandas as pd
+
+          root=Path('artifacts')
+          out=root/'frozen_routing_endpoints'
+          out.mkdir(parents=True,exist_ok=True)
+
+          def one(name):
+              hits=list(root.rglob(name))
+              if len(hits)!=1:
+                  raise RuntimeError(f'Expected exactly one {name}, got {hits}')
+              return hits[0]
+
+          evidence=pd.read_csv(one('origin_network_access_evidence.csv.gz'),low_memory=False)
+          nominal=pd.read_csv(one('origin_cartographic_node_attachments.csv.gz'))
+          direct=pd.read_csv(one('direct_primary_empirical_node_attachments.csv.gz'))
+          local=pd.read_csv(one('local_topology_empirical_node_attachments.csv.gz'))
+          ped=pd.read_csv(one('gated_local_pedestrian_access_times.csv.gz'))
+          local_access=pd.read_csv(one('origin_local_access_to_primary_motor.csv.gz'),low_memory=False)
+
+          pop=evidence[['origin_id','municipality_code','municipality_name','female_population']].drop_duplicates('origin_id')
+
+          n=nominal[['origin_id','nearest_osm_node_id']].copy()
+          n['routing_node_id']=pd.to_numeric(n['nearest_osm_node_id'],errors='raise').astype('int64')
+          n['access_time_min']=0.0
+          n['endpoint_role']='structural_direct_primary_identity_nominal'
+          n['access_time_role']='non_temporal_structural_identity'
+
+          d=direct[['origin_id','nearest_osm_node_id']].copy()
+          d['routing_node_id']=pd.to_numeric(d['nearest_osm_node_id'],errors='raise').astype('int64')
+          d['access_time_min']=0.0
+          d['endpoint_role']='structural_direct_primary_identity_empirical'
+          d['access_time_role']='non_temporal_structural_identity'
+
+          p=ped[['origin_id','pedestrian_access_time_minutes']].merge(
+              local_access[['origin_id','nearest_primary_motor_node_id']],on='origin_id',how='left',validate='one_to_one')
+          if p['nearest_primary_motor_node_id'].isna().any():
+              raise RuntimeError('Pedestrian origins missing primary-motor endpoint')
+          p['routing_node_id']=pd.to_numeric(p['nearest_primary_motor_node_id'],errors='raise').astype('int64')
+          p['access_time_min']=pd.to_numeric(p['pedestrian_access_time_minutes'],errors='raise')
+          p['endpoint_role']='physical_pedestrian_path_to_primary_motor'
+          p['access_time_role']='actual_osm_pedestrian_path_at_1mps'
+
+          origins=pd.concat([
+              n[['origin_id','routing_node_id','access_time_min','endpoint_role','access_time_role']],
+              d[['origin_id','routing_node_id','access_time_min','endpoint_role','access_time_role']],
+              p[['origin_id','routing_node_id','access_time_min','endpoint_role','access_time_role']],
+          ],ignore_index=True)
+          if origins['origin_id'].duplicated().any():
+              dup=origins.loc[origins['origin_id'].duplicated(False),'origin_id'].tolist()[:20]
+              raise RuntimeError(f'Duplicate routing-ready origins: {dup}')
+          origins=origins.merge(pop,on='origin_id',how='left',validate='one_to_one')
+          if len(origins)!=12673:
+              raise RuntimeError(f'Expected 12673 primary routing-ready origins, got {len(origins)}')
+          if len(n)!=4368 or len(d)!=8173 or len(p)!=132:
+              raise RuntimeError(f'Origin composition mismatch nominal={len(n)} direct={len(d)} ped={len(p)}')
+          if origins['routing_node_id'].isna().any() or (origins['access_time_min']<0).any():
+              raise RuntimeError('Invalid origin routing endpoint/time')
+          origins['creates_zero_time_edge']=False
+          origins['cartographic_distance_converted_to_time']=False
+          origins.to_csv(out/'origin_routing_endpoints.csv.gz',index=False,compression='gzip')
+
+          service_policy=pd.read_csv(one('final_service_access_policy.csv.gz'))
+          service_direct=pd.read_csv(one('service_empirical_node_attachments.csv.gz'))
+          service_local=pd.read_csv(one('service_local_access_to_primary_motor.csv.gz'),low_memory=False)
+          service_ped=pd.read_csv(one('service_pedestrian_local_access_times.csv.gz'))
+          usable=service_policy[service_policy['primary_analysis_usable'].astype(str).str.lower().eq('true')].copy()
+          if len(usable)!=225:
+              raise RuntimeError(f'Expected 225 usable services, got {len(usable)}')
+
+          sd=usable[usable['service_access_policy_class'].eq('resolved_structural_direct_primary_identity')].merge(
+              service_direct[['service_id','nearest_osm_node_id']],on='service_id',how='left',validate='one_to_one')
+          sd['routing_node_id']=pd.to_numeric(sd['nearest_osm_node_id'],errors='raise').astype('int64')
+          sd['access_time_min']=0.0
+          sd['endpoint_role']='structural_direct_primary_identity'
+
+          sp=usable[usable['service_access_policy_class'].eq('resolved_physical_osm_pedestrian_path')].merge(
+              service_ped[['service_id','pedestrian_access_time_min']],on='service_id',how='left',validate='one_to_one').merge(
+              service_local[['service_id','nearest_primary_motor_node_id']],on='service_id',how='left',validate='one_to_one')
+          sp['routing_node_id']=pd.to_numeric(sp['nearest_primary_motor_node_id'],errors='raise').astype('int64')
+          sp['access_time_min']=pd.to_numeric(sp['pedestrian_access_time_min'],errors='raise')
+          sp['endpoint_role']='physical_pedestrian_path_to_primary_motor'
+
+          services=pd.concat([sd,sp],ignore_index=True,sort=False)
+          if len(sd)!=220 or len(sp)!=5 or len(services)!=225:
+              raise RuntimeError(f'Service composition mismatch direct={len(sd)} ped={len(sp)} total={len(services)}')
+          if services['service_id'].duplicated().any() or (services['access_time_min']<0).any():
+              raise RuntimeError('Invalid service routing endpoints')
+          keep=['service_id','physical_site_id','service_type','municipality_code','municipality_name','routing_node_id','access_time_min','endpoint_role']
+          services=services[keep]
+          services['creates_zero_time_edge']=False
+          services['cartographic_distance_converted_to_time']=False
+          services.to_csv(out/'service_routing_endpoints.csv.gz',index=False,compression='gzip')
+
+          audit={
+              'frozen_backbone_run_id':32920014705,
+              'frozen_backbone_artifact_id':9589577559,
+              'origin_structural_attachment_coverage_total':13234,
+              'origin_primary_routing_ready_total':12673,
+              'origin_primary_direct_identity_total':12541,
+              'origin_primary_pedestrian_path_total':132,
+              'origin_track_sensitivity_only_total':275,
+              'origin_mixed_or_other_excluded_total':286,
+              'origin_local_structural_but_not_primary_routing_total':561,
+              'service_primary_routing_ready_total':225,
+              'service_direct_identity_total':220,
+              'service_pedestrian_path_total':5,
+              'service_residual_or_sensitivity_total':11,
+              'origin_zero_time_edges_created':False,
+              'service_zero_time_edges_created':False,
+              'cartographic_distance_converted_to_time':False,
+              'waiting_time_included':False,
+              'ready_for_od_generation':True,
+              'scientific_policy':(
+                  'Routing endpoints are assembled only from frozen validated evidence. Structural direct identities map directly to existing primary-road nodes without creating temporal edges. '
+                  'Only actual OSM pedestrian paths receive access time, at the previously locked 1 m/s assumption. Local structural identities involving track or excluded mixed/restricted/nonoperational paths are not promoted into the primary routing set. '
+                  'Thus 13,234 structural origin attachments correspond to 12,673 primary routing-ready origins; the distinction is retained explicitly rather than inflating primary routing coverage.'
+              )
+          }
+          (out/'frozen_routing_endpoints_audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding='utf-8')
+          print(json.dumps(audit,ensure_ascii=False,indent=2))
+          PY
+
+      - name: Validate frozen routing endpoint safeguards
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('artifacts/frozen_routing_endpoints/frozen_routing_endpoints_audit.json').read_text())
+          assert a['origin_primary_routing_ready_total']==12673
+          assert a['origin_primary_direct_identity_total']==12541
+          assert a['origin_primary_pedestrian_path_total']==132
+          assert a['origin_track_sensitivity_only_total']==275
+          assert a['origin_mixed_or_other_excluded_total']==286
+          assert a['service_primary_routing_ready_total']==225
+          assert a['service_direct_identity_total']==220
+          assert a['service_pedestrian_path_total']==5
+          assert a['origin_zero_time_edges_created'] is False
+          assert a['service_zero_time_edges_created'] is False
+          assert a['cartographic_distance_converted_to_time'] is False
+          assert a['ready_for_od_generation'] is True
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-frozen-routing-endpoints
+          path: artifacts/frozen_routing_endpoints
+          retention-days: 30
