@@ -2,12 +2,10 @@ from __future__ import annotations
 
 """Stage 3 pre-MCDM statistical audit.
 
-This module audits a municipal analytical matrix before any MCDM weighting or
-ranking step. It is deliberately diagnostic: it does not delete indicators or
-run PCA automatically. Instead, it reports missingness, temporal metadata when
-available, scale/distribution diagnostics, Pearson/Spearman correlations,
-redundancy flags, and VIF. PCA is recommended only when redundancy diagnostics
-justify dimensionality-reduction sensitivity analysis.
+The audit is diagnostic: it does not delete indicators or run PCA automatically.
+When explicit ``criterion__`` columns exist, only those candidate criteria enter
+missingness/distribution/correlation/VIF calculations. ``diagnostic__`` support
+columns remain in the matrix but cannot create artificial multicollinearity flags.
 """
 
 import argparse
@@ -31,10 +29,18 @@ META_HINTS = {
 
 
 def _numeric_indicator_columns(df: pd.DataFrame) -> list[str]:
+    explicit = [c for c in df.columns if c.startswith("criterion__")]
+    if explicit:
+        valid = []
+        for col in explicit:
+            if pd.to_numeric(df[col], errors="coerce").notna().sum() >= 3:
+                valid.append(col)
+        return valid
+
     excluded = {c for c in df.columns if c.lower() in ID_HINTS | NAME_HINTS | META_HINTS}
     cols: list[str] = []
     for col in df.columns:
-        if col in excluded:
+        if col in excluded or col.startswith("diagnostic__"):
             continue
         s = pd.to_numeric(df[col], errors="coerce")
         if s.notna().sum() >= 3:
@@ -44,8 +50,7 @@ def _numeric_indicator_columns(df: pd.DataFrame) -> list[str]:
 
 def _vif_matrix(x: pd.DataFrame) -> pd.DataFrame:
     rows = []
-    x = x.copy()
-    x = x.loc[:, x.nunique(dropna=True) > 1]
+    x = x.copy().loc[:, x.nunique(dropna=True) > 1]
     complete = x.dropna()
     if len(complete) < 3:
         return pd.DataFrame(columns=["indicator", "vif", "n_complete"])
@@ -72,10 +77,9 @@ def audit(input_path: Path, out_dir: Path, corr_threshold: float = 0.80, vif_thr
     df = pd.read_csv(input_path)
     indicators = _numeric_indicator_columns(df)
     if not indicators:
-        raise RuntimeError("No numeric indicator columns detected in analytical matrix")
+        raise RuntimeError("No numeric candidate indicator columns detected in analytical matrix")
 
     x = pd.DataFrame({c: pd.to_numeric(df[c], errors="coerce") for c in indicators})
-
     completeness = pd.DataFrame({
         "indicator": indicators,
         "n_rows": len(df),
@@ -91,21 +95,18 @@ def audit(input_path: Path, out_dir: Path, corr_threshold: float = 0.80, vif_thr
 
     pearson = x.corr(method="pearson", min_periods=3)
     spearman = x.corr(method="spearman", min_periods=3)
-
     pairs = []
     for i, a in enumerate(indicators):
         for b in indicators[i + 1:]:
-            pr = pearson.loc[a, b]
-            sr = spearman.loc[a, b]
-            max_abs = np.nanmax([abs(pr) if pd.notna(pr) else np.nan, abs(sr) if pd.notna(sr) else np.nan])
+            pr, sr = pearson.loc[a, b], spearman.loc[a, b]
+            vals = [abs(pr) if pd.notna(pr) else np.nan, abs(sr) if pd.notna(sr) else np.nan]
+            max_abs = np.nanmax(vals)
             if pd.notna(max_abs) and max_abs >= corr_threshold:
                 pairs.append({
-                    "indicator_a": a,
-                    "indicator_b": b,
+                    "indicator_a": a, "indicator_b": b,
                     "pearson_r": None if pd.isna(pr) else float(pr),
                     "spearman_rho": None if pd.isna(sr) else float(sr),
-                    "max_abs_correlation": float(max_abs),
-                    "threshold": corr_threshold,
+                    "max_abs_correlation": float(max_abs), "threshold": corr_threshold,
                 })
     redundant_pairs = pd.DataFrame(pairs)
     if not redundant_pairs.empty:
@@ -114,14 +115,11 @@ def audit(input_path: Path, out_dir: Path, corr_threshold: float = 0.80, vif_thr
     vif = _vif_matrix(x)
     vif_flagged = vif[vif["vif"] >= vif_threshold].copy() if not vif.empty else vif.copy()
 
-    temporal_columns = [c for c in df.columns if c.lower() in META_HINTS]
     temporal = []
-    for col in temporal_columns:
+    for col in [c for c in df.columns if c.lower() in META_HINTS]:
         vals = df[col].dropna().astype(str)
         temporal.append({
-            "column": col,
-            "n_nonmissing": int(len(vals)),
-            "n_unique": int(vals.nunique()),
+            "column": col, "n_nonmissing": int(len(vals)), "n_unique": int(vals.nunique()),
             "sample_values": vals.drop_duplicates().head(20).tolist(),
         })
 
@@ -144,8 +142,9 @@ def audit(input_path: Path, out_dir: Path, corr_threshold: float = 0.80, vif_thr
         "input": str(input_path),
         "rows": int(len(df)),
         "columns": int(len(df.columns)),
-        "numeric_indicators_audited": len(indicators),
+        "candidate_indicators_audited": len(indicators),
         "indicators": indicators,
+        "diagnostic_columns_excluded_from_statistics": [c for c in df.columns if c.startswith("diagnostic__")],
         "max_missing_fraction": float(completeness["missing_fraction"].max()),
         "indicators_with_any_missing": int((completeness["n_missing"] > 0).sum()),
         "correlation_threshold_abs": corr_threshold,
@@ -157,7 +156,7 @@ def audit(input_path: Path, out_dir: Path, corr_threshold: float = 0.80, vif_thr
         "pca_recommended_for_diagnostic_or_sensitivity_analysis": pca_recommended,
         "pca_reason": pca_reason,
         "mcdm_ready": False,
-        "mcdm_readiness_note": "MCDM readiness must be decided after scientific review of flagged missingness, temporal compatibility, redundancy, scale, and VIF results.",
+        "mcdm_readiness_note": "MCDM readiness must be decided after scientific review of missingness, temporal compatibility, redundancy, scale, sociodemographic inclusion, and weighting/model specification.",
     }
     (out_dir / "stage3_audit_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     return summary
