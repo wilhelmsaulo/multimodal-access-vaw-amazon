@@ -1,0 +1,38 @@
+scope: para_statewide_hydro_transfer_anomaly_screen
+screening_rule:
+  reopen_only_if_all:
+    - concrete_evidence_of_hydro_or_ferry_dependence
+    - od_or_origin_anomaly
+  od_or_origin_anomaly_definition:
+    - no_primary_routing_ready_origin
+    - zero_reachable_services_despite_valid_origins
+    - documented_transfer_break_incompatible_with_known_operation
+  mapped_port_or_waterway_alone_is_not_sufficient: true
+  synthetic_edge_allowed: false
+  synthetic_time_allowed: false
+  stop_rule: close_statewide_screen_when_no_additional_municipality_meets_both_conditions
+
+reference_evidence:
+  - source: Ministry_of_Transport_2023_hydrographic_map_ANTAQ_2022_layers
+    role: hydrographic_and_port_screening_only
+  - source: DNIT_IP4_public_port_information
+    role: passenger_cargo_terminal_existence_screening
+  - source: frozen_reference_OD_and_routing_endpoints
+    role: anomaly_detection
+
+critical_cases:
+  - municipality: Afua
+    anomaly: no_primary_routing_ready_origin
+    hydro_evidence: strong
+    action: final_scope_limited_hydro_first_case
+  - municipality: Colares
+    anomaly: zero_reachable_services_despite_33_valid_origins
+    hydro_evidence: validated_ferry_crossing
+    action: correct_Penhalonga_Furo_da_Laura_transfer
+  - municipality: Santa Cruz do Arari
+    anomaly: zero_reachable_services_despite_8_valid_origins
+    hydro_evidence: validated_current_passenger_hydro_service_existence
+    action: correct_passenger_hydro_transfer
+
+additional_statewide_cases_reopened: []
+statewide_screen_status: closed_no_additional_critical_anomalies_under_declared_rule
