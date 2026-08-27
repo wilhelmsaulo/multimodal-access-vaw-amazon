@@ -254,7 +254,8 @@ def main() -> None:
         "macro_weight_totals_reference": {"access": 4/9, "institutional": 4/9, "territorial_rurality": 1/9},
         "structural_missing_policy": {
             "Afua": "coverage-limited access criteria remain unavailable and are excluded pairwise with weight renormalization over mutually observed criteria; rank flagged coverage-limited",
-            "Colares_and_Santa_Cruz_do_Arari": "observed reachability fractions remain zero; missing travel times are treated as ordinal tested-unreachable/worst normalized time state, without creating synthetic minutes",
+            "Colares": "routed-reachable after bounded Penhalonga/Furo da Laura ferry correction; observed finite access indicators are used",
+            "Santa_Cruz_do_Arari": "routed-reachable after bounded Belém passenger-hydro correction; observed finite access indicators are used",
         },
         "topsis_role": "contrast only; coverage-limited alternatives with incomplete transformed scores are excluded from TOPSIS ranking",
         "robustness": {
@@ -269,7 +270,7 @@ def main() -> None:
         "top15_reference": top.to_dict(orient="records"),
         "scaling": scaling,
         "ranking_is_final_policy_decision": False,
-        "note": "This is the first locked Stage 4 reference/robustness execution. Further method/scale sensitivity may be added before manuscript-level finalization.",
+        "note": "Corrected Stage 4 reference/robustness execution. Preference-function/scaling sensitivity remains required before manuscript-level finalization.",
     }
     (args.out / "stage4_mcdm_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -284,13 +285,13 @@ def main() -> None:
         "",
         f"Median Spearman against reference ranking: {np.nanmedian(spearman):.4f} (5th–95th percentile {np.nanquantile(spearman,0.05):.4f}–{np.nanquantile(spearman,0.95):.4f}).",
         "",
-        "Afuá is retained with a coverage-limited rank flag and no fabricated access penalty. Colares and Santa Cruz do Arari retain observed zero reachability; tested-unreachable travel-time states are ordered worse than finite observed times without assigning synthetic minutes.",
+        "Afuá is retained with a coverage-limited rank flag and no fabricated access penalty. Colares and Santa Cruz do Arari are routed-reachable after the bounded network correction and use their observed finite accessibility indicators.",
         "",
         "## Reference top 15",
         "",
         top.to_markdown(index=False),
         "",
-        "The reference ranking is an analytical baseline, not yet the manuscript-final policy result.",
+        "The corrected reference ranking is an analytical baseline, not yet the manuscript-final policy result.",
     ]
     (args.out / "stage4_mcdm_summary.md").write_text("\n".join(md), encoding="utf-8")
 
