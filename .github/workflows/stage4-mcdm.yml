@@ -1,0 +1,77 @@
+name: stage4-mcdm
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'stage4-mcdm'
+    paths:
+      - 'src/analysis/stage4_mcdm.py'
+      - 'docs/stage4_mcdm_specification.md'
+      - '.github/workflows/stage4-mcdm.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  mcdm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'pandas>=2.2,<3' 'numpy>=2,<3' 'tabulate>=0.9,<1'
+      - name: Download locked Stage 3 matrix
+        uses: actions/download-artifact@v4
+        with:
+          name: stage3-sociodemographic-candidate-audit
+          path: artifacts/stage3
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 33036567004
+      - name: Validate locked matrix
+        run: |
+          python - <<'PY'
+          import pandas as pd
+          p='artifacts/stage3/municipal_analytical_matrix_with_sociospatial_candidate.csv'
+          df=pd.read_csv(p, dtype={'municipality_code':str})
+          assert len(df)==144
+          assert df['municipality_code'].nunique()==144
+          assert set(['Afuá','Colares','Santa Cruz do Arari']).issubset(set(df['municipality_name']))
+          print(df.shape)
+          PY
+      - name: Run PROMETHEE II reference and robustness analysis
+        run: |
+          python src/analysis/stage4_mcdm.py \
+            artifacts/stage3/municipal_analytical_matrix_with_sociospatial_candidate.csv \
+            --out artifacts/stage4_mcdm \
+            --draws 10000 \
+            --seed 20260827
+      - name: Validate Stage 4 outputs
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+          root='artifacts/stage4_mcdm'
+          r=pd.read_csv(f'{root}/promethee_reference_ranking.csv', dtype={'municipality_code':str})
+          s=json.load(open(f'{root}/stage4_mcdm_summary.json', encoding='utf-8'))
+          assert len(r)==144 and r['promethee_rank'].nunique()==144
+          assert r['coverage_limited_rank_flag'].sum()==1
+          assert s['method_primary']=='PROMETHEE II'
+          assert s['robustness']['draws']==10000
+          print(r.head(15).to_string(index=False))
+          print(json.dumps(s['robustness'], indent=2))
+          PY
+      - name: Upload Stage 4 MCDM outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage4-mcdm-reference-and-robustness
+          path: artifacts/stage4_mcdm
+          if-no-files-found: error
+          retention-days: 30
