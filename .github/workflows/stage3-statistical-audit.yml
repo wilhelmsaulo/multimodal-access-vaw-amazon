@@ -1,0 +1,71 @@
+name: stage3-statistical-audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      analytical_matrix:
+        description: 'Path to the municipal analytical CSV committed in the repository'
+        required: true
+        default: 'data/processed/municipal_analytical_matrix.csv'
+  push:
+    branches:
+      - 'audit-stage3-statistical'
+    paths:
+      - 'src/analysis/stage3_statistical_audit.py'
+      - '.github/workflows/stage3-statistical-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'pandas>=2.2,<3' 'numpy>=2,<3'
+      - name: Locate analytical matrix
+        id: matrix
+        shell: bash
+        run: |
+          requested='${{ github.event.inputs.analytical_matrix }}'
+          if [ -n "$requested" ] && [ -f "$requested" ]; then
+            echo "path=$requested" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          preferred=[]
+          for root in [Path('data'), Path('artifacts'), Path('results')]:
+              if root.exists():
+                  preferred.extend(root.rglob('*.csv'))
+                  preferred.extend(root.rglob('*.csv.gz'))
+          hints=('municip','analytic','indicator','criteria','mcdm','access')
+          scored=[]
+          for p in preferred:
+              name=str(p).lower()
+              score=sum(h in name for h in hints)
+              if score:
+                  scored.append((score, p))
+          scored.sort(key=lambda t:(-t[0], str(t[1])))
+          if not scored:
+              raise SystemExit('No candidate municipal analytical matrix found. Supply workflow_dispatch input analytical_matrix.')
+          p=scored[0][1]
+          print(p)
+          Path('/tmp/matrix_path').write_text(str(p))
+          PY
+          echo "path=$(cat /tmp/matrix_path)" >> "$GITHUB_OUTPUT"
+      - name: Run Stage 3 audit
+        run: |
+          python src/analysis/stage3_statistical_audit.py '${{ steps.matrix.outputs.path }}' --out artifacts/stage3_statistical_audit
+      - name: Upload audit outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage3-statistical-audit
+          path: artifacts/stage3_statistical_audit
+          if-no-files-found: error
