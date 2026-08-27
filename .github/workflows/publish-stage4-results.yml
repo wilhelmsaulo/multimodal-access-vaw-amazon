@@ -1,0 +1,83 @@
+name: publish-stage4-results
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - stage4-mcdm
+    paths:
+      - 'src/analysis/publish_stage4_results.py'
+      - '.github/workflows/publish-stage4-results.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install publication dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'pandas>=2.2,<3' 'geopandas>=1.0,<2' 'pyogrio>=0.10,<1' 'shapely>=2,<3' 'matplotlib>=3.9,<4'
+
+      - name: Download authoritative corrected Stage 4 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage4-mcdm-corrected-after-network-fix
+          path: artifacts/stage4
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 33090126353
+
+      - name: Build public tables and maps
+        run: |
+          python src/analysis/publish_stage4_results.py \
+            --ranking artifacts/stage4/promethee_reference_ranking.csv \
+            --out results/stage4
+
+      - name: Validate publication bundle
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import pandas as pd
+          p=Path('results/stage4')
+          prom=pd.read_csv(p/'tables/promethee_ii_full_ranking.csv')
+          top=pd.read_csv(p/'tables/topsis_full_ranking.csv')
+          meta=json.loads((p/'publication_metadata.json').read_text())
+          assert len(prom)==144 and prom['promethee_rank'].notna().sum()==144
+          assert len(top)==144 and top['topsis_contrast_rank'].notna().sum()==143
+          assert meta['stage4_run']==33090126353
+          for f in [
+              p/'figures/promethee_ii_rank_map.png',
+              p/'figures/promethee_ii_rank_map.svg',
+              p/'figures/topsis_rank_map.png',
+              p/'figures/topsis_rank_map.svg',
+              p/'README.md',
+          ]:
+              assert f.exists() and f.stat().st_size > 0, f
+          PY
+
+      - name: Commit generated Stage 4 publication bundle
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage4
+          if git diff --cached --quiet; then
+            echo 'No publication changes to commit.'
+          else
+            git commit -m 'Publish complete Stage 4 rankings and maps'
+            git push origin HEAD:stage4-mcdm
+          fi
