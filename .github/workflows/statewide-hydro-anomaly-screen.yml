@@ -1,0 +1,27 @@
+name: statewide-hydro-anomaly-screen
+
+on:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - 'config/statewide_hydro_anomaly_screen.yml'
+      - 'config/reopened_multimodal_transfer_audit.yml'
+      - 'src/analysis/validate_statewide_hydro_anomaly_screen.py'
+      - '.github/workflows/statewide-hydro-anomaly-screen.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PyYAML
+        run: pip install pyyaml
+      - name: Validate bounded statewide hydro screen
+        run: >-
+          python src/analysis/validate_statewide_hydro_anomaly_screen.py
+          config/statewide_hydro_anomaly_screen.yml
+          config/reopened_multimodal_transfer_audit.yml
