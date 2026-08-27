@@ -1,0 +1,48 @@
+name: audit-exact-transfer-nodes
+
+on:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - 'src/analysis/audit_exact_transfer_nodes.py'
+      - '.github/workflows/audit-exact-transfer-nodes.yml'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install 'pandas>=2.2,<3'
+      - name: Download frozen primary road graph
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-primary-road-directed-temporal-graph
+          path: artifacts/road
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32902566409
+      - name: Identify exact transfer-node candidates
+        run: python src/analysis/audit_exact_transfer_nodes.py
+      - name: Validate audit output
+        run: |
+          python - <<'PY'
+          import json
+          p='artifacts/exact_transfer_node_audit/exact_transfer_node_audit.json'
+          a=json.load(open(p))
+          assert a['colares_known_island_endpoint']['present_in_frozen_graph'] is True
+          assert len(a['targets']['colares_user_ferry']['nearest_frozen_road_nodes']) > 0
+          assert len(a['targets']['santa_cruz_seat_port']['nearest_frozen_road_nodes']) > 0
+          assert len(a['targets']['belem_hydro_terminal']['nearest_frozen_road_nodes']) > 0
+          print('Exact transfer node audit completed.')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exact-transfer-node-audit
+          path: artifacts/exact_transfer_node_audit/
+          retention-days: 30
