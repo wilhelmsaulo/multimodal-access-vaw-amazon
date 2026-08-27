@@ -1,0 +1,146 @@
+name: recompute-stage3-stage4-after-network-fix
+
+on:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/recompute-stage3-stage4-after-network-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  recompute:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'pandas>=2.2,<3' 'numpy>=2,<3' 'tabulate>=0.9,<1' 'geopandas>=1.0,<2' 'pyogrio>=0.10,<1'
+      - name: Download corrected reference OD
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-corrected-reference-od
+          path: artifacts/od
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 33089335405
+      - name: Download frozen routing endpoints
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-frozen-routing-endpoints
+          path: artifacts/endpoints
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32945266691
+      - name: Download validated service policy
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-service-direct-primary-distance-regimes
+          path: artifacts/service_policy
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32887184265
+      - name: Download Census 2022 sectors
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-census-sectors-2022
+          path: artifacts/census2022
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32170796657
+      - name: Build corrected municipal accessibility matrix
+        run: |
+          python src/analysis/build_municipal_access_matrix.py \
+            --od artifacts/od/od_reference_network.csv.gz \
+            --origins artifacts/endpoints/origin_routing_endpoints.csv.gz \
+            --out artifacts/stage3_input
+      - name: Restore 144-municipality candidate universe
+        run: |
+          python src/analysis/revise_municipal_access_candidates.py \
+            artifacts/stage3_input/municipal_accessibility_matrix.csv \
+            --out artifacts/stage3_revised
+      - name: Audit special municipalities on corrected OD
+        run: |
+          python src/analysis/audit_special_municipalities.py \
+            --endpoints-dir artifacts/endpoints \
+            --od artifacts/od/od_reference_network.csv.gz \
+            --out artifacts/special_municipality_audit
+      - name: Build institutional component
+        run: |
+          python src/analysis/build_nontransport_municipal_matrix.py \
+            --access artifacts/stage3_revised/municipal_accessibility_candidates_revised.csv \
+            --service-root artifacts/service_policy \
+            --out artifacts/stage3_nontransport
+      - name: Build locked sociodemographic/territorial layer
+        run: |
+          python src/analysis/build_sociodemographic_candidate_audit.py \
+            --pre-matrix artifacts/stage3_nontransport/municipal_analytical_matrix_pre_sociodemographic.csv \
+            --census-gpkg artifacts/census2022/pa_census_sectors_2022.gpkg \
+            --provenance artifacts/stage3_nontransport/indicator_temporal_provenance.csv \
+            --out artifacts/stage3_sociodemographic
+      - name: Run corrected Stage 3 statistical audit
+        run: |
+          python src/analysis/stage3_statistical_audit.py \
+            artifacts/stage3_sociodemographic/municipal_analytical_matrix_with_sociospatial_candidate.csv \
+            --out artifacts/stage3_final_audit
+      - name: Validate corrected matrix and special cases
+        run: |
+          python - <<'PY'
+          import json, pandas as pd
+          m=pd.read_csv('artifacts/stage3_sociodemographic/municipal_analytical_matrix_with_sociospatial_candidate.csv',dtype={'municipality_code':str})
+          assert len(m)==144 and m['municipality_code'].nunique()==144
+          s=pd.read_csv('artifacts/special_municipality_audit/special_municipality_audit.csv',dtype={'municipality_code':str})
+          d=dict(zip(s.municipality_name,s.classification))
+          assert d['Afuá']=='network_coverage_limitation'
+          assert d['Colares']=='routed_reachable'
+          assert d['Santa Cruz do Arari']=='routed_reachable'
+          a=json.load(open('artifacts/stage3_final_audit/stage3_audit_summary.json'))
+          assert a['pca_recommended'] is False
+          print(s.to_string(index=False))
+          print(json.dumps(a,indent=2))
+          PY
+      - name: Run corrected PROMETHEE II TOPSIS and robustness
+        run: |
+          python src/analysis/stage4_mcdm.py \
+            artifacts/stage3_sociodemographic/municipal_analytical_matrix_with_sociospatial_candidate.csv \
+            --out artifacts/stage4_mcdm_corrected \
+            --draws 10000 \
+            --seed 20260827
+      - name: Validate corrected Stage 4
+        run: |
+          python - <<'PY'
+          import json,pandas as pd
+          root='artifacts/stage4_mcdm_corrected'
+          r=pd.read_csv(f'{root}/promethee_reference_ranking.csv',dtype={'municipality_code':str})
+          s=json.load(open(f'{root}/stage4_mcdm_summary.json'))
+          assert len(r)==144
+          assert r['coverage_limited_rank_flag'].sum()==1
+          assert s['method_primary']=='PROMETHEE II'
+          assert s['robustness']['draws']==10000
+          print(r.head(20).to_string(index=False))
+          print(json.dumps(s,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage3-corrected-after-network-fix
+          path: |
+            artifacts/stage3_input/
+            artifacts/stage3_revised/
+            artifacts/special_municipality_audit/
+            artifacts/stage3_nontransport/
+            artifacts/stage3_sociodemographic/
+            artifacts/stage3_final_audit/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage4-mcdm-corrected-after-network-fix
+          path: artifacts/stage4_mcdm_corrected/
+          retention-days: 30
