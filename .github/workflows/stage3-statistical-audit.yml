@@ -9,6 +9,7 @@ on:
       - 'src/analysis/build_municipal_access_matrix.py'
       - 'src/analysis/revise_municipal_access_candidates.py'
       - 'src/analysis/stage3_statistical_audit.py'
+      - 'src/analysis/audit_special_municipalities.py'
       - '.github/workflows/stage3-statistical-audit.yml'
 
 permissions:
@@ -60,6 +61,15 @@ jobs:
           python src/analysis/stage3_statistical_audit.py \
             artifacts/stage3_revised/municipal_accessibility_candidates_revised.csv \
             --out artifacts/stage3_statistical_audit_revised
+      - name: Audit Afua Colares and Santa Cruz do Arari
+        run: |
+          python src/analysis/audit_special_municipalities.py \
+            --endpoints-dir artifacts/endpoints \
+            --od artifacts/od/od_reference_network.csv.gz \
+            --out artifacts/special_municipality_audit
+      - name: List frozen endpoint evidence files
+        run: |
+          find artifacts/endpoints -maxdepth 2 -type f -print | sort
       - name: Upload Stage 3 source matrix
         uses: actions/upload-artifact@v4
         with:
@@ -79,5 +89,12 @@ jobs:
         with:
           name: stage3-statistical-audit-revised
           path: artifacts/stage3_statistical_audit_revised
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload targeted municipality audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage3-special-municipality-audit
+          path: artifacts/special_municipality_audit
           if-no-files-found: error
           retention-days: 30
