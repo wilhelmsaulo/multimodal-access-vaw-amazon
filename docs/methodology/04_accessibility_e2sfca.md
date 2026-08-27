@@ -6,6 +6,22 @@ The accessibility layer transforms origin–service travel times into measures o
 
 The executable E2SFCA implementation currently exists in repository history on branch `agent/stage1-stage2-accessibility` at `src/accessibility/e2sfca.py`. This documentation makes the model logic explicit in the current methodological pathway; migration of the executable file into the consolidated branch is a reproducibility housekeeping task, not a change to the model definition.
 
+## Two-step model flow
+
+```mermaid
+flowchart LR
+    A[OD travel-time matrix t_ij] --> D[Travel-time weight w_ij]
+    B[Female population P_i] --> E[Weighted demand P_i × w_ij]
+    D --> E
+    E --> F[Step 1: demand around service j]
+    C[Service supply S_j] --> G[Supply-demand ratio R_j = S_j / D_j]
+    F --> G
+    G --> H[Step 2: contribution R_j × w_ij]
+    D --> H
+    H --> I[Origin E2SFCA score A_i]
+    I --> J[Municipal aggregation / accessibility profile]
+```
+
 ## Inputs
 
 For each origin `i`, service `j`, service type `k` and scenario `s`, the implementation uses:
@@ -21,6 +37,19 @@ Two supply modes are implemented:
 
 - `observed_capacity`: use an observed, defensible capacity value;
 - `unit_presence`: use one unit per service when capacity data are not defensibly comparable.
+
+## Matrix schematic
+
+The OD input can be understood as a temporal matrix:
+
+| Origin / service | Service 1 | Service 2 | ... | Service j |
+|---|---:|---:|---:|---:|
+| Origin 1 | `t_11` | `t_12` | ... | `t_1j` |
+| Origin 2 | `t_21` | `t_22` | ... | `t_2j` |
+| ... | ... | ... | ... | ... |
+| Origin i | `t_i1` | `t_i2` | ... | `t_ij` |
+
+Each valid temporal cell can receive a decay weight `w_ij`. Cells without an authorized route remain unavailable rather than being assigned a synthetic travel time.
 
 ## Travel-time decay
 
@@ -46,6 +75,12 @@ when weighted demand is positive.
 
 This means a service serving a larger weighted population has a lower supply-to-demand ratio, all else equal.
 
+A compact Step-1 output table has the conceptual form:
+
+| Scenario | Service type | Service | Weighted demand `D_j` | Supply `S_j` | Ratio `R_j` |
+|---|---|---|---:|---:|---:|
+| s | k | j | Σ `P_i w_ij` | observed or unit supply | `S_j / D_j` |
+
 ## Step 2 — origin accessibility score
 
 For each origin `i`, the E2SFCA score within service type and scenario is:
@@ -53,6 +88,12 @@ For each origin `i`, the E2SFCA score within service type and scenario is:
 `A_i = Σ_j R_j * w_ij`
 
 The score therefore combines the supply-demand pressure around reachable services with travel-time impedance from the origin.
+
+A compact Step-2 output table has the conceptual form:
+
+| Scenario | Service type | Origin | E2SFCA score |
+|---|---|---|---:|
+| s | k | i | Σ `R_j w_ij` |
 
 ## Zero-access preservation
 
@@ -83,7 +124,7 @@ These are transparent municipal network-access summaries. E2SFCA adds a supply-d
 
 The reproducibility package should publish:
 
-- an E2SFCA two-step flow diagram;
+- the E2SFCA two-step flow shown above;
 - compact example matrices for travel time, weighted demand and service ratios;
 - service-ratio summary tables;
 - origin/sector E2SFCA score tables;
