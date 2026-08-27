@@ -12,6 +12,7 @@ on:
       - 'src/analysis/audit_special_municipalities.py'
       - 'src/analysis/audit_afua_upstream.py'
       - 'src/analysis/build_nontransport_municipal_matrix.py'
+      - 'src/analysis/build_sociodemographic_candidate_audit.py'
       - '.github/workflows/stage3-statistical-audit.yml'
 
 permissions:
@@ -71,6 +72,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: wilhelmsaulo/multimodal-access-vaw-amazon
           run-id: 32887184265
+      - name: Download frozen Census 2022 sector artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-census-sectors-2022
+          path: artifacts/census2022
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32170796657
       - name: Build municipal accessibility matrix
         run: |
           python src/analysis/build_municipal_access_matrix.py \
@@ -111,6 +120,18 @@ jobs:
           python src/analysis/stage3_statistical_audit.py \
             artifacts/stage3_nontransport/municipal_analytical_matrix_pre_sociodemographic.csv \
             --out artifacts/stage3_joined_audit
+      - name: Build restrained sociodemographic candidate layer
+        run: |
+          python src/analysis/build_sociodemographic_candidate_audit.py \
+            --pre-matrix artifacts/stage3_nontransport/municipal_analytical_matrix_pre_sociodemographic.csv \
+            --census-gpkg artifacts/census2022/pa_census_sectors_2022.gpkg \
+            --provenance artifacts/stage3_nontransport/indicator_temporal_provenance.csv \
+            --out artifacts/stage3_sociodemographic
+      - name: Run joined audit including rurality candidate
+        run: |
+          python src/analysis/stage3_statistical_audit.py \
+            artifacts/stage3_sociodemographic/municipal_analytical_matrix_with_sociospatial_candidate.csv \
+            --out artifacts/stage3_joined_with_socio_audit
       - name: Upload Stage 3 source matrix
         uses: actions/upload-artifact@v4
         with:
@@ -158,5 +179,19 @@ jobs:
         with:
           name: stage3-joined-pre-sociodemographic-audit
           path: artifacts/stage3_joined_audit
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload sociodemographic candidate audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage3-sociodemographic-candidate-audit
+          path: artifacts/stage3_sociodemographic
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload joined audit with sociodemographic candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage3-joined-with-sociodemographic-audit
+          path: artifacts/stage3_joined_with_socio_audit
           if-no-files-found: error
           retention-days: 30
