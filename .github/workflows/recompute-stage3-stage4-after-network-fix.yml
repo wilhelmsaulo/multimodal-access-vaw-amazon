@@ -103,7 +103,9 @@ jobs:
           assert d['Colares']=='routed_reachable'
           assert d['Santa Cruz do Arari']=='routed_reachable'
           a=json.load(open('artifacts/stage3_final_audit/stage3_audit_summary.json'))
-          assert a['pca_recommended'] is False
+          assert a['pca_recommended_for_diagnostic_or_sensitivity_analysis'] is False
+          assert a['redundant_pairs_flagged']==0
+          assert a['vif_indicators_flagged']==0
           print(s.to_string(index=False))
           print(json.dumps(a,indent=2))
           PY
