@@ -7,6 +7,7 @@ on:
       - 'audit-stage3-statistical'
     paths:
       - 'src/analysis/build_municipal_access_matrix.py'
+      - 'src/analysis/revise_municipal_access_candidates.py'
       - 'src/analysis/stage3_statistical_audit.py'
       - '.github/workflows/stage3-statistical-audit.yml'
 
@@ -49,22 +50,34 @@ jobs:
             --od artifacts/od/od_reference_network.csv.gz \
             --origins artifacts/endpoints/origin_routing_endpoints.csv.gz \
             --out artifacts/stage3_input
-      - name: Run Stage 3 statistical audit
+      - name: Revise accessibility candidates and restore municipality universe
+        run: |
+          python src/analysis/revise_municipal_access_candidates.py \
+            artifacts/stage3_input/municipal_accessibility_matrix.csv \
+            --out artifacts/stage3_revised
+      - name: Run Stage 3 statistical audit on revised candidates
         run: |
           python src/analysis/stage3_statistical_audit.py \
-            artifacts/stage3_input/municipal_accessibility_matrix.csv \
-            --out artifacts/stage3_statistical_audit
-      - name: Upload Stage 3 input matrix
+            artifacts/stage3_revised/municipal_accessibility_candidates_revised.csv \
+            --out artifacts/stage3_statistical_audit_revised
+      - name: Upload Stage 3 source matrix
         uses: actions/upload-artifact@v4
         with:
           name: stage3-municipal-accessibility-matrix
           path: artifacts/stage3_input
           if-no-files-found: error
           retention-days: 30
-      - name: Upload Stage 3 audit outputs
+      - name: Upload revised 144-municipality candidate matrix
         uses: actions/upload-artifact@v4
         with:
-          name: stage3-statistical-audit
-          path: artifacts/stage3_statistical_audit
+          name: stage3-municipal-accessibility-candidates-revised
+          path: artifacts/stage3_revised
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload revised Stage 3 audit outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage3-statistical-audit-revised
+          path: artifacts/stage3_statistical_audit_revised
           if-no-files-found: error
           retention-days: 30
