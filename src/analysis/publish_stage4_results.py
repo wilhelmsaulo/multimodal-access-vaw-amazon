@@ -9,12 +9,15 @@ from pathlib import Path
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 import pandas as pd
 
 IBGE_PA_2023 = (
     "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/"
     "malhas_municipais/municipio_2023/UFs/PA/PA_Municipios_2023.zip"
 )
+MAP_CRS = 5880  # SIRGAS 2000 / Brazil Polyconic, metric units for scale bar.
 
 
 def load_ibge_pa() -> gpd.GeoDataFrame:
@@ -67,19 +70,46 @@ def write_tables(src: pd.DataFrame, out: Path) -> tuple[pd.DataFrame, pd.DataFra
     return prom, topsis
 
 
+def add_north_arrow(ax) -> None:
+    ax.annotate(
+        "N",
+        xy=(0.94, 0.94), xytext=(0.94, 0.84),
+        xycoords="axes fraction",
+        ha="center", va="center",
+        fontsize=12, fontweight="bold",
+        arrowprops=dict(facecolor="black", edgecolor="black", width=2.2, headwidth=8),
+    )
+
+
+def add_scale_bar(ax, length_km: int = 200) -> None:
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    length_m = length_km * 1000
+    x0 = xmin + 0.07 * (xmax - xmin)
+    y0 = ymin + 0.06 * (ymax - ymin)
+    ax.plot([x0, x0 + length_m], [y0, y0], color="black", linewidth=2.5, solid_capstyle="butt")
+    tick = 0.008 * (ymax - ymin)
+    ax.plot([x0, x0], [y0 - tick, y0 + tick], color="black", linewidth=1.5)
+    ax.plot([x0 + length_m, x0 + length_m], [y0 - tick, y0 + tick], color="black", linewidth=1.5)
+    ax.text(x0, y0 + 2.1 * tick, "0", ha="center", va="bottom", fontsize=7)
+    ax.text(x0 + length_m, y0 + 2.1 * tick, f"{length_km} km", ha="center", va="bottom", fontsize=7)
+
+
 def map_rank(gdf: gpd.GeoDataFrame, table: pd.DataFrame, rank_col: str, title: str, stem: str, out: Path) -> None:
     m = gdf.merge(table, on="municipality_code", how="left", validate="one_to_one")
     if len(m) != 144:
         raise RuntimeError("Map join did not retain 144 municipalities")
+    m = m.to_crs(epsg=MAP_CRS)
 
-    fig, ax = plt.subplots(figsize=(10, 9))
+    fig, ax = plt.subplots(figsize=(11, 9.5))
     m.plot(
         column=rank_col,
         cmap="viridis_r",
         linewidth=0.35,
         edgecolor="0.45",
         legend=True,
-        missing_kwds={"color": "0.92", "edgecolor": "0.25", "hatch": "///", "label": "Sem rank completo"},
+        legend_kwds={"label": "Posição no ranking (1 = maior prioridade)", "shrink": 0.72},
+        missing_kwds={"color": "0.92", "edgecolor": "0.25", "hatch": "///"},
         ax=ax,
     )
 
@@ -93,13 +123,23 @@ def map_rank(gdf: gpd.GeoDataFrame, table: pd.DataFrame, rank_col: str, title: s
     if not limited.empty:
         limited.boundary.plot(ax=ax, linewidth=1.5, edgecolor="black", linestyle="--")
 
-    ax.set_title(title, fontsize=13)
+    handles = [
+        Line2D([0], [0], color="black", linewidth=1.4, label="Top-10 (número = posição)"),
+        Line2D([0], [0], color="black", linewidth=1.5, linestyle="--", label="Cobertura limitada"),
+        Patch(facecolor="0.92", edgecolor="0.25", hatch="///", label="Sem rank completo"),
+    ]
+    ax.legend(handles=handles, loc="lower right", frameon=True, fontsize=8, title="Legenda")
+
+    ax.set_title(title, fontsize=14, pad=12)
+    add_north_arrow(ax)
+    add_scale_bar(ax, 200)
     ax.set_axis_off()
     ax.text(
-        0.01, 0.01,
-        "Números = top-10. Linha tracejada = cobertura limitada.\nMalha municipal: IBGE 2023.",
+        0.01, 0.005,
+        "Fonte: resultados do modelo MCDM (execução corrigida 2026); malha municipal IBGE 2023.\n"
+        "Projeção cartográfica: SIRGAS 2000 / Brazil Polyconic (EPSG:5880).",
         transform=ax.transAxes,
-        fontsize=8,
+        fontsize=7.5,
         va="bottom",
     )
     fig.tight_layout()
@@ -136,6 +176,8 @@ def write_readme(out: Path, prom: pd.DataFrame, topsis: pd.DataFrame, metadata: 
         "The TOPSIS table contains all 144 municipalities, but Afuá has no TOPSIS rank because TOPSIS requires a complete criterion vector. This is intentional and should not be imputed.",
         "",
         "## Statewide maps",
+        "",
+        "All maps include title, legend, cartographic scale, north arrow, source/year and the municipal boundary reference.",
         "",
         "### PROMETHEE II",
         "",
@@ -197,8 +239,8 @@ def main() -> None:
     prom, topsis = write_tables(src, args.out)
     gdf = load_ibge_pa()
 
-    map_rank(gdf, prom, "promethee_rank", "Pará — PROMETHEE II reference ranking", "promethee_ii_rank_map", args.out)
-    map_rank(gdf, topsis, "topsis_contrast_rank", "Pará — TOPSIS contrast ranking", "topsis_rank_map", args.out)
+    map_rank(gdf, prom, "promethee_rank", "Pará — PROMETHEE II: ranking municipal de prioridade", "promethee_ii_rank_map", args.out)
+    map_rank(gdf, topsis, "topsis_contrast_rank", "Pará — TOPSIS: ranking municipal de prioridade", "topsis_rank_map", args.out)
 
     metadata = {
         "corrected_od_run": 33089335405,
@@ -209,6 +251,8 @@ def main() -> None:
         "promethee_ranked": int(prom["promethee_rank"].notna().sum()),
         "ibge_boundary_release": "PA_Municipios_2023.zip",
         "ibge_boundary_url": IBGE_PA_2023,
+        "map_crs": "EPSG:5880 — SIRGAS 2000 / Brazil Polyconic",
+        "cartographic_elements": ["title", "legend", "scale_bar", "north_arrow", "source_and_year"],
     }
     (args.out / "publication_metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
     write_readme(args.out, prom, topsis, metadata)
