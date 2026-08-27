@@ -2,9 +2,9 @@
 
 ## Status
 
-**REVALIDATED / ready for final sensitivity closure.** The first PROMETHEE II/TOPSIS numerical execution is superseded and must not be used. The authoritative corrected recomputation is workflow run `33090126353`, based on corrected backbone/OD run `33089335405`.
+**CLOSED for MCDM specification, reference ranking, and robustness/sensitivity analysis.** The first PROMETHEE II/TOPSIS numerical execution is permanently superseded and must not be used. The authoritative corrected recomputation is workflow run `33090126353`, based on corrected backbone/OD run `33089335405`. The authoritative workflow path now also points only to the corrected Stage-3 matrix; validated rerun `33090888653` prevents accidental regeneration from the obsolete matrix.
 
-PROMETHEE II remains the primary ranking method, TOPSIS the independent contrast, and 10,000 weight draws the weight-robustness layer.
+PROMETHEE II is the primary ranking method, TOPSIS is the independent contrast, 10,000 weight draws form the weight-robustness layer, and a 12-scenario preference-function/scaling audit closes specification sensitivity.
 
 ## Locked analytical safeguards
 
@@ -41,7 +41,7 @@ Income, poverty, schooling, race/color and female age structure are reserved for
 
 The model represents **priority need/burden**. Lower reachable-service fraction and lower share within 120 min increase priority need; larger nearest/median travel times increase priority need; institutional absence increases priority need; and larger female rural share represents greater territorial burden. The implementation transforms criteria to a common priority direction before PROMETHEE/TOPSIS.
 
-## Reference weights and robustness
+## Reference weights and weight robustness
 
 Reference weights are equal at criterion level (`1/9` each) as a transparent neutral reference, not as a claim of substantive truth. This gives 4/9 to accessibility criteria, 4/9 to institutional deficits and 1/9 to rurality under the reference configuration.
 
@@ -50,9 +50,13 @@ Weight uncertainty is assessed with 10,000 draws from `Dirichlet(1,...,1)` over 
 - 5th percentile: 0.6855;
 - 95th percentile: 0.9741.
 
+Rank acceptability is therefore reported alongside the reference rank rather than treating one weight vector as uniquely true.
+
 ## TOPSIS contrast
 
 TOPSIS is a cross-method check on complete transformed alternatives. Afuá is not given invented accessibility values merely to force TOPSIS completeness. PROMETHEE II remains primary because its implementation can retain Afuá using only pairwise-comparable observed criteria while explicitly flagging its reduced evidence completeness.
+
+On the 143 complete comparable municipalities, corrected PROMETHEE II and TOPSIS rankings have Spearman agreement of approximately **0.9984**, indicating that the broad ordering is not dependent on the primary MCDM family alone.
 
 ## Bounded network correction
 
@@ -95,7 +99,7 @@ Authoritative corrected OD run: `33089335405`.
 
 ## Corrected Stage 3
 
-Authoritative corrected Stage-3/Stage-4 run: `33090126353`.
+Authoritative corrected Stage-3/Stage-4 recomputation: run `33090126353`.
 - municipalities retained: 144;
 - candidate criteria: 9;
 - maximum missing fraction: 1/144 (`0.006944...`);
@@ -124,4 +128,33 @@ The corrected reference ranking begins:
 
 Santa Cruz do Arari remains highly prioritized because of its observed long travel times and institutional deficits, not because of artificial graph disconnection. Colares falls from the invalid pre-correction first position to 11th after the real ferry connection is restored.
 
-This corrected reference ranking is authorized for the final sensitivity stage but is **not yet the final manuscript policy ranking**. Preference-function/scaling sensitivity and final rank-stability summaries must be closed before the MCDM stage is frozen for manuscript reporting.
+## Preference-function and scaling sensitivity
+
+Authoritative sensitivity run: `33090728785`, artifact `stage4-preference-scaling-sensitivity`.
+
+Twelve equal-weight scenarios combine:
+- three scaling regimes: reference min-max, 5th/95th percentile winsorized min-max, and percentile/rank scaling;
+- four PROMETHEE preference mappings: reference linear V-shape (`p=1`), stronger V-shape (`p=0.5`), strong V-shape (`p=0.25`), and discontinuous usual preference as a stress test.
+
+Across the 12 scenarios relative to the locked reference:
+- minimum Spearman: **0.8700**;
+- median Spearman: **0.9176**;
+- minimum top-10 overlap: **7/10**;
+- minimum top-quartile overlap: **27/36**;
+- maximum individual rank shift: 71 positions, concentrated outside the most stable priority core and under aggressive/discontinuous stress specifications.
+
+The discontinuous usual-preference specification is treated as a stress test, not as a preferred model.
+
+A stable high-priority core is visible across all 12 scenarios: **Senador José Porfírio, Bagre, Bannach, Santa Maria das Barreiras, Piçarra and Trairão** remain in the top 10 in 100% of preference/scaling scenarios. Santa Cruz do Arari remains top-10 in 83.3% of these scenarios and top-quartile in 100%. Colares is more specification-sensitive (top-10 in 25%, top-quartile in 100%). Afuá remains coverage-limited and is never interpreted as an equally complete ranked alternative.
+
+## Manuscript interpretation
+
+The study should report the corrected equal-weight PROMETHEE II ordering as the **reference prioritization**, accompanied by:
+- weight-driven rank acceptability/probabilities;
+- PROMETHEE–TOPSIS cross-method agreement;
+- preference/scaling scenario stability;
+- explicit Afuá coverage limitation.
+
+The MCDM result is therefore not presented as a deterministic statement that rank 1 is intrinsically different from rank 2. The robust output is the combination of reference rank, top-k stability and rank uncertainty under defensible analytical assumptions.
+
+The MCDM stage is now closed for the current study specification. The next formal analytical stage is SOM/profile analysis using the socioeconomic and demographic variables deliberately reserved outside the MCDM.
