@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This note records the restrained sociodemographic decision made before final MCDM specification. Demographic composition is not interpreted as a proxy for violence incidence, reporting propensity, or demand. Variables are retained only when they have a defensible analytical role and survive missingness/redundancy review.
+This note records the final sociodemographic decision made before MCDM specification. Demographic and socioeconomic composition is not interpreted as a proxy for violence incidence, reporting propensity, or demand. The MCDM is restricted to access, institutional response and territorial rurality; broader socioeconomic and demographic descriptors are reserved for SOM and subsequent profile interpretation.
 
 ## Census source and coverage
 
@@ -10,17 +10,17 @@ The frozen IBGE Census 2022 sector artifact contains 16,714 Pará census sectors
 
 The 220 sectors with missing `SITUACAO` carry zero observed female population, so the observed rural female share can be aggregated without inventing an urban/rural class for populated sectors.
 
-Female age-band information is less complete: 12,014 sectors have the required female age bands complete and 4,700 do not. Municipal coverage of observed female population by age-complete sectors ranges from 0.6123 to 1.0000 (median 0.9274; mean 0.9126). This uneven coverage precludes automatic promotion of age structure into the core MCDM matrix at this stage.
+Female age-band information is less complete: 12,014 sectors have the required female age bands complete and 4,700 do not. Municipal coverage of observed female population by age-complete sectors ranges from 0.6123 to 1.0000 (median 0.9274; mean 0.9126). This uneven coverage precludes use of age structure as a core MCDM criterion.
 
-## Decisions
+## Final decisions
 
-### Retain for final criterion-consolidation review
+### Retain in MCDM candidate set
 
 `criterion__rural_female_share`
 
 Definition: observed female population in Census 2022 rural sectors divided by observed female population in the municipality.
 
-Reason: rurality expresses territorial context that can constrain practical access and institutional reach, while remaining conceptually distinct from the municipal network-accessibility summaries.
+Reason: rurality is treated here as a territorial condition directly related to the practical organization of access and institutional reach in the Amazonian context, rather than as a generic socioeconomic vulnerability score.
 
 Statistical audit with the eight pre-existing candidate criteria:
 
@@ -32,17 +32,25 @@ Statistical audit with the eight pre-existing candidate criteria:
 - strongest absolute association with an accessibility criterion is 0.2769 (Spearman, nearest reachable service time);
 - mean rural female share = 0.3752, median = 0.3900, range = 0.0027–0.7923.
 
-Interpretation: rural female share is not a statistical duplicate of the current accessibility or institutional indicators. It remains a candidate, not yet an automatically weighted MCDM criterion.
+### Reserve for SOM / descriptive profiling, not MCDM
 
-### Retain for SOM / diagnostic sensitivity, not core MCDM
+The following socioeconomic and demographic information will not directly determine municipal priority in the MCDM:
 
-Female age structure among age-covered population:
+- income / poverty;
+- education / literacy;
+- race / color / ethnicity;
+- female age structure;
+- other socioeconomic composition variables that may be added later for profile characterization.
+
+Rationale: these variables are analytically valuable for identifying and interpreting municipal profiles and structural inequalities, but using them directly as ranking criteria would introduce stronger normative assumptions, potential double counting of vulnerability, and in some cases ethically problematic interpretations. The SOM will be used to characterize patterns rather than to reproduce the MCDM ranking.
+
+Female age structure among age-covered population remains available for SOM / diagnostic analysis:
 
 - female 15–29 share;
 - female 30–59 share;
 - female 60+ share.
 
-Reason: useful for descriptive/unsupervised pattern exploration, but municipal age coverage is uneven because suppressed/unavailable sector bands are not inferred. Age composition must not be treated as a direct VAW-risk score.
+Age composition must not be interpreted as a direct VAW-risk score.
 
 ### Exclude from core MCDM criteria
 
@@ -50,15 +58,9 @@ Female population total.
 
 Reason: population magnitude is already used as an aggregation/weighting support for accessibility. Adding it as an MCDM criterion would risk double counting municipal size/exposure.
 
-### Deferred pending dedicated source/theory audit
+## Final MCDM candidate set after Stage 3
 
-Income, literacy/education, race/color/ethnicity and other socioeconomic variables.
-
-Reason: they should not enter simply because official Census tables exist. Before inclusion, each needs an explicit construct, denominator, suppression/missingness rule, temporal compatibility assessment, ethical interpretation, and redundancy analysis against rurality/access/institutional indicators.
-
-## Current candidate set after this decision
-
-The statistical audit currently evaluates nine candidate criteria:
+The MCDM proceeds with nine candidate criteria:
 
 1. reachable service fraction;
 2. services reachable within 120 minutes fraction;
@@ -72,6 +74,6 @@ The statistical audit currently evaluates nine candidate criteria:
 
 Across these nine candidates, no pair exceeds the configured absolute correlation threshold of 0.80, no VIF reaches 5, maximum VIF is 3.3861, and PCA is not required.
 
-## Remaining requirement before MCDM
+## Stage 3 gate decision
 
-The nine-variable set is statistically admissible under the configured diagnostics, but final MCDM readiness still requires conceptual indicator consolidation, criterion direction/scaling decisions, treatment of structural missing access values (Afuá versus true unreachable cases), explicit temporal-compatibility statement, and then selection of the MCDM method and weighting/robustness strategy.
+The statistical and conceptual indicator-consolidation gate is closed. Broader socioeconomic/demographic descriptors are reserved for SOM. The next formal step is MCDM specification: criterion direction/scaling, explicit handling of structural missing access values, final temporal-compatibility statement, method comparison/selection, and weighting/robustness strategy.
