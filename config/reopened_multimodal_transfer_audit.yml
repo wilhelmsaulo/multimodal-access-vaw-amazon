@@ -28,7 +28,7 @@ municipalities:
       temporal_evidence_status: historical_academic_candidate_not_currently_locked
       temporal_candidate_crossing_min: 10
       temporal_candidate_provenance: academic_publication_2015_describing_local_crossing
-      waiting_time_status: pending
+      waiting_time_status: unresolved_not_fabricated
       allowed_in_od: false
     evidence:
       - type: official_state_road_definition
@@ -36,9 +36,7 @@ municipalities:
       - type: municipal_official
         note: Colares access to the continent is currently by ferry; bridge construction does not justify assuming bridge availability.
       - type: academic_transport_description
-        note: Published local description reports approximately 10 minutes for the Penhalonga-to-island ferry crossing; retained as a temporal candidate/sensitivity value, not silently treated as a 2026 observation.
-      - type: user_supplied_map_reference
-        note: Porto da Balsa Penhalonga/Colares location supplied for terminal disambiguation only; map geometry is not converted to time.
+        note: Published local description reports approximately 10 minutes for the crossing; retained as a temporal candidate/sensitivity value, not claimed as a 2026 observation.
 
   - municipality_code: '1506401'
     municipality_name: Santa Cruz do Arari
@@ -53,42 +51,48 @@ municipalities:
       temporal_candidate_provenance: TRE_PA_2022_official_resolution_approximately_7_hours_by_launch
       current_schedule_status: validated_for_service_existence_2026
       current_duration_status: not_validated_2026
-      waiting_time_status: pending
+      waiting_time_status: unresolved_not_fabricated
       allowed_in_od: false
     evidence:
       - type: uploaded_technical_report
-        note: Report documents approximately 115 km straight-line distance, about 13 h by ship historically, access to Belem by launch, and referrals to Belem, Soure and Cachoeira do Arari.
+        note: Report documents historical access to Belem by launch and referrals to Belem, Soure and Cachoeira do Arari.
       - type: current_public_schedule_2026
-        note: July/August 2026 Belem terminal schedules list Santa Cruz do Arari repeatedly, confirming ongoing regular passenger service.
+        note: Belem terminal schedules list Santa Cruz do Arari, confirming current passenger-hydro service existence.
       - type: official_TRE_PA_2022
-        note: Official electoral planning material states approximately 7 hours by launch from Belem to Santa Cruz do Arari and approximately 4 hours from Cachoeira do Arari. The 7 h value is retained as an evidence-backed temporal candidate, not claimed as a 2026 measured duration.
-      - type: state_regulatory_history
-        note: State transport regulator previously authorized the Belem/Santa Cruz do Arari passenger line using the municipal port and Belem Hydro Terminal.
+        note: Official material states approximately 7 hours by launch from Belem; retained as temporal candidate, not a 2026 measured duration.
 
   - municipality_code: '1500305'
     municipality_name: Afua
     previous_status: no_primary_routing_ready_origin
-    revised_diagnosis: hydro_first_origin_required_but_para_surface_route_unvalidated
+    revised_diagnosis: final_scope_limited_hydro_first_case
     transfer:
       mode: hydro_first
       para_only_destination_policy: true
       macapa_route_status: validated_current_but_excluded_from_primary_model
-      para_surface_route_status: not_validated_currently
-      air_to_belem_status: validated_current_but_excluded_from_ordinary_access_baseline
-      temporal_evidence_status: pending_for_any_para_surface_route
+      para_surface_route_status: insufficient_operational_temporal_evidence
+      afua_chaves_status: hydrographically_plausible_but_no_regular_passenger_edge_authorized
+      air_to_belem_status: excluded_from_ordinary_access_baseline
+      temporal_evidence_status: not_available_for_primary_para_surface_edge
       allowed_in_od: false
+    final_policy:
+      status: coverage_scope_limited
+      reopen_route_search: false
+      interpretation: absence_of_defensible_para_surface_temporal_edge_is_reported_as_model_scope_limitation_not_real_world_isolation
+      mcdm_rule: keep_access_time_criteria_missing_and_do_not_assign_synthetic_penalty
+      discussion_rule: discuss strong Macapa functional influence and exceptional territorial complexity outside the primary Para-only accessibility calculation
     evidence:
       - type: municipal_official_current_2026
-        note: Municipality states the island's regular line boats are Afua-Macapa; its Belem-Afua listing is by small-aircraft operator.
+        note: Municipality lists regular line boats Afua-Macapa; Belem-Afua is listed by small aircraft.
+      - type: ministry_transport_hydro_map_2023
+        note: Afua and Chaves lie in the navigable northern Marajo hydrographic system; this supports hydrographic plausibility only, not passenger time.
+      - type: current_PREVBarco_2026
+        note: Sequential Afua and Chaves service confirms practical vessel navigation in the area but is not public passenger transport.
       - type: model_scope
-        note: Macapa functional influence is retained for discussion/context but not used to expand the primary Para service destination universe.
-      - type: interpretation
-        note: Under the locked Para-only surface ordinary-access baseline, current evidence does not yet justify a Para-bound passenger-hydro temporal edge for Afua.
+        note: Macapa influence is context/discussion only; primary destination services remain in Para.
 
 required_actions:
-  - seek a current operational source for Colares ferry crossing duration and waiting/frequency; until then use 10 min only as sensitivity candidate if scientifically necessary
-  - seek a current operational Santa Cruz do Arari travel duration; until then retain 420 min as official-2022 sensitivity candidate and historical 13 h ship value only as older context
-  - continue targeted search for a current Para-bound passenger surface route for Afua; if none is validated, retain Afua as a documented scope-limited/coverage-limited case rather than fabricate connectivity
-  - audit all road-hydro transfer terminals statewide because the frozen final backbone materialized only Muana, Soure and Moju as terminal identities
-  - rebuild OD only after every primary added transfer edge has evidence-backed temporal impedance under the declared reference policy
-  - rerun municipal accessibility/E2SFCA outputs affected by routing, Stage 3 statistical audit, and Stage 4 MCDM
+  - close open-ended Afua route search under the final scope-limited policy above
+  - perform one bounded statewide screen for omitted road-hydro and hydro-hydro transfer candidates
+  - prioritize only candidates with concrete evidence of passenger/ferry operation; do not investigate every mapped waterway
+  - rebuild the corrected OD only after selected added transfer edges have evidence-backed temporal impedance or an explicitly declared sensitivity value
+  - rerun routing-dependent accessibility/E2SFCA outputs, Stage 3 audit, and Stage 4 MCDM
