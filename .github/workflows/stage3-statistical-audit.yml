@@ -10,6 +10,7 @@ on:
       - 'src/analysis/revise_municipal_access_candidates.py'
       - 'src/analysis/stage3_statistical_audit.py'
       - 'src/analysis/audit_special_municipalities.py'
+      - 'src/analysis/audit_afua_upstream.py'
       - '.github/workflows/stage3-statistical-audit.yml'
 
 permissions:
@@ -45,6 +46,22 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: wilhelmsaulo/multimodal-access-vaw-amazon
           run-id: 32945266691
+      - name: Download upstream nominal origin evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-origin-network-access-evidence
+          path: artifacts/origin_nominal
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32785322254
+      - name: Download upstream empirical origin attachments
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-direct-attachment-transferability
+          path: artifacts/origin_empirical
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: wilhelmsaulo/multimodal-access-vaw-amazon
+          run-id: 32861477674
       - name: Build municipal accessibility matrix
         run: |
           python src/analysis/build_municipal_access_matrix.py \
@@ -67,9 +84,13 @@ jobs:
             --endpoints-dir artifacts/endpoints \
             --od artifacts/od/od_reference_network.csv.gz \
             --out artifacts/special_municipality_audit
-      - name: List frozen endpoint evidence files
+      - name: Trace Afua through upstream attachment evidence
         run: |
-          find artifacts/endpoints -maxdepth 2 -type f -print | sort
+          python src/analysis/audit_afua_upstream.py \
+            --nominal-dir artifacts/origin_nominal \
+            --empirical-dir artifacts/origin_empirical \
+            --endpoints-dir artifacts/endpoints \
+            --out artifacts/afua_upstream_audit
       - name: Upload Stage 3 source matrix
         uses: actions/upload-artifact@v4
         with:
@@ -96,5 +117,12 @@ jobs:
         with:
           name: stage3-special-municipality-audit
           path: artifacts/special_municipality_audit
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload Afua upstream forensic audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage3-afua-upstream-audit
+          path: artifacts/afua_upstream_audit
           if-no-files-found: error
           retention-days: 30
