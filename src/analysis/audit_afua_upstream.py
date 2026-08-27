@@ -56,7 +56,7 @@ def audit(nominal_dir: Path, empirical_dir: Path, endpoints_dir: Path, out_dir: 
         "direct_primary_empirical": read_csv(empirical_dir, "direct_primary_empirical_node_attachments.csv.gz", dtype={"origin_id": str}),
         "local_topology_empirical": read_csv(empirical_dir, "local_topology_empirical_node_attachments.csv.gz", dtype={"origin_id": str}),
         "gated_pedestrian": read_csv(empirical_dir, "gated_local_pedestrian_access_times.csv.gz", dtype={"origin_id": str}),
-        "local_access_to_primary_motor": read_csv(empirical_dir, "origin_local_access_to_primary_motor.csv.gz", dtype={"origin_id": str}),
+        "local_access_to_primary_motor": read_csv(nominal_dir, "origin_local_access_to_primary_motor.csv.gz", dtype={"origin_id": str}),
     }
 
     endpoints = read_csv(endpoints_dir, "origin_routing_endpoints.csv.gz", dtype={"origin_id": str, "municipality_code": str})
@@ -93,7 +93,6 @@ def audit(nominal_dir: Path, empirical_dir: Path, endpoints_dir: Path, out_dir: 
 
     per_origin["primary_routing_ready"] = per_origin["origin_id"].isin(set(afua_endpoints["origin_id"].astype(str)))
 
-    # Infer conservative exclusion categories using only membership in frozen evidence classes.
     per_origin["in_any_structural_attachment"] = per_origin[[
         "in_nominal_cartographic", "in_direct_primary_empirical", "in_local_topology_empirical"
     ]].any(axis=1)
@@ -112,7 +111,6 @@ def audit(nominal_dir: Path, empirical_dir: Path, endpoints_dir: Path, out_dir: 
 
     per_origin["forensic_class"] = per_origin.apply(classify, axis=1)
 
-    # Summarize categorical/policy columns for Afuá without assuming their names.
     likely_policy_tokens = ("class", "status", "policy", "road", "highway", "path", "track", "mode", "usable", "primary", "reason", "access")
     value_profiles = {}
     for label, df in datasets.items():
@@ -130,7 +128,6 @@ def audit(nominal_dir: Path, empirical_dir: Path, endpoints_dir: Path, out_dir: 
 
     class_counts = {str(k): int(v) for k, v in per_origin["forensic_class"].value_counts().items()}
 
-    # Determine whether current frozen evidence supports automatic repair.
     unexpected = per_origin[per_origin["forensic_class"].str.contains("unexpected", na=False)]
     if len(unexpected):
         repair_recommendation = (
