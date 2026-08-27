@@ -1,111 +1,42 @@
 # Stage 4 MCDM specification
 
-## Decision objective
+## Status
 
-Prioritize the 144 municipalities of Pará according to observed deficits in multimodal access, specialized response-system presence, and rural territorial exposure. The score is a prioritization-support construct; it is not an estimate of violence incidence, individual risk, reporting propensity, or causal effect.
+**BLOCKED / diagnostic only.** The first PROMETHEE II/TOPSIS execution is not a valid final prioritization because the frozen multimodal backbone was subsequently found to omit real-world transfer connectivity affecting Colares, Santa Cruz do Arari and Afuá, with evidence of a broader road–hydro terminal coverage problem. No manuscript result may use the current Stage 4 ranking until the network, OD, municipal accessibility indicators and Stage 3 diagnostics are regenerated.
 
-## Primary and contrast methods
+## Primary method after revalidation
 
-- Primary: PROMETHEE II.
-- Contrast: TOPSIS on alternatives with complete transformed scores.
-- Robustness: 10,000 weight draws from Dirichlet(1,...,1), fixed seed 20260827.
+PROMETHEE II remains the planned primary ranking method, with TOPSIS as an independent contrast and 10,000 weight draws for robustness. This model choice is retained provisionally; numerical outputs are discarded pending corrected accessibility inputs.
 
-PROMETHEE II is used because the study requires a complete prioritization ordering while preserving pairwise preference logic and an explicit treatment of structural missingness. TOPSIS is retained as an independent contrast rather than a second co-primary ranking.
+## Locked analytical safeguards
 
-## Locked nine-criterion set
+- decision universe: 144 municipalities of Pará;
+- destination service universe: services located in Pará;
+- interstate functional influences (e.g., Afuá–Macapá): discussion/context only in the primary model;
+- no synthetic travel times;
+- no cartographic-distance-to-time conversion;
+- no invented vessel speed;
+- no unvalidated waiting time;
+- no classification of a municipality as truly unreachable when an evidence-backed transfer is absent from the graph.
 
-1. reachable service fraction;
-2. services reachable within 120 minutes fraction;
-3. nearest reachable service time;
-4. median reachable service time;
-5. absence of specialized health response;
-6. absence of CREAS;
-7. absence of specialized security;
-8. absence of specialized justice;
-9. rural female share.
+## Reopened transfer cases
 
-Income/poverty, education, race/color/ethnicity and female age structure are reserved for SOM/profile analysis and are not part of the core MCDM.
+### Colares
 
-## Direction and scaling
+The former zero-reachability result is invalid as a real-world accessibility statement. Thirty-three routing-ready origins were attached to local road nodes, but the PA-238 Furo da Laura/Penhalonga ferry transfer was absent from the frozen graph. Official sources confirm the corridor and current ferry-based continental access. Topology is therefore validated; current temporal impedance remains pending.
 
-All transformed values are oriented so higher means greater prioritization need.
+### Santa Cruz do Arari
 
-- Reachable-service fractions: `1 - observed fraction`.
-- Finite travel times: min-max scaling among finite observed municipal times.
-- Tested-unreachable travel-time state: ordered as worse than every finite observed time using normalized state 1; no synthetic number of minutes is created.
-- Institutional absence criteria: identity binary deficit (1 = absence).
-- Rural female share: identity proportion; interpreted as territorial exposure/context, not VAW risk.
-
-PROMETHEE preference function: linear V-shape on the locked [0,1] priority-need scale, q=0 and p=1.
-
-## Reference weights
-
-Reference configuration uses equal criterion weights: 1/9 each.
-
-This implies macro totals of:
-
-- multimodal access: 4/9;
-- institutional response: 4/9;
-- rural territorial context: 1/9.
-
-No subjective macro-weight vector is treated as truth. Weight uncertainty is evaluated explicitly in robustness analysis.
-
-## Structural missingness
+The former zero-reachability result is invalid as a real-world accessibility statement. Eight routing-ready origins were attached locally, but the passenger-hydro connection was absent from the graph. The uploaded technical report documents the route structure to Belém and referrals to Belém, Soure and Cachoeira do Arari; current 2026 passenger schedules independently confirm active Santa Cruz do Arari service. Current route duration still requires validation before OD inclusion.
 
 ### Afuá
 
-Afuá is a network-coverage limitation, not observed inaccessibility. Its unavailable access criteria remain NA. In PROMETHEE pairwise comparisons, unavailable criteria are excluded and weights are renormalized over mutually observed criteria. The resulting rank is always flagged as coverage-limited and cannot be interpreted as having the same evidential completeness as fully comparable municipalities. TOPSIS does not rank Afuá.
+The former absence of routing-ready origins reflects a terrestrial-biased origin-promotion problem. Current municipal evidence confirms hydro dependence and regular Afuá–Macapá boats, but Macapá is excluded from the primary Pará-only destination-service model. Afuá must be rebuilt with hydro-first origin eligibility and may enter the corrected primary OD only if a Pará-bound surface route with defensible temporal impedance is validated for the study reference period.
 
-### Colares and Santa Cruz do Arari
+## Structural backbone warning
 
-Both municipalities have routing-ready origins and the full frozen service set was tested, with zero reachable pairs. Their observed reachability fractions remain zero. Travel-time summaries remain undefined in minutes; for MCDM ordering only, the tested-unreachable state is treated as worse than any finite observed travel time. This is an ordinal rule and does not impute a finite or infinite travel time.
+The frozen final multimodal-backbone artifact materialized only three road–hydro terminal identities: **Muaná, Soure and Moju**. This is not sufficient evidence that only those three transfers exist in reality. It is a structural coverage warning that requires a full transfer-terminal audit before regenerating the reference OD.
 
-## First successful execution
+## Reference weighting retained provisionally
 
-GitHub Actions run: `33071726376`.
-
-Artifact: `stage4-mcdm-reference-and-robustness`.
-
-Reference top positions:
-
-1. Colares;
-2. Santa Cruz do Arari;
-3. Senador José Porfírio;
-4. Santa Maria das Barreiras;
-5. Bannach;
-6. Trairão;
-7. Bagre;
-8. Piçarra;
-9. Pau D'Arco;
-10. Palestina do Pará.
-
-Afuá is 16th in the reference PROMETHEE execution, but the rank is explicitly coverage-limited and based on partial criterion comparability; its mean pairwise comparable reference-weight fraction is approximately 0.556.
-
-PROMETHEE II versus TOPSIS Spearman correlation among the 143 TOPSIS-comparable municipalities is approximately 0.9981.
-
-## Weight robustness
-
-10,000 Dirichlet weight draws were executed.
-
-Spearman correlation of each draw against the equal-weight PROMETHEE reference ranking:
-
-- median: 0.8945;
-- 5th percentile: 0.7042;
-- 95th percentile: 0.9710.
-
-Selected top-10 probabilities:
-
-- Colares: 0.9999;
-- Senador José Porfírio: 0.9614;
-- Santa Cruz do Arari: 0.9516;
-- Bannach: 0.8787;
-- Santa Maria das Barreiras: 0.8638;
-- Trairão: 0.8156;
-- Piçarra: 0.7475;
-- Bagre: 0.7100.
-
-The broad Dirichlet stress test intentionally permits highly uneven criterion weights. Therefore extreme best/worst ranks are sensitivity information rather than point-estimate uncertainty intervals.
-
-## Interpretation gate
-
-The current result is the locked Stage 4 reference execution, not yet the manuscript-final policy ranking. Before final manuscript interpretation, the next analysis should audit scale/preference-function sensitivity and summarize rank acceptability/stability, particularly for municipalities whose ranking is highly weight-sensitive and for Afuá's coverage-limited comparison.
+If the corrected Stage 3 matrix retains the same nine criteria, the reference execution will again begin with equal criterion weights (1/9 each), followed by systematic/Monte Carlo weight variation. If the corrected accessibility matrix changes the criterion set or redundancy structure, weights will be re-specified after the repeated Stage 3 audit.
