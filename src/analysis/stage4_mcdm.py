@@ -73,8 +73,6 @@ def build_need_scores(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
         scaled = minmax(raw)
         true_unreachable = frame["accessibility_coverage_status"].eq(STATUS_TRUE_UNREACHABLE)
         coverage_limit = frame["accessibility_coverage_status"].eq(STATUS_COVERAGE_LIMIT)
-        # A tested municipality with no finite route is ordinally worse than every finite time,
-        # but no synthetic number of minutes is created. Coverage limitations remain missing.
         scaled.loc[true_unreachable] = 1.0
         scaled.loc[coverage_limit] = np.nan
         scores[col] = scaled
@@ -99,8 +97,6 @@ def build_need_scores(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
 
 
 def preference_tensor(scores: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    # P[j,a,b] = degree to which a is preferred to b on criterion j.
-    # Linear V-shape on the locked [0,1] need scale, p=1, q=0.
     n, k = scores.shape
     pref = np.zeros((k, n, n), dtype=np.float32)
     avail = np.zeros((k, n, n), dtype=np.float32)
@@ -133,15 +129,22 @@ def ranks_desc(values: np.ndarray) -> np.ndarray:
     return pd.Series(values).rank(method="min", ascending=False).astype(int).to_numpy()
 
 
+def rank_correlation(rank_a: np.ndarray, rank_b: np.ndarray) -> float:
+    a = np.asarray(rank_a, dtype=float)
+    b = np.asarray(rank_b, dtype=float)
+    if np.isclose(a.std(), 0.0) or np.isclose(b.std(), 0.0):
+        return float("nan")
+    return float(np.corrcoef(a, b)[0, 1])
+
+
 def topsis_contrast(scores: np.ndarray, weights: np.ndarray, coverage_limit_mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    # TOPSIS contrast is intentionally restricted to alternatives with complete transformed scores.
     complete = np.isfinite(scores).all(axis=1) & ~coverage_limit_mask
     out_score = np.full(scores.shape[0], np.nan, dtype=float)
     out_rank = np.full(scores.shape[0], np.nan, dtype=float)
     x = scores[complete]
     w = weights / weights.sum()
     weighted = x * w
-    ideal = w  # all need scores = 1
+    ideal = w
     anti = np.zeros_like(w)
     d_ideal = np.linalg.norm(weighted - ideal, axis=1)
     d_anti = np.linalg.norm(weighted - anti, axis=1)
@@ -185,7 +188,7 @@ def monte_carlo(pref: np.ndarray, avail: np.ndarray, reference_net: np.ndarray, 
             rank_max = np.maximum(rank_max, r)
             top10 += (r <= 10)
             top_quartile += (r <= top_quartile_n)
-            spearman[done + i] = pd.Series(r).corr(pd.Series(ref_rank), method="spearman")
+            spearman[done + i] = rank_correlation(r, ref_rank)
         done += b
 
     mean = rank_sum / draws
@@ -220,7 +223,6 @@ def main() -> None:
 
     coverage_limit = frame["accessibility_coverage_status"].eq(STATUS_COVERAGE_LIMIT).to_numpy()
     topsis_score, topsis_rank = topsis_contrast(scores, weights, coverage_limit)
-
     robust = monte_carlo(pref, avail, net, args.draws, args.seed)
 
     out = frame[["municipality_code", "municipality_name", "accessibility_coverage_status"]].copy()
@@ -241,9 +243,7 @@ def main() -> None:
     transformed = pd.concat([transformed, scores_df], axis=1)
     transformed.to_csv(args.out / "mcdm_need_scaled_matrix.csv", index=False)
 
-    pd.DataFrame({"criterion": CRITERIA, "reference_weight": weights}).to_csv(
-        args.out / "reference_weights.csv", index=False
-    )
+    pd.DataFrame({"criterion": CRITERIA, "reference_weight": weights}).to_csv(args.out / "reference_weights.csv", index=False)
 
     spearman = robust["spearman"]
     top = out.head(15)[["municipality_code", "municipality_name", "promethee_rank", "promethee_net_flow", "robustness_mean_rank", "robustness_top10_probability"]]
@@ -261,9 +261,9 @@ def main() -> None:
             "draws": args.draws,
             "seed": args.seed,
             "weight_distribution": "Dirichlet(1,...,1) over nine criteria",
-            "spearman_vs_reference_median": float(np.median(spearman)),
-            "spearman_vs_reference_p05": float(np.quantile(spearman, 0.05)),
-            "spearman_vs_reference_p95": float(np.quantile(spearman, 0.95)),
+            "spearman_vs_reference_median": float(np.nanmedian(spearman)),
+            "spearman_vs_reference_p05": float(np.nanquantile(spearman, 0.05)),
+            "spearman_vs_reference_p95": float(np.nanquantile(spearman, 0.95)),
         },
         "coverage_limited_alternatives": int(coverage_limit.sum()),
         "top15_reference": top.to_dict(orient="records"),
@@ -282,7 +282,7 @@ def main() -> None:
         "",
         f"Robustness: {args.draws:,} Dirichlet weight draws, seed {args.seed}.",
         "",
-        f"Median Spearman against reference ranking: {np.median(spearman):.4f} (5th–95th percentile {np.quantile(spearman,0.05):.4f}–{np.quantile(spearman,0.95):.4f}).",
+        f"Median Spearman against reference ranking: {np.nanmedian(spearman):.4f} (5th–95th percentile {np.nanquantile(spearman,0.05):.4f}–{np.nanquantile(spearman,0.95):.4f}).",
         "",
         "Afuá is retained with a coverage-limited rank flag and no fabricated access penalty. Colares and Santa Cruz do Arari retain observed zero reachability; tested-unreachable travel-time states are ordered worse than finite observed times without assigning synthetic minutes.",
         "",
