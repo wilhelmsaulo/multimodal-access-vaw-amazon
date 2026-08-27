@@ -52,7 +52,7 @@ The 10,000 weight draws remain part of the MCDM robustness analysis. Corrected S
 
 ## Closed correction gate
 
-Issue #4 may be closed: the network anomaly that invalidated the first Stage 4 ranking has been bounded, corrected where evidence allowed, propagated through the OD and Stage 3, and revalidated in Stage 4. Afuá remains an explicitly documented scope/coverage limitation rather than an unresolved correction task.
+The network anomaly that invalidated the first Stage 4 ranking has been bounded, corrected where evidence allowed, propagated through the OD and Stage 3, and revalidated in Stage 4. Afuá remains an explicitly documented scope/coverage limitation rather than an unresolved correction task.
 
 ## Remaining Stage 4 work
 
