@@ -1,0 +1,61 @@
+name: stage4-preference-scaling-sensitivity
+
+on:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - 'src/analysis/stage4_preference_scaling_sensitivity.py'
+      - '.github/workflows/stage4-preference-scaling-sensitivity.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  sensitivity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'pandas>=2.2,<3' 'numpy>=2,<3'
+      - name: Download corrected Stage 3 matrix
+        uses: actions/download-artifact@v4
+        with:
+          name: stage3-corrected-after-network-fix
+          path: artifacts/stage3
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 33090126353
+      - name: Run preference and scaling sensitivity
+        run: |
+          python src/analysis/stage4_preference_scaling_sensitivity.py \
+            artifacts/stage3/stage3_sociodemographic/municipal_analytical_matrix_with_sociospatial_candidate.csv \
+            --out artifacts/stage4_preference_scaling
+      - name: Validate sensitivity outputs
+        run: |
+          python - <<'PY'
+          import json,pandas as pd
+          root='artifacts/stage4_preference_scaling'
+          s=json.load(open(f'{root}/preference_scaling_sensitivity_summary.json'))
+          x=pd.read_csv(f'{root}/preference_scaling_scenario_summary.csv')
+          m=pd.read_csv(f'{root}/municipality_preference_scaling_stability.csv')
+          assert s['scenario_count']==12
+          assert len(x)==12
+          assert len(m)==144
+          assert (x['spearman_vs_reference']<=1.0000001).all()
+          print(json.dumps(s,indent=2))
+          print(x.to_string(index=False))
+          print(m.sort_values('rank_range',ascending=False).head(20).to_string(index=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stage4-preference-scaling-sensitivity
+          path: artifacts/stage4_preference_scaling/
+          retention-days: 30
