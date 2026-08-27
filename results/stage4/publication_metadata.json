@@ -1,0 +1,10 @@
+{
+  "corrected_od_run": 33089335405,
+  "stage4_run": 33090126353,
+  "source_artifact": "stage4-mcdm-corrected-after-network-fix",
+  "municipalities": 144,
+  "topsis_complete_ranked": 143,
+  "promethee_ranked": 144,
+  "ibge_boundary_release": "PA_Municipios_2023.zip",
+  "ibge_boundary_url": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2023/UFs/PA/PA_Municipios_2023.zip"
+}

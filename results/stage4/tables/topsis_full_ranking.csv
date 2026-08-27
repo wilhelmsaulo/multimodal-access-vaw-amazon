@@ -1,0 +1,145 @@
+municipality_code,municipality_name,accessibility_coverage_status,topsis_contrast_score,topsis_contrast_rank,coverage_limited_rank_flag,top_10,top_quartile
+1507805,Senador José Porfírio,routing_ready_reachable,0.726918154945951,1.0,False,True,True
+1506401,Santa Cruz do Arari,routing_ready_reachable,0.7010525563973955,2.0,False,True,True
+1501253,Bannach,routing_ready_reachable,0.6805349008264385,3.0,False,True,True
+1506583,Santa Maria das Barreiras,routing_ready_reachable,0.6770843870988513,4.0,False,True,True
+1508050,Trairão,routing_ready_reachable,0.6691117182999854,5.0,False,True,True
+1505635,Piçarra,routing_ready_reachable,0.6606340380325866,6.0,False,True,True
+1505551,Pau D'Arco,routing_ready_reachable,0.6432989572289658,7.0,False,True,True
+1501105,Bagre,routing_ready_reachable,0.6371574888835395,8.0,False,True,True
+1505494,Palestina do Pará,routing_ready_reachable,0.6247543641019561,9.0,False,True,True
+1502608,Colares,routing_ready_reachable,0.6188077316196973,10.0,False,True,True
+1507755,Sapucaia,routing_ready_reachable,0.6169434992506079,11.0,False,False,True
+1503408,Inhangapi,routing_ready_reachable,0.6009189869447629,12.0,False,False,True
+1500131,Abel Figueiredo,routing_ready_reachable,0.5984745430328525,13.0,False,False,True
+1502764,Cumaru do Norte,routing_ready_reachable,0.5984415131226126,14.0,False,False,True
+1501006,Aveiro,routing_ready_reachable,0.5952956575624956,15.0,False,False,True
+1504000,Limoeiro do Ajuru,routing_ready_reachable,0.591480445050639,16.0,False,False,True
+1503754,Jacareacanga,routing_ready_reachable,0.5896473647474095,17.0,False,False,True
+1507961,Terra Alta,routing_ready_reachable,0.5891555674739701,18.0,False,False,True
+1504752,Mojuí dos Campos,routing_ready_reachable,0.5860398367089321,19.0,False,False,True
+1506005,Prainha,routing_ready_reachable,0.5833235534163941,20.0,False,False,True
+1505031,Novo Progresso,routing_ready_reachable,0.582323336230295,21.0,False,False,True
+1504455,Medicilândia,routing_ready_reachable,0.578742063842717,22.0,False,False,True
+1501451,Belterra,routing_ready_reachable,0.577893145681407,23.0,False,False,True
+1505650,Placas,routing_ready_reachable,0.5775225705166522,24.0,False,False,True
+1504802,Monte Alegre,routing_ready_reachable,0.5751160830441648,25.0,False,False,True
+1500404,Alenquer,routing_ready_reachable,0.5747305539804527,26.0,False,False,True
+1502509,Chaves,routing_ready_reachable,0.5746392962794346,27.0,False,False,True
+1500347,Água Azul do Norte,routing_ready_reachable,0.5728087048738133,28.0,False,False,True
+1500859,Anapu,routing_ready_reachable,0.5711978763774593,29.0,False,False,True
+1501725,Brasil Novo,routing_ready_reachable,0.5709384445454389,30.0,False,False,True
+1503044,Floresta do Araguaia,routing_ready_reachable,0.5697155762332974,31.0,False,False,True
+1505205,Oeiras do Pará,routing_ready_reachable,0.5690592004300213,32.0,False,False,True
+1504505,Melgaço,routing_ready_reachable,0.5676570782963106,33.0,False,False,True
+1504901,Muaná,routing_ready_reachable,0.5648640798469783,34.0,False,False,True
+1507508,São João do Araguaia,routing_ready_reachable,0.5647163810725452,35.0,False,False,True
+1508159,Uruará,routing_ready_reachable,0.5646417018036303,36.0,False,False,True
+1502806,Curralinho,routing_ready_reachable,0.5644954652941107,37.0,False,False,False
+1502004,Cachoeira do Arari,routing_ready_reachable,0.5637959324099502,38.0,False,False,False
+1505106,Óbidos,routing_ready_reachable,0.5632106738366138,39.0,False,False,False
+1503101,Gurupá,routing_ready_reachable,0.5630275806881787,40.0,False,False,False
+1502707,Conceição do Araguaia,routing_ready_reachable,0.5627092343908346,41.0,False,False,False
+1507706,São Sebastião da Boa Vista,routing_ready_reachable,0.5623102648770186,42.0,False,False,False
+1500701,Anajás,routing_ready_reachable,0.5622777187723252,43.0,False,False,False
+1505064,Novo Repartimento,routing_ready_reachable,0.5612398318547213,44.0,False,False,False
+1503705,Itupiranga,routing_ready_reachable,0.5604089931697085,45.0,False,False,False
+1505304,Oriximiná,routing_ready_reachable,0.5601938842455635,46.0,False,False,False
+1505809,Portel,routing_ready_reachable,0.5601000379217008,47.0,False,False,False
+1505700,Ponta de Pedras,routing_ready_reachable,0.5572584585508787,48.0,False,False,False
+1501758,Brejo Grande do Araguaia,routing_ready_reachable,0.5570378313706316,49.0,False,False,False
+1500503,Almeirim,routing_ready_reachable,0.5563481482853351,50.0,False,False,False
+1507458,São Geraldo do Araguaia,routing_ready_reachable,0.5524734511454376,51.0,False,False,False
+1508084,Tucumã,routing_ready_reachable,0.5509743887610844,52.0,False,False,False
+1506161,Rio Maria,routing_ready_reachable,0.550835165018078,53.0,False,False,False
+1500206,Acará,routing_ready_reachable,0.5496911385308134,54.0,False,False,False
+1502954,Eldorado do Carajás,routing_ready_reachable,0.5495680697011666,55.0,False,False,False
+1501576,Bom Jesus do Tocantins,routing_ready_reachable,0.5490308129513227,56.0,False,False,False
+1507466,São João da Ponta,routing_ready_reachable,0.5489495478499289,57.0,False,False,False
+1501782,Breu Branco,routing_ready_reachable,0.5467503295065756,58.0,False,False,False
+1507201,São Domingos do Capim,routing_ready_reachable,0.5456921828964091,59.0,False,False,False
+1501956,Cachoeira do Piriá,routing_ready_reachable,0.5454695538213568,60.0,False,False,False
+1506302,Salvaterra,routing_ready_reachable,0.5454282418381536,61.0,False,False,False
+1506187,Rondon do Pará,routing_ready_reachable,0.5421768227229298,62.0,False,False,False
+1507151,São Domingos do Araguaia,routing_ready_reachable,0.5415404490568887,63.0,False,False,False
+1503002,Faro,routing_ready_reachable,0.5412764434437117,64.0,False,False,False
+1503093,Goianésia do Pará,routing_ready_reachable,0.5382156991945971,65.0,False,False,False
+1507979,Terra Santa,routing_ready_reachable,0.5375608443338185,66.0,False,False,False
+1503309,Igarapé-Miri,routing_ready_reachable,0.5363901506486015,67.0,False,False,False
+1506906,Santarém Novo,routing_ready_reachable,0.5361528940351117,68.0,False,False,False
+1508035,Tracuateua,routing_ready_reachable,0.5354944229645375,69.0,False,False,False
+1503507,Irituia,routing_ready_reachable,0.5352988668638348,70.0,False,False,False
+1500909,Augusto Corrêa,routing_ready_reachable,0.5345533892280473,71.0,False,False,False
+1501907,Bujaru,routing_ready_reachable,0.5338666718997561,72.0,False,False,False
+1502772,Curionópolis,routing_ready_reachable,0.5336630040754163,73.0,False,False,False
+1503457,Ipixuna do Pará,routing_ready_reachable,0.5335358792015018,74.0,False,False,False
+1504307,Maracanã,routing_ready_reachable,0.5332059140425737,75.0,False,False,False
+1508126,Ulianópolis,routing_ready_reachable,0.5325640955372452,76.0,False,False,False
+1504950,Nova Esperança do Piriá,routing_ready_reachable,0.5300427827773078,77.0,False,False,False
+1504604,Mocajuba,routing_ready_reachable,0.5291841811185717,78.0,False,False,False
+1503077,Garrafão do Norte,routing_ready_reachable,0.527487126002564,79.0,False,False,False
+1508001,Tomé-Açu,routing_ready_reachable,0.527440023378753,80.0,False,False,False
+1504109,Magalhães Barata,routing_ready_reachable,0.5271782318847609,81.0,False,False,False
+1502939,Dom Eliseu,routing_ready_reachable,0.5264394175916721,82.0,False,False,False
+1507102,São Caetano de Odivelas,routing_ready_reachable,0.525278990521895,83.0,False,False,False
+1504406,Marapanim,routing_ready_reachable,0.5245023696430697,84.0,False,False,False
+1503804,Jacundá,routing_ready_reachable,0.5233619300668491,85.0,False,False,False
+1507953,Tailândia,routing_ready_reachable,0.5222511267461607,86.0,False,False,False
+1506559,Santa Luzia do Pará,routing_ready_reachable,0.5220983946814588,87.0,False,False,False
+1502301,Capitão Poço,routing_ready_reachable,0.5215178163222989,88.0,False,False,False
+1502905,Curuçá,routing_ready_reachable,0.5199228091748169,89.0,False,False,False
+1507300,São Félix do Xingu,routing_ready_reachable,0.5197587211454485,90.0,False,False,False
+1503903,Juruti,routing_ready_reachable,0.5175995378051538,91.0,False,False,False
+1507474,São João de Pirabas,routing_ready_reachable,0.5175318194787671,92.0,False,False,False
+1507409,São Francisco do Pará,routing_ready_reachable,0.5167563448312242,93.0,False,False,False
+1502756,Concórdia do Pará,routing_ready_reachable,0.5157366116917856,94.0,False,False,False
+1506104,Primavera,routing_ready_reachable,0.5138692875166828,95.0,False,False,False
+1508357,Vitória do Xingu,routing_ready_reachable,0.5120523355760045,96.0,False,False,False
+1505601,Peixe-Boi,routing_ready_reachable,0.5102506098408496,97.0,False,False,False
+1502855,Curuá,routing_ready_reachable,0.508177893965739,98.0,False,False,False
+1506351,Santa Bárbara do Pará,routing_ready_reachable,0.5075004306092611,99.0,False,False,False
+1507003,Santo Antônio do Tauá,routing_ready_reachable,0.5069872083993051,100.0,False,False,False
+1506112,Quatipuru,routing_ready_reachable,0.505667388253327,101.0,False,False,False
+1508209,Vigia,routing_ready_reachable,0.5051323595170761,102.0,False,False,False
+1506708,Santana do Araguaia,routing_ready_reachable,0.5031169520037154,103.0,False,False,False
+1504059,Mãe do Rio,routing_ready_reachable,0.502974918985619,104.0,False,False,False
+1506203,Salinópolis,routing_ready_reachable,0.5011047272495138,105.0,False,False,False
+1506195,Rurópolis,routing_ready_reachable,0.500635639835527,106.0,False,False,False
+1502103,Cametá,routing_ready_reachable,0.4995084969749463,107.0,False,False,False
+1505908,Porto de Moz,routing_ready_reachable,0.4992370994213342,108.0,False,False,False
+1505486,Pacajá,routing_ready_reachable,0.4990789688060464,109.0,False,False,False
+1505007,Nova Timboteua,routing_ready_reachable,0.4985715002379234,110.0,False,False,False
+1503200,Igarapé-Açu,routing_ready_reachable,0.4981851549667796,111.0,False,False,False
+1507607,São Miguel do Guamá,routing_ready_reachable,0.4981576624376301,112.0,False,False,False
+1506609,Santa Maria do Pará,routing_ready_reachable,0.4981383058786666,113.0,False,False,False
+1506500,Santa Izabel do Pará,routing_ready_reachable,0.4935193708114586,114.0,False,False,False
+1505437,Ourilândia do Norte,routing_ready_reachable,0.4884319120158785,115.0,False,False,False
+1501501,Benevides,routing_ready_reachable,0.4871955468110293,116.0,False,False,False
+1501204,Baião,routing_ready_reachable,0.4848504983797458,117.0,False,False,False
+1504422,Marituba,routing_ready_reachable,0.4845653257414244,118.0,False,False,False
+1504976,Nova Ipixuna,routing_ready_reachable,0.484061214858519,119.0,False,False,False
+1508308,Viseu,routing_ready_reachable,0.4758578803924441,120.0,False,False,False
+1508407,Xinguara,routing_ready_reachable,0.4750045728470196,121.0,False,False,False
+1507904,Soure,routing_ready_reachable,0.4745165734710934,122.0,False,False,False
+1504703,Moju,routing_ready_reachable,0.4738677305772485,123.0,False,False,False
+1502152,Canaã dos Carajás,routing_ready_reachable,0.4733380961451738,124.0,False,False,False
+1500958,Aurora do Pará,routing_ready_reachable,0.4638934412169051,125.0,False,False,False
+1508100,Tucuruí,routing_ready_reachable,0.4582933554245043,126.0,False,False,False
+1501709,Bragança,routing_ready_reachable,0.448140313635857,127.0,False,False,False
+1505502,Paragominas,routing_ready_reachable,0.4469508556683474,128.0,False,False,False
+1505403,Ourém,routing_ready_reachable,0.4453036757730409,129.0,False,False,False
+1501600,Bonito,routing_ready_reachable,0.4412727425192475,130.0,False,False,False
+1501808,Breves,routing_ready_reachable,0.4358501116127111,131.0,False,False,False
+1500602,Altamira,routing_ready_reachable,0.4325536614891873,132.0,False,False,False
+1502202,Capanema,routing_ready_reachable,0.4269719557445838,133.0,False,False,False
+1506138,Redenção,routing_ready_reachable,0.4150270106199656,134.0,False,False,False
+1503606,Itaituba,routing_ready_reachable,0.4089754065947332,135.0,False,False,False
+1505536,Parauapebas,routing_ready_reachable,0.4013587546153641,136.0,False,False,False
+1504208,Marabá,routing_ready_reachable,0.3910353459830541,137.0,False,False,False
+1500107,Abaetetuba,routing_ready_reachable,0.3789364502674739,138.0,False,False,False
+1501303,Barcarena,routing_ready_reachable,0.3688256725308418,139.0,False,False,False
+1506807,Santarém,routing_ready_reachable,0.3564003642301264,140.0,False,False,False
+1500800,Ananindeua,routing_ready_reachable,0.3440326704932824,141.0,False,False,False
+1502400,Castanhal,routing_ready_reachable,0.336905132343337,142.0,False,False,False
+1501402,Belém,routing_ready_reachable,0.2417520598855956,143.0,False,False,False
+1500305,Afuá,no_primary_routing_ready_origin,,,True,False,False
