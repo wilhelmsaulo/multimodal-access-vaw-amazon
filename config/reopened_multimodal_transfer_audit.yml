@@ -1,0 +1,74 @@
+scope: para_state_service_access
+policy:
+  decision_universe: 144 municipalities of Para
+  destination_services: Para only
+  interstate_functional_influences: discussion_only
+  synthetic_travel_time_allowed: false
+  cartographic_distance_to_time_allowed: false
+  unvalidated_waiting_time_allowed: false
+  mcdm_ranking_blocked_until_revalidated: true
+
+municipalities:
+  - municipality_code: '1502608'
+    municipality_name: Colares
+    previous_status: routing_ready_no_reachable_service
+    revised_diagnosis: missing_validated_road_ferry_road_transfer
+    transfer:
+      mode: ferry
+      corridor: PA-238 / Furo da Laura / Penhalonga
+      user_supplied_port_reference: Porto da Balsa Penhalonga/Colares
+      approximate_user_reference_coordinates: [-0.9949506, -48.1932262]
+      topology_evidence_status: validated
+      temporal_evidence_status: pending
+      waiting_time_status: pending
+      allowed_in_od: false
+    evidence:
+      - type: official_state_road_definition
+        note: PA-238 includes Colares - Travessia Furo da Laura (Penhalonga) - PA-140.
+      - type: municipal_official
+        note: Colares access to the continent is currently by ferry; bridge construction does not justify assuming bridge availability.
+
+  - municipality_code: '1506401'
+    municipality_name: Santa Cruz do Arari
+    previous_status: routing_ready_no_reachable_service
+    revised_diagnosis: missing_validated_hydro_terminal_route_transfer
+    transfer:
+      mode: passenger_hydro
+      corridor: Santa Cruz do Arari / Belem
+      topology_evidence_status: validated
+      temporal_evidence_status: partial_historical_plus_current_schedule
+      current_schedule_status: validated_for_service_existence
+      travel_duration_status: pending_current_validation
+      waiting_time_status: pending
+      allowed_in_od: false
+    evidence:
+      - type: uploaded_technical_report
+        note: Report documents approximately 115 km straight-line distance, about 13 h by ship historically, and a route via Vila de Jenipapo by launch to Belem; also documents service referrals to Belem, Soure and Cachoeira do Arari.
+      - type: current_public_schedule_2026
+        note: Current Belem terminal schedules list Santa Cruz do Arari departures/arrivals, confirming ongoing regular passenger service.
+
+  - municipality_code: '1500305'
+    municipality_name: Afua
+    previous_status: no_primary_routing_ready_origin
+    revised_diagnosis: origin_promotion_bias_against_hydro_first_access
+    transfer:
+      mode: hydro_first
+      para_only_destination_policy: true
+      macapa_route_status: validated_but_excluded_from_primary_model
+      para_surface_route_status: pending_validation
+      air_route_status: excluded_from_ordinary_access_baseline
+      temporal_evidence_status: pending_for_para_surface_route
+      allowed_in_od: false
+    evidence:
+      - type: municipal_official_current
+        note: Municipality states regular line boats connect Afua and Macapa; this confirms hydro dependence but the Macapa destination is outside the primary Para-only service-access model.
+      - type: current_model_scope
+        note: Interstate functional influence will be discussed, not used to expand the primary service destination universe.
+
+required_actions:
+  - validate current temporal values for Colares ferry crossing
+  - validate current Santa Cruz do Arari hydro travel duration and terminal identity
+  - identify and validate a Para-bound surface route for Afua, if one exists in the study reference period
+  - audit all frozen road-hydro transfer terminals because the current final backbone materialized only Muaná, Soure and Moju as terminal identities
+  - rebuild OD only after all included transfer edges have evidence-backed temporal impedance
+  - rerun municipal accessibility, Stage 3 statistical audit, and Stage 4 MCDM
