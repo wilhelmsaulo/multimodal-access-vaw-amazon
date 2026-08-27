@@ -1,0 +1,86 @@
+name: rebuild-corrected-reference-od
+
+on:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - 'src/analysis/materialize_corrected_transfer_backbone.py'
+      - 'src/analysis/generate_corrected_reference_od.py'
+      - '.github/workflows/rebuild-corrected-reference-od.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'numpy>=2,<3' 'pandas>=2.2,<3' 'scipy>=1.14,<2'
+      - name: Download frozen multimodal backbone
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-frozen-final-multimodal-backbone
+          path: artifacts/backbone
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32920014705
+      - name: Download frozen routing endpoints
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-frozen-routing-endpoints
+          path: artifacts/endpoints
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32945266691
+      - name: Materialize bounded transfer correction
+        run: python src/analysis/materialize_corrected_transfer_backbone.py
+      - name: Validate correction safeguards
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('artifacts/corrected_backbone/corrected_backbone_audit.json'))
+          assert a['added_directed_edges']==4
+          assert a['all_patch_endpoints_preexisting_in_frozen_graph'] is True
+          assert a['synthetic_speed_used'] is False
+          assert a['distance_converted_to_time'] is False
+          assert a['waiting_time_included'] is False
+          assert a['afua_edge_added'] is False
+          assert {p['name'] for p in a['patches']}=={'Colares - Penhalonga','Belém - Santa Cruz do Arari'}
+          PY
+      - name: Generate corrected reference OD
+        run: python src/analysis/generate_corrected_reference_od.py
+      - name: Validate corrected OD
+        run: |
+          python - <<'PY'
+          import json
+          a=json.load(open('artifacts/corrected_reference_od/od_reference_network_audit.json'))
+          assert a['origin_count']==12673
+          assert a['service_count']==225
+          assert a['total_od_pairs']==2851425
+          assert a['bounded_transfer_patch_applied'] is True
+          assert a['afua_synthetic_edge_added'] is False
+          assert a['waiting_time_included'] is False
+          assert a['air_temporal_routing_included'] is False
+          assert a['ready_for_accessibility_analysis'] is True
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-corrected-multimodal-backbone
+          path: artifacts/corrected_backbone/
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pa-corrected-reference-od
+          path: artifacts/corrected_reference_od/
+          retention-days: 30
