@@ -4,6 +4,34 @@ This directory is the canonical, human-readable pathway from raw data to the cur
 
 ## Analytical pipeline
 
+```mermaid
+flowchart LR
+    A[Official data sources] --> B[Census-sector origins]
+    A --> C[Service destinations]
+    A --> D[Road + hydro evidence]
+    B --> E[Multimodal temporal network]
+    C --> E
+    D --> E
+    E --> F[Origin-service OD matrix]
+    F --> G[Accessibility / E2SFCA]
+    G --> H[Municipal access indicators]
+    A --> I[Institutional indicators]
+    A --> J[Rural female share]
+    H --> K[Municipal analytical matrix]
+    I --> K
+    J --> K
+    K --> L[Stage 3 statistical audit]
+    L --> M[PROMETHEE II]
+    L --> N[TOPSIS]
+    M --> O[Weight robustness]
+    M --> P[Preference/scaling sensitivity]
+    N --> Q[Cross-method agreement]
+    O --> R[Stage 4 reference results]
+    P --> R
+    Q --> R
+    R --> S[SOM / socioeconomic profile analysis]
+```
+
 **Official data sources** → **census-sector origins and service destinations** → **multimodal temporal network** → **origin–service OD matrix** → **accessibility / E2SFCA layer** → **municipal indicators** → **statistical audit** → **PROMETHEE II + TOPSIS** → **robustness and sensitivity** → **SOM/profile analysis**.
 
 The SOM stage is intentionally not documented as closed yet. Its page will be completed only after its input matrix, training specification and validation are frozen.
