@@ -50,6 +50,10 @@ Colares is no longer structurally unreachable: reachable-service fraction 0.6533
 
 The 10,000 weight draws remain part of the MCDM robustness analysis. Corrected Spearman versus the equal-weight PROMETHEE II reference: median ~0.8913, p05 ~0.6855, p95 ~0.9741.
 
+## Closed correction gate
+
+Issue #4 may be closed: the network anomaly that invalidated the first Stage 4 ranking has been bounded, corrected where evidence allowed, propagated through the OD and Stage 3, and revalidated in Stage 4. Afuá remains an explicitly documented scope/coverage limitation rather than an unresolved correction task.
+
 ## Remaining Stage 4 work
 
 1. Run preference-function / scaling sensitivity around the locked corrected PROMETHEE II reference.
