@@ -27,29 +27,32 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install 'pandas>=2.2,<3' 'numpy>=2,<3' 'tabulate>=0.9,<1'
-      - name: Download locked Stage 3 matrix
+      - name: Download authoritative corrected Stage 3 matrix
         uses: actions/download-artifact@v4
         with:
-          name: stage3-sociodemographic-candidate-audit
+          name: stage3-corrected-after-network-fix
           path: artifacts/stage3
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: wilhelmsaulo/multimodal-access-vaw-amazon
-          run-id: 33036567004
-      - name: Validate locked matrix
+          run-id: 33090126353
+      - name: Validate corrected matrix
         run: |
           python - <<'PY'
           import pandas as pd
-          p='artifacts/stage3/municipal_analytical_matrix_with_sociospatial_candidate.csv'
+          p='artifacts/stage3/stage3_sociodemographic/municipal_analytical_matrix_with_sociospatial_candidate.csv'
           df=pd.read_csv(p, dtype={'municipality_code':str})
           assert len(df)==144
           assert df['municipality_code'].nunique()==144
-          assert set(['Afuá','Colares','Santa Cruz do Arari']).issubset(set(df['municipality_name']))
+          d=dict(zip(df['municipality_name'],df['accessibility_coverage_status']))
+          assert d['Afuá']=='no_primary_routing_ready_origin'
+          assert d['Colares']=='routing_ready_reachable'
+          assert d['Santa Cruz do Arari']=='routing_ready_reachable'
           print(df.shape)
           PY
       - name: Run PROMETHEE II reference and robustness analysis
         run: |
           python src/analysis/stage4_mcdm.py \
-            artifacts/stage3/municipal_analytical_matrix_with_sociospatial_candidate.csv \
+            artifacts/stage3/stage3_sociodemographic/municipal_analytical_matrix_with_sociospatial_candidate.csv \
             --out artifacts/stage4_mcdm \
             --draws 10000 \
             --seed 20260827
@@ -65,13 +68,15 @@ jobs:
           assert r['coverage_limited_rank_flag'].sum()==1
           assert s['method_primary']=='PROMETHEE II'
           assert s['robustness']['draws']==10000
+          assert int(r.loc[r['municipality_name'].eq('Colares'),'promethee_rank'].iloc[0])==11
+          assert int(r.loc[r['municipality_name'].eq('Santa Cruz do Arari'),'promethee_rank'].iloc[0])==2
           print(r.head(15).to_string(index=False))
           print(json.dumps(s['robustness'], indent=2))
           PY
       - name: Upload Stage 4 MCDM outputs
         uses: actions/upload-artifact@v4
         with:
-          name: stage4-mcdm-reference-and-robustness
+          name: stage4-mcdm-reference-and-robustness-corrected
           path: artifacts/stage4_mcdm
           if-no-files-found: error
           retention-days: 30
