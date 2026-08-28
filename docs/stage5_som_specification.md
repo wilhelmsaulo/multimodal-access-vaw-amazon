@@ -2,66 +2,120 @@
 
 ## Status
 
-**STARTED — PRE-TRAINING DATA BUILD IN PROGRESS.** Stage 4 MCDM is closed on the corrected multimodal network and corrected Stage-3 matrix. Stage 5 has a separate profiling objective: characterize municipal socioeconomic/demographic profiles without feeding those variables back into the MCDM ranking.
+**COMPLETED THROUGH SOM TRAINING, PROFILE INTERPRETATION AND POST-HOC MCDM CROSS-TAB.** Stage 4 MCDM remains closed and unchanged. Stage 5 characterizes socioeconomic/demographic municipal profiles and examines their exploratory association with the frozen priority results.
 
 ## Analytical separation locked
 
-- MCDM answers: which Pará municipalities present higher priority need/burden under accessibility, institutional availability and rural female territorial context.
-- SOM answers: which socioeconomic and demographic municipal profiles co-occur with those priority patterns.
-- Income/poverty, education, race/color and female age structure are **not** retroactively added to MCDM.
-- Female population total remains an aggregation/support quantity rather than a SOM feature by default, to avoid making municipality size dominate profile geometry.
+- MCDM answers which Pará municipalities present higher priority need/burden under accessibility, institutional availability and rural female territorial context.
+- SOM answers which socioeconomic and demographic municipal profiles co-occur across the 144 municipalities.
+- Income, literacy, race/color and female age structure were **not** added retroactively to MCDM.
+- PROMETHEE-II results were joined only after SOM training/profile construction; there is no feedback from SOM into ranking.
 
-## Candidate SOM feature blocks
+## Final official data blocks
 
-### Already materialized from frozen Census 2022 sector data
+1. **Female rural share** — retained from the frozen Stage-3 municipal analytical matrix. Its overlap with MCDM is explicit and interpretive only.
+2. **Female literacy (15+)** — IBGE Census 2022, SIDRA table 9543, municipality level; 144/144 municipalities and zero missing cells.
+3. **Household per-capita mean income** — IBGE Census 2022, SIDRA table 10295, municipality level; 144/144 and zero missing cells. This is a sample-based mean-income estimate and is **not** called poverty.
+4. **Female age structure** — IBGE Census 2022 universe, SIDRA table 9514, municipality level, women. The earlier partial sector-derived age candidates were replaced for SOM by complete municipal data. Training composition: under 15 (derived residual), 15–29, 30–59 and 60+.
+5. **Female race/color composition** — IBGE Census 2022 universe, SIDRA table 9606, municipality level, women/all ages. Categories: branca, preta, parda, amarela and indígena. The earlier total-population table 9605 is retained only as an audit artifact and is not a final SOM input.
 
-1. Female age structure on age-covered sectors:
-   - female 15–29 share;
-   - female 30–59 share;
-   - female 60+ share;
-   - female age-population coverage fraction retained as a quality field, not a clustering feature.
-2. Female rural share may be used for SOM profiling, even though it is also a locked MCDM territorial criterion; interpretation must acknowledge this overlap.
+## Compositional representation
 
-### Additional official municipal data
+Raw complete share vectors are not fed mechanically into the SOM.
 
-1. **Race/color composition — acquisition starting.** IBGE Census 2022 universe results, SIDRA table 9605. Table 9605 supports municipal total-population composition by color/race. It must not be described as female-specific unless a sex-disaggregated official table is separately resolved. Candidate categories are branca, preta, parda, amarela and indígena.
-2. **Literacy/education — official female-specific route confirmed, exact identifiers pending.** The Census 2022 literacy universe dissemination is available at municipality level and is disaggregated by sex, age group and color/race for persons aged 15 years or older. The preferred candidate is therefore female literacy/illiteracy among women aged 15+, provided the exact SIDRA categories can be resolved reproducibly.
-3. **Income — candidate identified.** SIDRA table 10295 provides 2022 municipal mean monthly household per-capita income in the Census Trabalho e Rendimento dissemination. Because it is sample-estimated rather than a universe indicator, it requires an explicit coverage/definition audit before inclusion.
-4. **Poverty/deprivation — not synonymous with income.** A poverty/deprivation feature will only be included if an explicit Census 2022 municipal definition is identified and audited.
-5. Optional household-deprivation variables (water/sewer/refuse/internet) may be audited only as a sensitivity/profile extension, not automatically included.
+### Female age
 
-## Compositional-variable rule
+The three published candidate shares (15–29, 30–59, 60+) are completed with the female under-15 residual:
 
-Race/color and age shares are compositional. The final SOM must not mechanically include a full set of raw shares without checking the induced linear dependence and geometry. Before freezing features, compare:
+`under15 = 1 - (share15_29 + share30_59 + share60_plus)`
 
-- raw shares with one redundant component removed;
-- reduced interpretable contrasts;
-- an appropriate compositional transformation if it materially improves stability and interpretability.
+The resulting four-part composition is represented by three orthonormal sequential ILR coordinates.
 
-No racial category is a normative reference; any omitted category in a reduced representation is a mathematical parameterization choice only.
+### Female race/color
 
-## Pre-SOM quality gate
+The five female race/color parts are represented by four orthonormal sequential ILR coordinates. Eight raw zero count cells occur across amarela/indígena. For the log-ratio transformation only, a Jeffreys additive pseudo-count of 0.5 is applied before closure. Raw observed counts/shares remain unchanged in the acquisition audit. No racial category is a normative reference and the ILR coordinate signs/orders are mathematical parameterization choices only.
 
-No SOM is trained until the candidate table passes:
+## Final feature matrix and gate
 
-1. 144-municipality key integrity;
-2. variable-definition/provenance audit;
-3. missingness and disclosure/suppression audit;
-4. temporal compatibility review (target baseline: Census 2022 for socioeconomic/demographic variables);
-5. scale/outlier audit;
-6. redundancy/correlation review within the SOM feature set;
-7. explicit decision on compositional representation;
-8. explicit decision on retention of sample-based income;
-9. standardization fitted only after the final feature set is frozen.
+The frozen SOM matrix contains 10 standardized dimensions:
 
-## SOM training plan after the gate
+- female rural share;
+- female literacy rate 15+;
+- mean household per-capita income;
+- 3 female-age ILR coordinates;
+- 4 female-race/color ILR coordinates.
 
-- Train multiple grid sizes and seeds rather than selecting one map visually.
-- Evaluate quantization error and topographic error.
-- Audit cluster stability / mapping stability across seeds and nearby grid sizes.
-- Interpret component planes and municipal profiles; do not label clusters as violence-risk groups.
-- Cross-tab SOM profiles against corrected PROMETHEE II priority ranks/top-quartile membership only **after** SOM training, preserving the exploratory/profile role.
+Quality-gate results:
 
-## Immediate next action
+- municipalities: 144;
+- missing final cells: 0;
+- maximum absolute Pearson correlation: 0.76735;
+- maximum absolute Spearman correlation: 0.76363;
+- pairs with |r| >= 0.80: 0;
+- maximum VIF: 7.21375;
+- standardization: z-score fitted once on the frozen 144-municipality matrix;
+- SOM training: **authorized**.
 
-Run the reproducible acquisition/audit of Census 2022 race/color composition for all 144 Pará municipalities, lock the female-literacy SIDRA categories, acquire/audit the income candidate, then construct and audit the complete Stage-5 candidate matrix before any neural-map training.
+## SOM training and model selection
+
+Thirty SOM models were trained:
+
+- grids: 5×5, 6×6, 7×7;
+- seeds: 10 per grid;
+- 6,000 iterations per model.
+
+Selection was not visual. Candidate grids were compared using equal-weight normalized criteria:
+
+1. median quantization error;
+2. median topographic error;
+3. median mapping instability across seeds.
+
+Mapping stability is the Spearman agreement of all pairwise municipal BMU distances across seeds, normalized by the grid diagonal, which is invariant to rotations/reflections of equivalent maps.
+
+### Selected SOM
+
+- grid: **5×5**;
+- representative seed: **5**;
+- seed quantization error: **1.69219**;
+- seed topographic error: **0.00000**;
+- seed mapping stability: **0.88321**;
+- median 5×5 mapping stability across seeds: **0.85668**.
+
+## Macroprofile construction
+
+The selected 25-node codebook was partitioned with k-means candidates k=2..6. A solution is preferred when every macroprofile contains at least 8 municipalities, and the eligible solution with the highest codebook silhouette is selected.
+
+Selected solution:
+
+- **4 macroprofiles**;
+- silhouette: **0.36398**;
+- sizes: P1=30, P2=33, P3=53, P4=28 municipalities.
+
+P1–P4 are neutral mathematical identifiers and are **not ordinal risk classes**.
+
+## Post-hoc association with frozen PROMETHEE II
+
+Only after SOM profile construction were the profiles joined to the corrected Stage-4 PROMETHEE-II outputs. The exploratory top-quartile shares are:
+
+- P1: 10.0%;
+- P2: 15.15%;
+- P3: 26.42%;
+- P4: 50.0%.
+
+This pattern is an exploratory association between socioeconomic/demographic profiles and the independently frozen MCDM prioritization. It is not a causal claim and does not redefine the MCDM ranking.
+
+## Principal reproducible outputs
+
+- `results/stage5/tables/stage5_final_feature_gate.json`
+- `results/stage5/tables/stage5_som_final_standardized_matrix.csv`
+- `results/stage5/tables/stage5_som_training_audit.json`
+- `results/stage5/tables/stage5_som_selected_mapping.csv`
+- `results/stage5/tables/stage5_som_interpretation_audit.json`
+- `results/stage5/tables/stage5_som_profile_characteristics.csv`
+- `results/stage5/tables/stage5_som_profile_promethee_summary.csv`
+- `results/stage5/figures/stage5_som_component_planes.png`
+- `results/stage5/figures/stage5_som_profile_map.png`
+
+## Next analytical action
+
+Stage 5 modeling is now complete through first-order interpretation. The next work should focus on publication-quality synthesis: inspect the four profiles municipality-by-municipality, prepare concise substantive labels/descriptions that remain non-normative, map their spatial distribution if useful, and integrate the SOM findings with the manuscript without altering the locked MCDM model.
