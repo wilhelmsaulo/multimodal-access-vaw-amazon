@@ -1,0 +1,61 @@
+{
+  "stage": "Stage 5 final SOM feature freeze and quality gate",
+  "municipalities": 144,
+  "final_feature_count": 10,
+  "final_features": [
+    "criterion__rural_female_share",
+    "socio__female_literacy_rate_15plus",
+    "socio__household_per_capita_income_mean_brl",
+    "profile__female_age_ilr_1",
+    "profile__female_age_ilr_2",
+    "profile__female_age_ilr_3",
+    "profile__female_race_ilr_1",
+    "profile__female_race_ilr_2",
+    "profile__female_race_ilr_3",
+    "profile__female_race_ilr_4"
+  ],
+  "race_block": {
+    "source": "IBGE Census 2022 SIDRA 9606, women, all ages, municipality",
+    "parts_order": [
+      "branca",
+      "preta",
+      "parda",
+      "amarela",
+      "indigena"
+    ],
+    "representation": "4 orthonormal sequential ILR coordinates",
+    "zero_cells_in_raw_counts": 8,
+    "zero_treatment_for_transform_only": "Jeffreys additive 0.5 pseudo-count before closure; raw observed counts/shares remain unchanged in source audit",
+    "normative_reference": null
+  },
+  "age_block": {
+    "source": "IBGE Census 2022 SIDRA 9514, women, municipality universe",
+    "parts_order": [
+      "under_15",
+      "15_29",
+      "30_59",
+      "60_plus"
+    ],
+    "under_15_derivation": "1 - (share15_29 + share30_59 + share60_plus)",
+    "representation": "3 orthonormal sequential ILR coordinates"
+  },
+  "other_features": [
+    "criterion__rural_female_share",
+    "socio__female_literacy_rate_15plus",
+    "socio__household_per_capita_income_mean_brl"
+  ],
+  "income_note": "Retained as mean household per-capita income from Census 2022 sample-based estimate; it is not labelled poverty.",
+  "standardization": "z-score using population mean/std fitted once on the frozen 144-municipality Stage-5 matrix",
+  "missing_final_cells": 0,
+  "max_abs_pearson": 0.7673486894921066,
+  "max_abs_spearman": 0.7636323446668274,
+  "high_pearson_pairs_ge_0_80": 0,
+  "high_spearman_pairs_ge_0_80": 0,
+  "max_vif": 7.213749171808722,
+  "gate_thresholds": {
+    "max_vif_lt": 10.0,
+    "max_abs_pearson_lt": 0.95
+  },
+  "som_training_authorized": true,
+  "analytical_separation": "These profile features remain outside the Stage-4 MCDM model and do not alter the priority ranking."
+}
