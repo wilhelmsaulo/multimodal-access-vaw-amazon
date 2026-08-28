@@ -1,0 +1,13 @@
+{
+  "corrected_od_run": 33089335405,
+  "source_artifact": "pa-corrected-reference-od",
+  "od_pairs": 2851425,
+  "origins": 12673,
+  "services": 225,
+  "full_od_committed_to_git": false,
+  "full_od_preserved_as_authoritative_workflow_artifact": true,
+  "illustrative_matrix_shape": [
+    40,
+    40
+  ]
+}

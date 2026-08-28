@@ -1,0 +1,23 @@
+{
+  "scenario": "reference_network",
+  "origin_count": 12673,
+  "service_count": 225,
+  "total_od_pairs": 2851425,
+  "reachable_od_pairs": 1542802,
+  "unreachable_od_pairs": 1308623,
+  "reachable_fraction": 0.5410635033360512,
+  "road_directed_edges_input": 7325505,
+  "hydro_directed_edges_input": 16056,
+  "graph_nodes_compact": 3589693,
+  "parallel_directed_edges_reduced_by_minimum": 8,
+  "network_time_min_reachable": 0.0,
+  "network_time_max_reachable": 1211.160585539659,
+  "origin_access_time_included": true,
+  "service_access_time_included": true,
+  "waiting_time_included": false,
+  "air_temporal_routing_included": false,
+  "bounded_transfer_patch_applied": true,
+  "afua_synthetic_edge_added": false,
+  "ready_for_accessibility_analysis": true,
+  "scientific_policy": "Shortest-path OD on the frozen backbone plus only the bounded evidence-backed Colares and Santa Cruz do Arari transfer corrections. Waiting and ordinary-air routing remain excluded; Afuá receives no synthetic connection."
+}
