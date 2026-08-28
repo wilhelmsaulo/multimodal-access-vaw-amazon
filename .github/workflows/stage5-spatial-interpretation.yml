@@ -1,0 +1,73 @@
+name: Stage 5 spatial interpretation artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-spatial-interpretation.yml'
+      - 'src/analysis/publish_stage5_spatial_interpretation.py'
+      - 'results/stage5/tables/stage5_som_municipal_profiles.csv'
+      - 'results/stage5/tables/stage5_som_profile_characteristics.csv'
+      - 'results/stage5/tables/stage5_som_profile_promethee_summary.csv'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy matplotlib httpx geopandas pyogrio shapely
+
+      - name: Publish Stage 5 spatial interpretation artifacts
+        run: python -m src.analysis.publish_stage5_spatial_interpretation
+
+      - name: Validate outputs
+        run: |
+          python - <<'PY'
+          import json, pandas as pd
+          a=json.load(open('results/stage5/tables/stage5_spatial_interpretation_audit.json',encoding='utf-8'))
+          r=pd.read_csv('results/stage5/tables/stage5_som_profile_representative_extreme_municipalities.csv')
+          s=pd.read_csv('results/stage5/tables/stage5_som_profile_signatures.csv')
+          assert a['municipalities']==144
+          assert a['spatial_polygon_count']==144
+          assert len(r)==24
+          assert len(s)==24
+          assert set(r['selection_type'])=={'representative','extreme'}
+          print(json.dumps(a,ensure_ascii=False,indent=2))
+          PY
+
+      - name: Commit Stage 5 spatial interpretation outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage5/tables/stage5_som_profile_representative_extreme_municipalities.csv \
+                  results/stage5/tables/stage5_som_profile_signatures.csv \
+                  results/stage5/tables/stage5_som_promethee_top_quartile_crosstab.csv \
+                  results/stage5/tables/stage5_spatial_interpretation_audit.json \
+                  results/stage5/figures/stage5_som_profiles_pará_map.png \
+                  results/stage5/figures/stage5_som_profiles_para_map.pdf \
+                  results/stage5/figures/stage5_som_profile_characteristics_heatmap.png \
+                  results/stage5/figures/stage5_som_profile_characteristics_heatmap.pdf \
+                  results/stage5/figures/stage5_som_mcdm_profile_association.png \
+                  results/stage5/figures/stage5_som_mcdm_profile_association.pdf
+          if git diff --cached --quiet; then
+            echo 'No spatial interpretation changes to commit.'
+          else
+            git commit -m 'Publish Stage 5 spatial SOM interpretation artifacts'
+            git push origin HEAD:stage4-mcdm
+          fi
