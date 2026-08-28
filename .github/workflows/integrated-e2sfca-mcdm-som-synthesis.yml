@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/integrated-e2sfca-mcdm-som-synthesis.yml'
       - 'src/analysis/publish_integrated_e2sfca_mcdm_som_synthesis.py'
+      - 'src/analysis/publish_integrated_e2sfca_mcdm_som_synthesis_validated.py'
       - 'results/e2sfca/tables/reference_municipal_scores.csv'
       - 'results/stage5/tables/stage5_som_profiles_with_promethee.csv'
 
@@ -31,7 +32,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas numpy matplotlib scipy
       - name: Build integrated synthesis
-        run: python -m src.analysis.publish_integrated_e2sfca_mcdm_som_synthesis
+        run: python -m src.analysis.publish_integrated_e2sfca_mcdm_som_synthesis_validated
       - name: Validate integrated outputs
         run: |
           python - <<'PY'
@@ -42,6 +43,8 @@ jobs:
           assert len(d)==144
           assert sorted(d['som_profile'].dropna().astype(int).unique().tolist())==[1,2,3,4]
           assert len(p)==4
+          assert a['municipalities_with_complete_e2sfca_coverage'] + a['municipalities_with_incomplete_e2sfca_coverage'] == 144
+          assert a['municipalities_with_incomplete_e2sfca_coverage'] >= 0
           assert a['no_synthetic_zero_for_missing_e2sfca'] is True
           assert a['som_retrained'] is False
           assert a['promethee_reranked'] is False
