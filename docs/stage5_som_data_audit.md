@@ -33,7 +33,13 @@ These shares are compositional and must not automatically all enter the SOM in r
 
 Official source family: IBGE Census 2022 — Literacy, universe results.
 
-The official Census 2022 literacy publication confirms municipal literacy/analfabetism indicators for persons aged 15 years or older. Exact SIDRA table and category identifiers still need to be locked from official metadata before automated acquisition. No proxy from another survey/year is authorized.
+The official Census 2022 literacy dissemination confirms that the municipality-level data are disaggregated by **sex, age group and color/race** for persons aged 15 years or older. This makes a female-specific literacy indicator conceptually feasible from the official universe release. The exact SIDRA table/category identifiers still need to be locked from the table metadata before automated acquisition; no proxy from another survey/year is authorized.
+
+Preferred candidate, if directly supported by the resolved table metadata:
+
+- female literacy or female illiteracy rate among women aged 15+.
+
+A total-population literacy rate may be retained only as a contrast/diagnostic if the female-specific rate is acquired cleanly; it should not duplicate the same information unnecessarily in the SOM.
 
 ### Income/poverty
 
@@ -46,7 +52,7 @@ A separate poverty/deprivation variable will only be admitted if an explicit Cen
 ## Priority for acquisition
 
 1. race/color composition — table 9605, municipality level, 2022;
-2. literacy/education — exact Census 2022 universe SIDRA table/category selection to be locked;
+2. literacy/education — female 15+ literacy/illiteracy candidate from the Census 2022 universe dissemination, exact SIDRA identifiers to be locked;
 3. income — table 10295 candidate, followed by explicit definition/coverage audit;
 4. optional household-deprivation variables (water/sewer/refuse/internet) only as a later sensitivity/profile extension.
 
