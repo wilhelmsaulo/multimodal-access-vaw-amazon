@@ -1,0 +1,16 @@
+{
+  "status": "authoritative_published_complementary_analysis",
+  "reference": "reference_step_120",
+  "supply_mode": "unit_presence",
+  "service_types_separate": true,
+  "municipal_aggregation": "female_population_weighted_mean_among_routing_ready_origins",
+  "coverage_limited_origins_not_zero_imputed": true,
+  "configurations": {
+    "reference_step_120": "Referência: limite de 120 min, sem decaimento adicional",
+    "step_240": "Sensibilidade: limite de 240 min",
+    "exponential_120_half60": "Sensibilidade: exponencial, meia-vida de 60 min, limite 120 min",
+    "gaussian_120_sigma60": "Sensibilidade: gaussiano, sigma 60 min, limite 120 min",
+    "unbounded_no_decay": "Diagnóstico: sem limite e sem decaimento"
+  },
+  "od_run": 33089335405
+}

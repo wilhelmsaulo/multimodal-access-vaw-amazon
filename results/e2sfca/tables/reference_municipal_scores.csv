@@ -1,0 +1,573 @@
+service_type,municipality_code,municipality_name,e2sfca_score,routing_ready_origins,routing_ready_female_population,configuration
+creas,1500107,Abaetetuba,2.0815340865709034e-05,189,61390.0,reference_step_120
+creas,1500131,Abel Figueiredo,4.199729160657377e-05,11,2904.0,reference_step_120
+creas,1500206,Acará,1.9056031676781432e-05,128,21279.0,reference_step_120
+creas,1500347,Água Azul do Norte,5.342895242140356e-05,38,7078.0,reference_step_120
+creas,1500404,Alenquer,3.937478924914908e-05,64,24692.0,reference_step_120
+creas,1500503,Almeirim,7.810669374365382e-05,44,12803.0,reference_step_120
+creas,1500602,Altamira,4.6862663185137184e-05,254,57798.0,reference_step_120
+creas,1500701,Anajás,0.00016339869281045748,11,6120.0,reference_step_120
+creas,1500800,Ananindeua,2.5819687673042643e-05,637,216395.0,reference_step_120
+creas,1500859,Anapu,5.920091432678823e-05,42,11682.0,reference_step_120
+creas,1500909,Augusto Corrêa,3.793690274816092e-05,85,19652.0,reference_step_120
+creas,1500958,Aurora do Pará,4.354423425936943e-05,40,9167.0,reference_step_120
+creas,1501006,Aveiro,0.00022340280370565906,24,4724.0,reference_step_120
+creas,1501105,Bagre,2.3494042015517753e-06,18,6788.0,reference_step_120
+creas,1501204,Baião,2.1932629028094165e-05,61,20104.0,reference_step_120
+creas,1501253,Bannach,4.344715083692076e-05,11,1582.0,reference_step_120
+creas,1501303,Barcarena,1.3296545835199218e-05,238,57552.0,reference_step_120
+creas,1501402,Belém,2.3193977768577224e-05,1874,637628.0,reference_step_120
+creas,1501451,Belterra,2.248552968789985e-05,43,7617.0,reference_step_120
+creas,1501501,Benevides,3.1640455512565854e-05,181,30532.0,reference_step_120
+creas,1501576,Bom Jesus do Tocantins,4.5505440840769785e-05,35,7433.0,reference_step_120
+creas,1501600,Bonito,6.196703047427385e-05,26,5332.0,reference_step_120
+creas,1501709,Bragança,4.088215510354978e-05,195,55750.0,reference_step_120
+creas,1501725,Brasil Novo,7.027336106698121e-05,37,8590.0,reference_step_120
+creas,1501758,Brejo Grande do Araguaia,3.3266369971082466e-05,17,2980.0,reference_step_120
+creas,1501782,Breu Branco,3.096273775345501e-05,79,20704.0,reference_step_120
+creas,1501808,Breves,3.461764807698965e-05,64,28887.0,reference_step_120
+creas,1501907,Bujaru,2.8171308314038842e-05,39,7707.0,reference_step_120
+creas,1501956,Cachoeira do Piriá,4.419269785836176e-05,46,8304.0,reference_step_120
+creas,1502004,Cachoeira do Arari,0.00013264358668258389,26,7539.0,reference_step_120
+creas,1502103,Cametá,4.2246484566005046e-05,139,42529.0,reference_step_120
+creas,1502152,Canaã dos Carajás,3.363108253496799e-05,108,36539.0,reference_step_120
+creas,1502202,Capanema,5.3964333396855323e-05,118,35064.0,reference_step_120
+creas,1502301,Capitão Poço,5.441122477584188e-05,132,25741.0,reference_step_120
+creas,1502400,Castanhal,5.389568345297933e-05,340,97495.0,reference_step_120
+creas,1502509,Chaves,0.00043159257660768235,4,2317.0,reference_step_120
+creas,1502608,Colares,1.4223462115627292e-05,33,6118.0,reference_step_120
+creas,1502707,Conceição do Araguaia,3.183495784949987e-05,79,20299.0,reference_step_120
+creas,1502756,Concórdia do Pará,3.269112121996385e-05,66,12238.0,reference_step_120
+creas,1502764,Cumaru do Norte,2.567990635593142e-05,20,4478.0,reference_step_120
+creas,1502772,Curionópolis,2.6872903411577906e-05,49,9754.0,reference_step_120
+creas,1502806,Curralinho,0.00015179113539769278,12,6588.0,reference_step_120
+creas,1502855,Curuá,5.9397867993690115e-05,27,4836.0,reference_step_120
+creas,1502905,Curuçá,2.0621500368894537e-05,87,19885.0,reference_step_120
+creas,1502939,Dom Eliseu,2.9280353587493013e-05,69,29239.0,reference_step_120
+creas,1502954,Eldorado do Carajás,5.533851131091541e-05,55,12850.0,reference_step_120
+creas,1503002,Faro,0.00015541611171565836,21,3965.0,reference_step_120
+creas,1503044,Floresta do Araguaia,4.075191537320624e-05,31,7174.0,reference_step_120
+creas,1503077,Garrafão do Norte,3.443659577847771e-05,52,10813.0,reference_step_120
+creas,1503093,Goianésia do Pará,4.488543555491808e-05,50,11198.0,reference_step_120
+creas,1503101,Gurupá,0.00015444015444015445,14,6475.0,reference_step_120
+creas,1503200,Igarapé-Açu,5.837142457102482e-05,61,16638.0,reference_step_120
+creas,1503309,Igarapé-Miri,2.9283075685271205e-05,52,16689.0,reference_step_120
+creas,1503408,Inhangapi,4.1308540614279524e-05,27,4748.0,reference_step_120
+creas,1503457,Ipixuna do Pará,4.03877843449695e-05,63,11531.0,reference_step_120
+creas,1503507,Irituia,6.234801732051081e-05,80,12734.0,reference_step_120
+creas,1503606,Itaituba,2.199163029724185e-05,202,58684.0,reference_step_120
+creas,1503705,Itupiranga,3.006854628264623e-05,94,19975.0,reference_step_120
+creas,1503754,Jacareacanga,0.00018198362147406729,23,5495.0,reference_step_120
+creas,1503804,Jacundá,2.9400534169961945e-05,86,18315.0,reference_step_120
+creas,1503903,Juruti,4.254666147846263e-05,50,17868.0,reference_step_120
+creas,1504000,Limoeiro do Ajuru,4.6785762449628546e-05,11,4370.0,reference_step_120
+creas,1504059,Mãe do Rio,5.0841714705205815e-05,46,17225.0,reference_step_120
+creas,1504109,Magalhães Barata,2.9621684278106027e-05,20,3887.0,reference_step_120
+creas,1504208,Marabá,5.149431474256331e-05,474,127275.0,reference_step_120
+creas,1504307,Maracanã,3.2729299337691886e-05,81,12462.0,reference_step_120
+creas,1504406,Marapanim,2.103164329916827e-05,77,12496.0,reference_step_120
+creas,1504422,Marituba,2.8950646168518387e-05,218,53590.0,reference_step_120
+creas,1504455,Medicilândia,7.443636515187524e-05,33,7996.0,reference_step_120
+creas,1504505,Melgaço,0.00020255215718047398,9,4937.0,reference_step_120
+creas,1504604,Mocajuba,2.236730942419949e-05,36,11153.0,reference_step_120
+creas,1504703,Moju,2.380751869480452e-05,134,28780.0,reference_step_120
+creas,1504752,Mojuí dos Campos,1.8236802698116986e-05,37,9118.0,reference_step_120
+creas,1504802,Monte Alegre,6.654810475586503e-05,95,25730.0,reference_step_120
+creas,1504901,Muaná,9.607070804111827e-05,25,10409.0,reference_step_120
+creas,1504950,Nova Esperança do Piriá,2.997727982816258e-05,32,8302.0,reference_step_120
+creas,1504976,Nova Ipixuna,4.758994543242609e-05,25,5349.0,reference_step_120
+creas,1505007,Nova Timboteua,5.942507195539448e-05,31,5955.0,reference_step_120
+creas,1505031,Novo Progresso,4.1095521338465784e-05,57,15730.0,reference_step_120
+creas,1505064,Novo Repartimento,4.450937809686415e-05,93,21996.0,reference_step_120
+creas,1505106,Óbidos,8.189166187014421e-05,74,18742.0,reference_step_120
+creas,1505205,Oeiras do Pará,0.00010363662161544028,50,10899.0,reference_step_120
+creas,1505304,Oriximiná,4.6790158939077764e-05,65,25385.0,reference_step_120
+creas,1505403,Ourém,5.963000760721814e-05,47,8650.0,reference_step_120
+creas,1505437,Ourilândia do Norte,5.987704225866269e-05,62,15106.0,reference_step_120
+creas,1505486,Pacajá,6.399426411438909e-05,64,14166.0,reference_step_120
+creas,1505494,Palestina do Pará,3.024862892126392e-05,13,2963.0,reference_step_120
+creas,1505502,Paragominas,2.6950152183351364e-05,198,51977.0,reference_step_120
+creas,1505536,Parauapebas,1.531525442084459e-05,444,132408.0,reference_step_120
+creas,1505551,Pau D'Arco,6.950844733387018e-05,13,2610.0,reference_step_120
+creas,1505601,Peixe-Boi,5.51473076720622e-05,22,4059.0,reference_step_120
+creas,1505635,Piçarra,2.5076834529792735e-05,28,4910.0,reference_step_120
+creas,1505650,Placas,6.910717713877748e-05,31,5696.0,reference_step_120
+creas,1505700,Ponta de Pedras,0.00012434717731907486,25,8042.0,reference_step_120
+creas,1505809,Portel,6.410667350471184e-05,29,15599.0,reference_step_120
+creas,1505908,Porto de Moz,7.829547791997192e-09,24,10600.0,reference_step_120
+creas,1506005,Prainha,2.8794886093811683e-05,49,12430.0,reference_step_120
+creas,1506104,Primavera,4.6156364138430194e-05,21,5030.0,reference_step_120
+creas,1506112,Quatipuru,3.665955695853737e-05,23,5675.0,reference_step_120
+creas,1506138,Redenção,6.336885682463829e-05,162,42397.0,reference_step_120
+creas,1506161,Rio Maria,4.450682824582153e-05,31,8402.0,reference_step_120
+creas,1506187,Rondon do Pará,3.441408644393978e-05,62,22229.0,reference_step_120
+creas,1506195,Rurópolis,6.072383496753088e-05,53,15024.0,reference_step_120
+creas,1506203,Salinópolis,3.54336230903979e-05,73,21950.0,reference_step_120
+creas,1506302,Salvaterra,9.16590284142988e-05,55,10910.0,reference_step_120
+creas,1506351,Santa Bárbara do Pará,2.729729209802334e-05,44,10013.0,reference_step_120
+creas,1506401,Santa Cruz do Arari,0.0,8,2852.0,reference_step_120
+creas,1506500,Santa Izabel do Pará,4.25426716886486e-05,115,32345.0,reference_step_120
+creas,1506559,Santa Luzia do Pará,4.902938044966853e-05,46,8898.0,reference_step_120
+creas,1506583,Santa Maria das Barreiras,5.238586325095088e-05,38,6519.0,reference_step_120
+creas,1506609,Santa Maria do Pará,6.339556489013707e-05,56,12204.0,reference_step_120
+creas,1506708,Santana do Araguaia,5.040576641967841e-05,73,14754.0,reference_step_120
+creas,1506807,Santarém,1.8921950034283888e-05,529,156731.0,reference_step_120
+creas,1506906,Santarém Novo,4.739300062407083e-05,16,2457.0,reference_step_120
+creas,1507003,Santo Antônio do Tauá,2.9644384174631102e-05,55,13411.0,reference_step_120
+creas,1507102,São Caetano de Odivelas,1.7266665329651738e-05,42,7848.0,reference_step_120
+creas,1507151,São Domingos do Araguaia,4.8940113976549785e-05,33,9615.0,reference_step_120
+creas,1507201,São Domingos do Capim,3.404136970900555e-05,44,10381.0,reference_step_120
+creas,1507300,São Félix do Xingu,3.2866051179548115e-05,128,25504.0,reference_step_120
+creas,1507409,São Francisco do Pará,5.008436108426829e-05,27,6944.0,reference_step_120
+creas,1507458,São Geraldo do Araguaia,2.705321381961065e-05,47,10931.0,reference_step_120
+creas,1507466,São João da Ponta,2.004955880999729e-05,18,2001.0,reference_step_120
+creas,1507474,São João de Pirabas,4.1435955906231136e-05,36,8770.0,reference_step_120
+creas,1507508,São João do Araguaia,4.862539682996547e-05,33,5932.0,reference_step_120
+creas,1507607,São Miguel do Guamá,6.75998075969579e-05,100,25115.0,reference_step_120
+creas,1507706,São Sebastião da Boa Vista,0.00017995321216483713,16,5557.0,reference_step_120
+creas,1507755,Sapucaia,4.9393503959154735e-05,11,2879.0,reference_step_120
+creas,1507805,Senador José Porfírio,2.4169987937695147e-06,31,6913.0,reference_step_120
+creas,1507904,Soure,8.28363154406892e-05,32,12072.0,reference_step_120
+creas,1507953,Tailândia,3.76063307767468e-05,123,33966.0,reference_step_120
+creas,1507961,Terra Alta,3.324928272947222e-05,23,4958.0,reference_step_120
+creas,1507979,Terra Santa,0.00015804690509171207,25,8173.0,reference_step_120
+creas,1508001,Tomé-Açu,1.8007983628796312e-05,117,30224.0,reference_step_120
+creas,1508035,Tracuateua,4.373313336922769e-05,41,9773.0,reference_step_120
+creas,1508050,Trairão,0.0,31,6744.0,reference_step_120
+creas,1508084,Tucumã,5.8834235016438594e-05,69,18469.0,reference_step_120
+creas,1508100,Tucuruí,2.601171112407765e-05,158,44448.0,reference_step_120
+creas,1508126,Ulianópolis,3.548572753512035e-05,50,17003.0,reference_step_120
+creas,1508159,Uruará,9.502661736274995e-05,64,15110.0,reference_step_120
+creas,1508209,Vigia,2.0758642791055836e-05,100,24110.0,reference_step_120
+creas,1508308,Viseu,2.808287456473976e-05,113,24311.0,reference_step_120
+creas,1508357,Vitória do Xingu,5.012111550730858e-05,36,6678.0,reference_step_120
+creas,1508407,Xinguara,6.424110744377238e-05,92,25086.0,reference_step_120
+health,1500107,Abaetetuba,6.235858237871537e-06,189,61390.0,reference_step_120
+health,1500131,Abel Figueiredo,4.22904508162057e-06,11,2904.0,reference_step_120
+health,1500206,Acará,7.876257934320748e-06,128,21279.0,reference_step_120
+health,1500347,Água Azul do Norte,1.8884381221529117e-05,38,7078.0,reference_step_120
+health,1500404,Alenquer,0.0,64,24692.0,reference_step_120
+health,1500503,Almeirim,0.0,44,12803.0,reference_step_120
+health,1500602,Altamira,3.531640751429989e-05,254,57798.0,reference_step_120
+health,1500701,Anajás,0.0,11,6120.0,reference_step_120
+health,1500800,Ananindeua,1.1847583207981576e-05,637,216395.0,reference_step_120
+health,1500859,Anapu,2.2647943524624897e-05,42,11682.0,reference_step_120
+health,1500909,Augusto Corrêa,1.9514808440162928e-05,85,19652.0,reference_step_120
+health,1500958,Aurora do Pará,2.1641969843319344e-05,40,9167.0,reference_step_120
+health,1501006,Aveiro,0.00011081556155517748,24,4724.0,reference_step_120
+health,1501105,Bagre,0.0,18,6788.0,reference_step_120
+health,1501204,Baião,9.641912812128772e-06,61,20104.0,reference_step_120
+health,1501253,Bannach,1.3056816901544161e-05,11,1582.0,reference_step_120
+health,1501303,Barcarena,5.747098064949127e-06,238,57552.0,reference_step_120
+health,1501402,Belém,9.99333640997355e-06,1874,637628.0,reference_step_120
+health,1501451,Belterra,4.41333900025682e-05,43,7617.0,reference_step_120
+health,1501501,Benevides,1.1934800238080836e-05,181,30532.0,reference_step_120
+health,1501576,Bom Jesus do Tocantins,4.229045081620569e-06,35,7433.0,reference_step_120
+health,1501600,Bonito,2.7054324020371222e-05,26,5332.0,reference_step_120
+health,1501709,Bragança,1.6680822571802146e-05,195,55750.0,reference_step_120
+health,1501725,Brasil Novo,4.074592186561891e-05,37,8590.0,reference_step_120
+health,1501758,Brejo Grande do Araguaia,3.2171963758502796e-06,17,2980.0,reference_step_120
+health,1501782,Breu Branco,9.506900292136831e-07,79,20704.0,reference_step_120
+health,1501808,Breves,3.461764807698965e-05,64,28887.0,reference_step_120
+health,1501907,Bujaru,2.118815368678894e-05,39,7707.0,reference_step_120
+health,1501956,Cachoeira do Piriá,1.7606001528840955e-05,46,8304.0,reference_step_120
+health,1502004,Cachoeira do Arari,0.0,26,7539.0,reference_step_120
+health,1502103,Cametá,2.994355103979736e-06,139,42529.0,reference_step_120
+health,1502152,Canaã dos Carajás,8.913901524909645e-06,108,36539.0,reference_step_120
+health,1502202,Capanema,2.4062548430426802e-05,118,35064.0,reference_step_120
+health,1502301,Capitão Poço,2.4476043409543945e-05,132,25741.0,reference_step_120
+health,1502400,Castanhal,2.789361638209211e-05,340,97495.0,reference_step_120
+health,1502509,Chaves,0.0,4,2317.0,reference_step_120
+health,1502608,Colares,3.5152244985110175e-06,33,6118.0,reference_step_120
+health,1502707,Conceição do Araguaia,8.54526346003566e-06,79,20299.0,reference_step_120
+health,1502756,Concórdia do Pará,2.2528876001552416e-05,66,12238.0,reference_step_120
+health,1502764,Cumaru do Norte,8.096863019119469e-06,20,4478.0,reference_step_120
+health,1502772,Curionópolis,7.783919294110262e-06,49,9754.0,reference_step_120
+health,1502806,Curralinho,0.0,12,6588.0,reference_step_120
+health,1502855,Curuá,0.0,27,4836.0,reference_step_120
+health,1502905,Curuçá,8.026798335722742e-06,87,19885.0,reference_step_120
+health,1502939,Dom Eliseu,0.0,69,29239.0,reference_step_120
+health,1502954,Eldorado do Carajás,1.2566605088297994e-05,55,12850.0,reference_step_120
+health,1503002,Faro,0.0,21,3965.0,reference_step_120
+health,1503044,Floresta do Araguaia,1.2438765553722656e-05,31,7174.0,reference_step_120
+health,1503077,Garrafão do Norte,2.3620607241237824e-05,52,10813.0,reference_step_120
+health,1503093,Goianésia do Pará,4.060608386996283e-06,50,11198.0,reference_step_120
+health,1503101,Gurupá,0.0,14,6475.0,reference_step_120
+health,1503200,Igarapé-Açu,2.793022430378103e-05,61,16638.0,reference_step_120
+health,1503309,Igarapé-Miri,1.653287315474641e-05,52,16689.0,reference_step_120
+health,1503408,Inhangapi,1.987177841319738e-05,27,4748.0,reference_step_120
+health,1503457,Ipixuna do Pará,1.7976911010265237e-05,63,11531.0,reference_step_120
+health,1503507,Irituia,2.4803337852970728e-05,80,12734.0,reference_step_120
+health,1503606,Itaituba,0.00033470865028649606,202,58684.0,reference_step_120
+health,1503705,Itupiranga,3.089096995313707e-06,94,19975.0,reference_step_120
+health,1503754,Jacareacanga,0.0,23,5495.0,reference_step_120
+health,1503804,Jacundá,4.142455296984605e-06,86,18315.0,reference_step_120
+health,1503903,Juruti,8.509332295692526e-05,50,17868.0,reference_step_120
+health,1504000,Limoeiro do Ajuru,0.0,11,4370.0,reference_step_120
+health,1504059,Mãe do Rio,2.241850241683033e-05,46,17225.0,reference_step_120
+health,1504109,Magalhães Barata,7.689778405266363e-06,20,3887.0,reference_step_120
+health,1504208,Marabá,6.550981362753977e-06,474,127275.0,reference_step_120
+health,1504307,Maracanã,8.984003783924787e-06,81,12462.0,reference_step_120
+health,1504406,Marapanim,5.227714016078614e-06,77,12496.0,reference_step_120
+health,1504422,Marituba,1.2301801430552972e-05,218,53590.0,reference_step_120
+health,1504455,Medicilândia,3.772865839137005e-05,33,7996.0,reference_step_120
+health,1504505,Melgaço,0.0,9,4937.0,reference_step_120
+health,1504604,Mocajuba,1.2503364316562734e-05,36,11153.0,reference_step_120
+health,1504703,Moju,5.822307215017634e-06,134,28780.0,reference_step_120
+health,1504752,Mojuí dos Campos,3.0553437057129336e-05,37,9118.0,reference_step_120
+health,1504802,Monte Alegre,0.0,95,25730.0,reference_step_120
+health,1504901,Muaná,0.0,25,10409.0,reference_step_120
+health,1504950,Nova Esperança do Piriá,1.987287350166328e-05,32,8302.0,reference_step_120
+health,1504976,Nova Ipixuna,4.22904508162057e-06,25,5349.0,reference_step_120
+health,1505007,Nova Timboteua,2.740280066180079e-05,31,5955.0,reference_step_120
+health,1505031,Novo Progresso,0.0,57,15730.0,reference_step_120
+health,1505064,Novo Repartimento,1.8562566526474414e-05,93,21996.0,reference_step_120
+health,1505106,Óbidos,0.0,74,18742.0,reference_step_120
+health,1505205,Oeiras do Pará,0.0,50,10899.0,reference_step_120
+health,1505304,Oriximiná,0.0,65,25385.0,reference_step_120
+health,1505403,Ourém,2.466734841932367e-05,47,8650.0,reference_step_120
+health,1505437,Ourilândia do Norte,1.7967622607582314e-05,62,15106.0,reference_step_120
+health,1505486,Pacajá,2.2770744147918755e-05,64,14166.0,reference_step_120
+health,1505494,Palestina do Pará,3.335564750505324e-06,13,2963.0,reference_step_120
+health,1505502,Paragominas,1.489183719824969e-05,198,51977.0,reference_step_120
+health,1505536,Parauapebas,3.5433919542152896e-06,444,132408.0,reference_step_120
+health,1505551,Pau D'Arco,1.427814490712812e-05,13,2610.0,reference_step_120
+health,1505601,Peixe-Boi,2.411871343667651e-05,22,4059.0,reference_step_120
+health,1505635,Piçarra,2.531644769107268e-06,28,4910.0,reference_step_120
+health,1505650,Placas,7.003579995018403e-05,31,5696.0,reference_step_120
+health,1505700,Ponta de Pedras,0.0,25,8042.0,reference_step_120
+health,1505809,Portel,0.0,29,15599.0,reference_step_120
+health,1505908,Porto de Moz,9.435129812915556e-05,24,10600.0,reference_step_120
+health,1506005,Prainha,3.30447976771496e-07,49,12430.0,reference_step_120
+health,1506104,Primavera,9.969909037248864e-06,21,5030.0,reference_step_120
+health,1506112,Quatipuru,9.41236397994551e-06,23,5675.0,reference_step_120
+health,1506138,Redenção,1.4124356251308593e-05,162,42397.0,reference_step_120
+health,1506161,Rio Maria,1.364408806673061e-05,31,8402.0,reference_step_120
+health,1506187,Rondon do Pará,4.040698568920748e-06,62,22229.0,reference_step_120
+health,1506195,Rurópolis,0.00017122973723204574,53,15024.0,reference_step_120
+health,1506203,Salinópolis,9.395394183008284e-06,73,21950.0,reference_step_120
+health,1506302,Salvaterra,0.0,55,10910.0,reference_step_120
+health,1506351,Santa Bárbara do Pará,1.0806570961880825e-05,44,10013.0,reference_step_120
+health,1506401,Santa Cruz do Arari,0.0,8,2852.0,reference_step_120
+health,1506500,Santa Izabel do Pará,1.4332140202318472e-05,115,32345.0,reference_step_120
+health,1506559,Santa Luzia do Pará,1.3907685114987983e-05,46,8898.0,reference_step_120
+health,1506583,Santa Maria das Barreiras,4.665703105678468e-05,38,6519.0,reference_step_120
+health,1506609,Santa Maria do Pará,2.7712110065131876e-05,56,12204.0,reference_step_120
+health,1506708,Santana do Araguaia,5.040576641967841e-05,73,14754.0,reference_step_120
+health,1506807,Santarém,1.5394695193828057e-05,529,156731.0,reference_step_120
+health,1506906,Santarém Novo,1.2844014626926045e-05,16,2457.0,reference_step_120
+health,1507003,Santo Antônio do Tauá,1.1618246969912189e-05,55,13411.0,reference_step_120
+health,1507102,São Caetano de Odivelas,4.40187654769731e-06,42,7848.0,reference_step_120
+health,1507151,São Domingos do Araguaia,4.264835892754648e-06,33,9615.0,reference_step_120
+health,1507201,São Domingos do Capim,2.2067333263288125e-05,44,10381.0,reference_step_120
+health,1507300,São Félix do Xingu,7.92883941866893e-06,128,25504.0,reference_step_120
+health,1507409,São Francisco do Pará,2.5211146454584123e-05,27,6944.0,reference_step_120
+health,1507458,São Geraldo do Araguaia,3.165447330932771e-07,47,10931.0,reference_step_120
+health,1507466,São João da Ponta,7.722576218974936e-06,18,2001.0,reference_step_120
+health,1507474,São João de Pirabas,9.736056015570225e-06,36,8770.0,reference_step_120
+health,1507508,São João do Araguaia,4.22904508162057e-06,33,5932.0,reference_step_120
+health,1507607,São Miguel do Guamá,2.757043416022442e-05,100,25115.0,reference_step_120
+health,1507706,São Sebastião da Boa Vista,0.0,16,5557.0,reference_step_120
+health,1507755,Sapucaia,1.6099949719882845e-05,11,2879.0,reference_step_120
+health,1507805,Senador José Porfírio,0.0,31,6913.0,reference_step_120
+health,1507904,Soure,0.0,32,12072.0,reference_step_120
+health,1507953,Tailândia,1.065014092532202e-05,123,33966.0,reference_step_120
+health,1507961,Terra Alta,1.005039312988967e-05,23,4958.0,reference_step_120
+health,1507979,Terra Santa,0.0,25,8173.0,reference_step_120
+health,1508001,Tomé-Açu,1.4505538730857855e-05,117,30224.0,reference_step_120
+health,1508035,Tracuateua,1.134026059733717e-05,41,9773.0,reference_step_120
+health,1508050,Trairão,0.00010129136430531622,31,6744.0,reference_step_120
+health,1508084,Tucumã,1.6541758390788123e-05,69,18469.0,reference_step_120
+health,1508100,Tucuruí,1.0246015185348613e-07,158,44448.0,reference_step_120
+health,1508126,Ulianópolis,0.0,50,17003.0,reference_step_120
+health,1508159,Uruará,4.3628574376099996e-05,64,15110.0,reference_step_120
+health,1508209,Vigia,7.625515893984084e-06,100,24110.0,reference_step_120
+health,1508308,Viseu,1.5200352036139975e-05,113,24311.0,reference_step_120
+health,1508357,Vitória do Xingu,4.125338968293261e-05,36,6678.0,reference_step_120
+health,1508407,Xinguara,2.4490579856666885e-05,92,25086.0,reference_step_120
+specialized_justice,1500107,Abaetetuba,2.609352503697559e-06,189,61390.0,reference_step_120
+specialized_justice,1500131,Abel Figueiredo,2.7304276122683573e-06,11,2904.0,reference_step_120
+specialized_justice,1500206,Acará,2.3270789679338955e-06,128,21279.0,reference_step_120
+specialized_justice,1500347,Água Azul do Norte,0.0,38,7078.0,reference_step_120
+specialized_justice,1500404,Alenquer,0.0,64,24692.0,reference_step_120
+specialized_justice,1500503,Almeirim,0.0,44,12803.0,reference_step_120
+specialized_justice,1500602,Altamira,0.0,254,57798.0,reference_step_120
+specialized_justice,1500701,Anajás,0.0,11,6120.0,reference_step_120
+specialized_justice,1500800,Ananindeua,2.706991154683958e-06,637,216395.0,reference_step_120
+specialized_justice,1500859,Anapu,0.0,42,11682.0,reference_step_120
+specialized_justice,1500909,Augusto Corrêa,0.0,85,19652.0,reference_step_120
+specialized_justice,1500958,Aurora do Pará,5.983005593554555e-07,40,9167.0,reference_step_120
+specialized_justice,1501006,Aveiro,0.0,24,4724.0,reference_step_120
+specialized_justice,1501105,Bagre,0.0,18,6788.0,reference_step_120
+specialized_justice,1501204,Baião,0.0,61,20104.0,reference_step_120
+specialized_justice,1501253,Bannach,0.0,11,1582.0,reference_step_120
+specialized_justice,1501303,Barcarena,2.6298057834573047e-06,238,57552.0,reference_step_120
+specialized_justice,1501402,Belém,2.699880095909726e-06,1874,637628.0,reference_step_120
+specialized_justice,1501451,Belterra,6.242353117431147e-06,43,7617.0,reference_step_120
+specialized_justice,1501501,Benevides,2.7069911546839583e-06,181,30532.0,reference_step_120
+specialized_justice,1501576,Bom Jesus do Tocantins,2.7304276122683573e-06,35,7433.0,reference_step_120
+specialized_justice,1501600,Bonito,1.4617040278129016e-06,26,5332.0,reference_step_120
+specialized_justice,1501709,Bragança,4.793234779936459e-07,195,55750.0,reference_step_120
+specialized_justice,1501725,Brasil Novo,0.0,37,8590.0,reference_step_120
+specialized_justice,1501758,Brejo Grande do Araguaia,2.7304276122683578e-06,17,2980.0,reference_step_120
+specialized_justice,1501782,Breu Branco,0.0,79,20704.0,reference_step_120
+specialized_justice,1501808,Breves,0.0,64,28887.0,reference_step_120
+specialized_justice,1501907,Bujaru,2.6869705895072374e-06,39,7707.0,reference_step_120
+specialized_justice,1501956,Cachoeira do Piriá,2.134150104809678e-07,46,8304.0,reference_step_120
+specialized_justice,1502004,Cachoeira do Arari,0.0,26,7539.0,reference_step_120
+specialized_justice,1502103,Cametá,0.0,139,42529.0,reference_step_120
+specialized_justice,1502152,Canaã dos Carajás,0.0,108,36539.0,reference_step_120
+specialized_justice,1502202,Capanema,1.222352036084217e-06,118,35064.0,reference_step_120
+specialized_justice,1502301,Capitão Poço,5.528856941474857e-07,132,25741.0,reference_step_120
+specialized_justice,1502400,Castanhal,2.706991154683958e-06,340,97495.0,reference_step_120
+specialized_justice,1502509,Chaves,0.0,4,2317.0,reference_step_120
+specialized_justice,1502608,Colares,2.7069911546839583e-06,33,6118.0,reference_step_120
+specialized_justice,1502707,Conceição do Araguaia,0.0,79,20299.0,reference_step_120
+specialized_justice,1502756,Concórdia do Pará,2.059634607635792e-06,66,12238.0,reference_step_120
+specialized_justice,1502764,Cumaru do Norte,0.0,20,4478.0,reference_step_120
+specialized_justice,1502772,Curionópolis,2.647848552844616e-06,49,9754.0,reference_step_120
+specialized_justice,1502806,Curralinho,0.0,12,6588.0,reference_step_120
+specialized_justice,1502855,Curuá,0.0,27,4836.0,reference_step_120
+specialized_justice,1502905,Curuçá,2.526432620925114e-06,87,19885.0,reference_step_120
+specialized_justice,1502939,Dom Eliseu,0.0,69,29239.0,reference_step_120
+specialized_justice,1502954,Eldorado do Carajás,2.7304276122683578e-06,55,12850.0,reference_step_120
+specialized_justice,1503002,Faro,0.0,21,3965.0,reference_step_120
+specialized_justice,1503044,Floresta do Araguaia,0.0,31,7174.0,reference_step_120
+specialized_justice,1503077,Garrafão do Norte,7.92397416435836e-09,52,10813.0,reference_step_120
+specialized_justice,1503093,Goianésia do Pará,0.0,50,11198.0,reference_step_120
+specialized_justice,1503101,Gurupá,0.0,14,6475.0,reference_step_120
+specialized_justice,1503200,Igarapé-Açu,2.6559302957579413e-06,61,16638.0,reference_step_120
+specialized_justice,1503309,Igarapé-Miri,1.7429073350082555e-06,52,16689.0,reference_step_120
+specialized_justice,1503408,Inhangapi,2.706991154683958e-06,27,4748.0,reference_step_120
+specialized_justice,1503457,Ipixuna do Pará,8.815118140842249e-08,63,11531.0,reference_step_120
+specialized_justice,1503507,Irituia,9.71260757747662e-07,80,12734.0,reference_step_120
+specialized_justice,1503606,Itaituba,0.0,202,58684.0,reference_step_120
+specialized_justice,1503705,Itupiranga,2.1593274088111756e-06,94,19975.0,reference_step_120
+specialized_justice,1503754,Jacareacanga,0.0,23,5495.0,reference_step_120
+specialized_justice,1503804,Jacundá,2.6444075886659085e-06,86,18315.0,reference_step_120
+specialized_justice,1503903,Juruti,0.0,50,17868.0,reference_step_120
+specialized_justice,1504000,Limoeiro do Ajuru,0.0,11,4370.0,reference_step_120
+specialized_justice,1504059,Mãe do Rio,6.164167815770283e-07,46,17225.0,reference_step_120
+specialized_justice,1504109,Magalhães Barata,1.0378592988790273e-06,20,3887.0,reference_step_120
+specialized_justice,1504208,Marabá,2.6539262972783834e-06,474,127275.0,reference_step_120
+specialized_justice,1504307,Maracanã,1.1244964922059764e-06,81,12462.0,reference_step_120
+specialized_justice,1504406,Marapanim,1.6395106819347187e-06,77,12496.0,reference_step_120
+specialized_justice,1504422,Marituba,2.706991154683958e-06,218,53590.0,reference_step_120
+specialized_justice,1504455,Medicilândia,0.0,33,7996.0,reference_step_120
+specialized_justice,1504505,Melgaço,0.0,9,4937.0,reference_step_120
+specialized_justice,1504604,Mocajuba,0.0,36,11153.0,reference_step_120
+specialized_justice,1504703,Moju,1.627838998582218e-06,134,28780.0,reference_step_120
+specialized_justice,1504752,Mojuí dos Campos,6.084206202523647e-06,37,9118.0,reference_step_120
+specialized_justice,1504802,Monte Alegre,0.0,95,25730.0,reference_step_120
+specialized_justice,1504901,Muaná,0.0,25,10409.0,reference_step_120
+specialized_justice,1504950,Nova Esperança do Piriá,0.0,32,8302.0,reference_step_120
+specialized_justice,1504976,Nova Ipixuna,2.7304276122683573e-06,25,5349.0,reference_step_120
+specialized_justice,1505007,Nova Timboteua,2.2701642990391974e-06,31,5955.0,reference_step_120
+specialized_justice,1505031,Novo Progresso,0.0,57,15730.0,reference_step_120
+specialized_justice,1505064,Novo Repartimento,8.68930409432556e-08,93,21996.0,reference_step_120
+specialized_justice,1505106,Óbidos,0.0,74,18742.0,reference_step_120
+specialized_justice,1505205,Oeiras do Pará,0.0,50,10899.0,reference_step_120
+specialized_justice,1505304,Oriximiná,0.0,65,25385.0,reference_step_120
+specialized_justice,1505403,Ourém,7.144257782009734e-07,47,8650.0,reference_step_120
+specialized_justice,1505437,Ourilândia do Norte,0.0,62,15106.0,reference_step_120
+specialized_justice,1505486,Pacajá,0.0,64,14166.0,reference_step_120
+specialized_justice,1505494,Palestina do Pará,2.534146450805934e-06,13,2963.0,reference_step_120
+specialized_justice,1505502,Paragominas,0.0,198,51977.0,reference_step_120
+specialized_justice,1505536,Parauapebas,2.457566318649128e-06,444,132408.0,reference_step_120
+specialized_justice,1505551,Pau D'Arco,0.0,13,2610.0,reference_step_120
+specialized_justice,1505601,Peixe-Boi,1.3900718629443073e-06,22,4059.0,reference_step_120
+specialized_justice,1505635,Piçarra,6.244949508304206e-07,28,4910.0,reference_step_120
+specialized_justice,1505650,Placas,2.6302049652097528e-08,31,5696.0,reference_step_120
+specialized_justice,1505700,Ponta de Pedras,0.0,25,8042.0,reference_step_120
+specialized_justice,1505809,Portel,0.0,29,15599.0,reference_step_120
+specialized_justice,1505908,Porto de Moz,0.0,24,10600.0,reference_step_120
+specialized_justice,1506005,Prainha,1.65223988385748e-07,49,12430.0,reference_step_120
+specialized_justice,1506104,Primavera,6.530453062619905e-07,21,5030.0,reference_step_120
+specialized_justice,1506112,Quatipuru,6.164167815770284e-07,23,5675.0,reference_step_120
+specialized_justice,1506138,Redenção,0.0,162,42397.0,reference_step_120
+specialized_justice,1506161,Rio Maria,0.0,31,8402.0,reference_step_120
+specialized_justice,1506187,Rondon do Pará,2.3595984718914546e-06,62,22229.0,reference_step_120
+specialized_justice,1506195,Rurópolis,0.0,53,15024.0,reference_step_120
+specialized_justice,1506203,Salinópolis,6.124851939040998e-07,73,21950.0,reference_step_120
+specialized_justice,1506302,Salvaterra,0.0,55,10910.0,reference_step_120
+specialized_justice,1506351,Santa Bárbara do Pará,2.706991154683958e-06,44,10013.0,reference_step_120
+specialized_justice,1506401,Santa Cruz do Arari,0.0,8,2852.0,reference_step_120
+specialized_justice,1506500,Santa Izabel do Pará,2.7069911546839575e-06,115,32345.0,reference_step_120
+specialized_justice,1506559,Santa Luzia do Pará,6.689645373944025e-07,46,8898.0,reference_step_120
+specialized_justice,1506583,Santa Maria das Barreiras,0.0,38,6519.0,reference_step_120
+specialized_justice,1506609,Santa Maria do Pará,2.634015073899705e-06,56,12204.0,reference_step_120
+specialized_justice,1506708,Santana do Araguaia,0.0,73,14754.0,reference_step_120
+specialized_justice,1506807,Santarém,5.708970487647391e-06,529,156731.0,reference_step_120
+specialized_justice,1506906,Santarém Novo,8.248027809397345e-07,16,2457.0,reference_step_120
+specialized_justice,1507003,Santo Antônio do Tauá,2.706991154683957e-06,55,13411.0,reference_step_120
+specialized_justice,1507102,São Caetano de Odivelas,2.629727390839768e-06,42,7848.0,reference_step_120
+specialized_justice,1507151,São Domingos do Araguaia,2.7304276122683573e-06,33,9615.0,reference_step_120
+specialized_justice,1507201,São Domingos do Capim,6.344938144983468e-07,44,10381.0,reference_step_120
+specialized_justice,1507300,São Félix do Xingu,0.0,128,25504.0,reference_step_120
+specialized_justice,1507409,São Francisco do Pará,2.5292279106551725e-06,27,6944.0,reference_step_120
+specialized_justice,1507458,São Geraldo do Araguaia,2.038765910834721e-06,47,10931.0,reference_step_120
+specialized_justice,1507466,São João da Ponta,2.4350745019645794e-06,18,2001.0,reference_step_120
+specialized_justice,1507474,São João de Pirabas,6.164167815770285e-07,36,8770.0,reference_step_120
+specialized_justice,1507508,São João do Araguaia,2.7304276122683578e-06,33,5932.0,reference_step_120
+specialized_justice,1507607,São Miguel do Guamá,2.188563412750577e-06,100,25115.0,reference_step_120
+specialized_justice,1507706,São Sebastião da Boa Vista,0.0,16,5557.0,reference_step_120
+specialized_justice,1507755,Sapucaia,0.0,11,2879.0,reference_step_120
+specialized_justice,1507805,Senador José Porfírio,0.0,31,6913.0,reference_step_120
+specialized_justice,1507904,Soure,0.0,32,12072.0,reference_step_120
+specialized_justice,1507953,Tailândia,0.0,123,33966.0,reference_step_120
+specialized_justice,1507961,Terra Alta,2.706991154683958e-06,23,4958.0,reference_step_120
+specialized_justice,1507979,Terra Santa,0.0,25,8173.0,reference_step_120
+specialized_justice,1508001,Tomé-Açu,5.587877930394591e-09,117,30224.0,reference_step_120
+specialized_justice,1508035,Tracuateua,6.139298734186522e-07,41,9773.0,reference_step_120
+specialized_justice,1508050,Trairão,0.0,31,6744.0,reference_step_120
+specialized_justice,1508084,Tucumã,0.0,69,18469.0,reference_step_120
+specialized_justice,1508100,Tucuruí,0.0,158,44448.0,reference_step_120
+specialized_justice,1508126,Ulianópolis,0.0,50,17003.0,reference_step_120
+specialized_justice,1508159,Uruará,0.0,64,15110.0,reference_step_120
+specialized_justice,1508209,Vigia,2.706991154683958e-06,100,24110.0,reference_step_120
+specialized_justice,1508308,Viseu,5.273937335692563e-08,113,24311.0,reference_step_120
+specialized_justice,1508357,Vitória do Xingu,0.0,36,6678.0,reference_step_120
+specialized_justice,1508407,Xinguara,1.4759068174423554e-07,92,25086.0,reference_step_120
+specialized_security,1500107,Abaetetuba,4.165374711316372e-06,189,61390.0,reference_step_120
+specialized_security,1500131,Abel Figueiredo,2.861909981483442e-06,11,2904.0,reference_step_120
+specialized_security,1500206,Acará,3.854201651586366e-06,128,21279.0,reference_step_120
+specialized_security,1500347,Água Azul do Norte,5.363659708476068e-06,38,7078.0,reference_step_120
+specialized_security,1500404,Alenquer,0.0,64,24692.0,reference_step_120
+specialized_security,1500503,Almeirim,0.0,44,12803.0,reference_step_120
+specialized_security,1500602,Altamira,1.1537067040950384e-05,254,57798.0,reference_step_120
+specialized_security,1500701,Anajás,0.0,11,6120.0,reference_step_120
+specialized_security,1500800,Ananindeua,5.050233767146899e-06,637,216395.0,reference_step_120
+specialized_security,1500859,Anapu,0.0,42,11682.0,reference_step_120
+specialized_security,1500909,Augusto Corrêa,3.3053240369145604e-06,85,19652.0,reference_step_120
+specialized_security,1500958,Aurora do Pará,7.306279125793233e-06,40,9167.0,reference_step_120
+specialized_security,1501006,Aveiro,2.550587054635275e-06,24,4724.0,reference_step_120
+specialized_security,1501105,Bagre,2.3494042015517753e-06,18,6788.0,reference_step_120
+specialized_security,1501204,Baião,4.4695086356367725e-06,61,20104.0,reference_step_120
+specialized_security,1501253,Bannach,6.153310086682178e-06,11,1582.0,reference_step_120
+specialized_security,1501303,Barcarena,4.141468254080687e-06,238,57552.0,reference_step_120
+specialized_security,1501402,Belém,4.733970052299793e-06,1874,637628.0,reference_step_120
+specialized_security,1501451,Belterra,6.242353117431147e-06,43,7617.0,reference_step_120
+specialized_security,1501501,Benevides,5.050233767146898e-06,181,30532.0,reference_step_120
+specialized_security,1501576,Bom Jesus do Tocantins,2.8619099814834425e-06,35,7433.0,reference_step_120
+specialized_security,1501600,Bonito,5.425802472834642e-06,26,5332.0,reference_step_120
+specialized_security,1501709,Bragança,3.732453210659853e-06,195,55750.0,reference_step_120
+specialized_security,1501725,Brasil Novo,1.3476544075037396e-05,37,8590.0,reference_step_120
+specialized_security,1501758,Brejo Grande do Araguaia,2.8619099814834425e-06,17,2980.0,reference_step_120
+specialized_security,1501782,Breu Branco,1.0286372613561553e-05,79,20704.0,reference_step_120
+specialized_security,1501808,Breves,3.461764807698965e-05,64,28887.0,reference_step_120
+specialized_security,1501907,Bujaru,4.2314924798222695e-06,39,7707.0,reference_step_120
+specialized_security,1501956,Cachoeira do Piriá,2.0988513655556917e-06,46,8304.0,reference_step_120
+specialized_security,1502004,Cachoeira do Arari,0.0,26,7539.0,reference_step_120
+specialized_security,1502103,Cametá,1.774481624799611e-05,139,42529.0,reference_step_120
+specialized_security,1502152,Canaã dos Carajás,7.442970874321996e-06,108,36539.0,reference_step_120
+specialized_security,1502202,Capanema,4.98763877598178e-06,118,35064.0,reference_step_120
+specialized_security,1502301,Capitão Poço,4.0150037787067055e-06,132,25741.0,reference_step_120
+specialized_security,1502400,Castanhal,6.869930825295556e-06,340,97495.0,reference_step_120
+specialized_security,1502509,Chaves,0.0,4,2317.0,reference_step_120
+specialized_security,1502608,Colares,2.6771954058893373e-06,33,6118.0,reference_step_120
+specialized_security,1502707,Conceição do Araguaia,8.519705222536919e-06,79,20299.0,reference_step_120
+specialized_security,1502756,Concórdia do Pará,6.8273798082652396e-06,66,12238.0,reference_step_120
+specialized_security,1502764,Cumaru do Norte,6.5842440731413856e-06,20,4478.0,reference_step_120
+specialized_security,1502772,Curionópolis,1.0218325243283641e-05,49,9754.0,reference_step_120
+specialized_security,1502806,Curralinho,0.0,12,6588.0,reference_step_120
+specialized_security,1502855,Curuá,0.0,27,4836.0,reference_step_120
+specialized_security,1502905,Curuçá,3.2421950058504647e-06,87,19885.0,reference_step_120
+specialized_security,1502939,Dom Eliseu,3.437634937913922e-07,69,29239.0,reference_step_120
+specialized_security,1502954,Eldorado do Carajás,1.013110344856995e-05,55,12850.0,reference_step_120
+specialized_security,1503002,Faro,0.0,21,3965.0,reference_step_120
+specialized_security,1503044,Floresta do Araguaia,7.334697034434561e-06,31,7174.0,reference_step_120
+specialized_security,1503077,Garrafão do Norte,1.176754696163418e-06,52,10813.0,reference_step_120
+specialized_security,1503093,Goianésia do Pará,9.45748131809274e-06,50,11198.0,reference_step_120
+specialized_security,1503101,Gurupá,0.0,14,6475.0,reference_step_120
+specialized_security,1503200,Igarapé-Açu,5.947337598175848e-06,61,16638.0,reference_step_120
+specialized_security,1503309,Igarapé-Miri,3.365365245588262e-06,52,16689.0,reference_step_120
+specialized_security,1503408,Inhangapi,4.012623166883814e-06,27,4748.0,reference_step_120
+specialized_security,1503457,Ipixuna do Pará,6.5619496873552695e-06,63,11531.0,reference_step_120
+specialized_security,1503507,Irituia,7.117349315776065e-06,80,12734.0,reference_step_120
+specialized_security,1503606,Itaituba,1.6835100312758212e-05,202,58684.0,reference_step_120
+specialized_security,1503705,Itupiranga,2.2902355553470608e-06,94,19975.0,reference_step_120
+specialized_security,1503754,Jacareacanga,0.0,23,5495.0,reference_step_120
+specialized_security,1503804,Jacundá,2.7717477068825174e-06,86,18315.0,reference_step_120
+specialized_security,1503903,Juruti,0.0,50,17868.0,reference_step_120
+specialized_security,1504000,Limoeiro do Ajuru,2.1972035089632425e-05,11,4370.0,reference_step_120
+specialized_security,1504059,Mãe do Rio,7.930497779478886e-06,46,17225.0,reference_step_120
+specialized_security,1504109,Magalhães Barata,1.9248778403135463e-06,20,3887.0,reference_step_120
+specialized_security,1504208,Marabá,5.650813080276938e-06,474,127275.0,reference_step_120
+specialized_security,1504307,Maracanã,2.4453216970225535e-06,81,12462.0,reference_step_120
+specialized_security,1504406,Marapanim,2.2603782791256574e-06,77,12496.0,reference_step_120
+specialized_security,1504422,Marituba,5.050233767146899e-06,218,53590.0,reference_step_120
+specialized_security,1504455,Medicilândia,1.3476544075037398e-05,33,7996.0,reference_step_120
+specialized_security,1504505,Melgaço,0.0,9,4937.0,reference_step_120
+specialized_security,1504604,Mocajuba,1.7293480877072841e-06,36,11153.0,reference_step_120
+specialized_security,1504703,Moju,3.3179490428759022e-06,134,28780.0,reference_step_120
+specialized_security,1504752,Mojuí dos Campos,6.084206202523647e-06,37,9118.0,reference_step_120
+specialized_security,1504802,Monte Alegre,0.0,95,25730.0,reference_step_120
+specialized_security,1504901,Muaná,0.0,25,10409.0,reference_step_120
+specialized_security,1504950,Nova Esperança do Piriá,1.9135481463509418e-06,32,8302.0,reference_step_120
+specialized_security,1504976,Nova Ipixuna,2.8619099814834425e-06,25,5349.0,reference_step_120
+specialized_security,1505007,Nova Timboteua,5.622152168507792e-06,31,5955.0,reference_step_120
+specialized_security,1505031,Novo Progresso,0.0,57,15730.0,reference_step_120
+specialized_security,1505064,Novo Repartimento,7.803986202150805e-06,93,21996.0,reference_step_120
+specialized_security,1505106,Óbidos,0.0,74,18742.0,reference_step_120
+specialized_security,1505205,Oeiras do Pará,7.040442797870926e-06,50,10899.0,reference_step_120
+specialized_security,1505304,Oriximiná,0.0,65,25385.0,reference_step_120
+specialized_security,1505403,Ourém,4.019799595159271e-06,47,8650.0,reference_step_120
+specialized_security,1505437,Ourilândia do Norte,1.7702695935191895e-05,62,15106.0,reference_step_120
+specialized_security,1505486,Pacajá,9.64302049330068e-07,64,14166.0,reference_step_120
+specialized_security,1505494,Palestina do Pará,2.6561769993518284e-06,13,2963.0,reference_step_120
+specialized_security,1505502,Paragominas,6.491784309420813e-06,198,51977.0,reference_step_120
+specialized_security,1505536,Parauapebas,9.733575888669273e-06,444,132408.0,reference_step_120
+specialized_security,1505551,Pau D'Arco,8.769852754172259e-06,13,2610.0,reference_step_120
+specialized_security,1505601,Peixe-Boi,5.105858753547444e-06,22,4059.0,reference_step_120
+specialized_security,1505635,Piçarra,2.6720862173029507e-06,28,4910.0,reference_step_120
+specialized_security,1505650,Placas,2.6302049652097528e-08,31,5696.0,reference_step_120
+specialized_security,1505700,Ponta de Pedras,0.0,25,8042.0,reference_step_120
+specialized_security,1505809,Portel,0.0,29,15599.0,reference_step_120
+specialized_security,1505908,Porto de Moz,3.8141162476520934e-09,24,10600.0,reference_step_120
+specialized_security,1506005,Prainha,1.65223988385748e-07,49,12430.0,reference_step_120
+specialized_security,1506104,Primavera,3.958419123220287e-06,21,5030.0,reference_step_120
+specialized_security,1506112,Quatipuru,3.921790598535327e-06,23,5675.0,reference_step_120
+specialized_security,1506138,Redenção,8.696007023737568e-06,162,42397.0,reference_step_120
+specialized_security,1506161,Rio Maria,1.1892155833046691e-05,31,8402.0,reference_step_120
+specialized_security,1506187,Rondon do Pará,2.4732237502495358e-06,62,22229.0,reference_step_120
+specialized_security,1506195,Rurópolis,0.0,53,15024.0,reference_step_120
+specialized_security,1506203,Salinópolis,3.917858693358702e-06,73,21950.0,reference_step_120
+specialized_security,1506302,Salvaterra,0.0,55,10910.0,reference_step_120
+specialized_security,1506351,Santa Bárbara do Pará,5.050233767146898e-06,44,10013.0,reference_step_120
+specialized_security,1506401,Santa Cruz do Arari,0.0,8,2852.0,reference_step_120
+specialized_security,1506500,Santa Izabel do Pará,5.0219857990343914e-06,115,32345.0,reference_step_120
+specialized_security,1506559,Santa Luzia do Pará,3.89933975531906e-06,46,8898.0,reference_step_120
+specialized_security,1506583,Santa Maria das Barreiras,8.311113716103114e-06,38,6519.0,reference_step_120
+specialized_security,1506609,Santa Maria do Pará,5.8212404443867815e-06,56,12204.0,reference_step_120
+specialized_security,1506708,Santana do Araguaia,0.0,73,14754.0,reference_step_120
+specialized_security,1506807,Santarém,5.708970487647391e-06,529,156731.0,reference_step_120
+specialized_security,1506906,Santarém Novo,4.130176597898032e-06,16,2457.0,reference_step_120
+specialized_security,1507003,Santo Antônio do Tauá,4.610150288725208e-06,55,13411.0,reference_step_120
+specialized_security,1507102,São Caetano de Odivelas,2.735194004978302e-06,42,7848.0,reference_step_120
+specialized_security,1507151,São Domingos do Araguaia,2.895334100573445e-06,33,9615.0,reference_step_120
+specialized_security,1507201,São Domingos do Capim,3.462370694191104e-06,44,10381.0,reference_step_120
+specialized_security,1507300,São Félix do Xingu,1.545125495006465e-05,128,25504.0,reference_step_120
+specialized_security,1507409,São Francisco do Pará,5.589658142988434e-06,27,6944.0,reference_step_120
+specialized_security,1507458,São Geraldo do Araguaia,1.3422179651352247e-06,47,10931.0,reference_step_120
+specialized_security,1507466,São João da Ponta,3.086903212045957e-06,18,2001.0,reference_step_120
+specialized_security,1507474,São João de Pirabas,3.921790598535326e-06,36,8770.0,reference_step_120
+specialized_security,1507508,São João do Araguaia,2.8857474862410565e-06,33,5932.0,reference_step_120
+specialized_security,1507607,São Miguel do Guamá,1.0375340837163587e-05,100,25115.0,reference_step_120
+specialized_security,1507706,São Sebastião da Boa Vista,0.0,16,5557.0,reference_step_120
+specialized_security,1507755,Sapucaia,1.4616894776670306e-05,11,2879.0,reference_step_120
+specialized_security,1507805,Senador José Porfírio,0.0,31,6913.0,reference_step_120
+specialized_security,1507904,Soure,8.28363154406892e-05,32,12072.0,reference_step_120
+specialized_security,1507953,Tailândia,4.857965210057708e-07,123,33966.0,reference_step_120
+specialized_security,1507961,Terra Alta,3.4644079257172528e-06,23,4958.0,reference_step_120
+specialized_security,1507979,Terra Santa,0.0,25,8173.0,reference_step_120
+specialized_security,1508001,Tomé-Açu,1.99013533247419e-07,117,30224.0,reference_step_120
+specialized_security,1508035,Tracuateua,3.919300990753173e-06,41,9773.0,reference_step_120
+specialized_security,1508050,Trairão,0.0,31,6744.0,reference_step_120
+specialized_security,1508084,Tucumã,1.8328781685881335e-05,69,18469.0,reference_step_120
+specialized_security,1508100,Tucuruí,1.0286372613561553e-05,158,44448.0,reference_step_120
+specialized_security,1508126,Ulianópolis,6.275004720149372e-06,50,17003.0,reference_step_120
+specialized_security,1508159,Uruará,1.2986001438288848e-06,64,15110.0,reference_step_120
+specialized_security,1508209,Vigia,3.0105465697785424e-06,100,24110.0,reference_step_120
+specialized_security,1508308,Viseu,2.797751749904637e-06,113,24311.0,reference_step_120
+specialized_security,1508357,Vitória do Xingu,1.3476544075037398e-05,36,6678.0,reference_step_120
+specialized_security,1508407,Xinguara,1.2405093826774697e-05,92,25086.0,reference_step_120
