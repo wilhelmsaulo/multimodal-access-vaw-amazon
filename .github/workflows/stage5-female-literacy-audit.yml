@@ -1,0 +1,64 @@
+name: Stage 5 female literacy audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-female-literacy-audit.yml'
+      - 'src/analysis/build_stage5_female_literacy_candidate.py'
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas httpx
+
+      - name: Acquire and audit female literacy
+        run: python -m src.analysis.build_stage5_female_literacy_candidate
+
+      - name: Validate outputs
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+          df = pd.read_csv('results/stage5/tables/stage5_female_literacy_candidate.csv', dtype={'municipality_code': str})
+          assert len(df) == 144
+          assert df['municipality_code'].nunique() == 144
+          assert df['socio__female_literacy_rate_15plus'].notna().all()
+          assert df['socio__female_literacy_rate_15plus'].between(0,1).all()
+          audit = json.load(open('results/stage5/tables/stage5_female_literacy_audit.json', encoding='utf-8'))
+          assert audit['municipalities'] == 144
+          assert audit['missing_values'] == 0
+          print(df.head().to_string(index=False))
+          print(json.dumps(audit, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit audited Stage 5 outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage5/tables/stage5_female_literacy_candidate.csv \
+                  results/stage5/tables/stage5_female_literacy_audit.json
+          if git diff --cached --quiet; then
+            echo 'No female literacy changes to commit.'
+          else
+            git commit -m 'Publish Stage 5 female literacy audit'
+            git push origin HEAD:stage4-mcdm
+          fi
