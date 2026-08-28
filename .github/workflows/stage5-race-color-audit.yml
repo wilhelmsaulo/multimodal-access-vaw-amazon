@@ -7,8 +7,6 @@ on:
     paths:
       - '.github/workflows/stage5-race-color-audit.yml'
       - 'src/analysis/build_stage5_race_color_candidates.py'
-      - 'src/data/sidra.py'
-      - 'src/data/provenance.py'
 
 permissions:
   contents: write
@@ -30,7 +28,7 @@ jobs:
       - name: Install minimal dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas httpx
+          pip install pandas httpx openpyxl
 
       - name: Acquire and audit race-color composition
         run: |
@@ -50,6 +48,7 @@ jobs:
           audit=json.load(open('results/stage5/tables/stage5_race_color_audit.json',encoding='utf-8'))
           assert audit['municipalities']==144
           assert audit['missing_share_cells']==0
+          assert audit['female_specific'] is False
           print(df.head().to_string(index=False))
           print(json.dumps(audit, ensure_ascii=False, indent=2))
           PY
@@ -59,8 +58,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add results/stage5/tables/stage5_race_color_candidates.csv \
-                  results/stage5/tables/stage5_race_color_audit.json \
-                  results/stage5/tables/stage5_sidra_9605_raw_normalized.csv
+                  results/stage5/tables/stage5_race_color_audit.json
           if git diff --cached --quiet; then
             echo 'No Stage 5 race/color changes to commit.'
           else
