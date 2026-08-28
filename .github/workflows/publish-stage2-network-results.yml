@@ -1,0 +1,147 @@
+name: publish-stage2-network-results
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - stage4-mcdm
+    paths:
+      - 'src/analysis/publish_stage2_network_results.py'
+      - '.github/workflows/publish-stage2-network-results.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install network-publication dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            'pandas>=2.2,<3' \
+            'numpy>=2,<3' \
+            'geopandas>=1.0,<2' \
+            'pyogrio>=0.10,<1' \
+            'shapely>=2,<3' \
+            'matplotlib>=3.9,<4' \
+            'pyproj>=3.7,<4' \
+            'osmium>=4,<5'
+
+      - name: Download authoritative corrected multimodal backbone
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-corrected-multimodal-backbone
+          path: artifacts/backbone
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 33089335405
+
+      - name: Download authoritative validated hydro topology
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-hydro-topology-with-validated-snaps
+          path: artifacts/hydro
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32868022260
+
+      - name: Download authoritative intermodal terminal splits
+        uses: actions/download-artifact@v4
+        with:
+          name: pa-intermodal-terminal-road-edge-splits
+          path: artifacts/terminals
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 32907985189
+
+      - name: Download pinned historical OSM snapshot for cartographic node coordinates
+        run: |
+          mkdir -p artifacts/osm
+          URL='https://download.geofabrik.de/south-america/brazil/norte-260824.osm.pbf'
+          echo "Downloading $URL"
+          curl --fail --location --retry 3 --retry-delay 5 \
+            --output artifacts/osm/norte-260824.osm.pbf "$URL"
+          test -s artifacts/osm/norte-260824.osm.pbf
+          sha256sum artifacts/osm/norte-260824.osm.pbf | tee artifacts/osm/norte-260824.osm.pbf.sha256
+
+      - name: Build Stage 2 network publication bundle
+        run: |
+          python src/analysis/publish_stage2_network_results.py \
+            --backbone-dir artifacts/backbone \
+            --hydro-dir artifacts/hydro \
+            --terminal-dir artifacts/terminals \
+            --osm-pbf artifacts/osm/norte-260824.osm.pbf \
+            --out results/stage2_network
+
+      - name: Add snapshot checksum to publication metadata
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('results/stage2_network/publication_metadata.json')
+          m=json.loads(p.read_text())
+          checksum=Path('artifacts/osm/norte-260824.osm.pbf.sha256').read_text().split()[0]
+          m['osm_snapshot_sha256']=checksum
+          p.write_text(json.dumps(m,ensure_ascii=False,indent=2),encoding='utf-8')
+          PY
+
+      - name: Validate Stage 2 network publication bundle
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import pandas as pd
+          p=Path('results/stage2_network')
+          m=json.loads((p/'publication_metadata.json').read_text())
+          v=pd.read_csv(p/'tables/cartographic_node_validation.csv')
+          assert m['corrected_network_run_id']==33089335405
+          assert m['routing_recomputed'] is False
+          assert m['travel_times_changed'] is False
+          assert m['new_speed_assumption_used'] is False
+          assert m['waiting_time_added'] is False
+          assert m['afua_synthetic_edge_added'] is False
+          assert abs(float(m['road_node_coordinate_coverage_fraction'])-1.0) < 1e-12
+          assert bool(v.loc[0,'complete_match']) is True
+          assert int(v.loc[0,'missing_numeric_final_road_nodes']) == 0
+          assert 'geographic_coordinates' in m['cartographic_elements']
+          for f in [
+              p/'README.md',
+              p/'publication_metadata.json',
+              p/'tables/network_component_summary.csv',
+              p/'tables/validated_transfer_terminals.csv',
+              p/'tables/bounded_transfer_corrections.csv',
+              p/'tables/cartographic_node_validation.csv',
+              p/'figures/statewide_multimodal_network.png',
+              p/'figures/colares_transfer_correction.png',
+              p/'figures/santa_cruz_transfer_correction.png',
+          ]:
+              assert f.exists() and f.stat().st_size > 0, f
+          PY
+
+      - name: Commit generated Stage 2 network publication bundle
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage2_network
+          if git diff --cached --quiet; then
+            echo 'No network-publication changes to commit.'
+          else
+            git commit -m 'Publish Stage 2 multimodal network maps and tables'
+            git fetch origin stage4-mcdm
+            git rebase origin/stage4-mcdm
+            git push origin HEAD:stage4-mcdm
+          fi
