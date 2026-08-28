@@ -18,9 +18,9 @@
     "reason": "not included alongside mean income without a separate theoretical justification; avoids duplicating the same income construct"
   },
   "missing_values": 0,
-  "income_min_brl": 35865.0,
-  "income_median_across_municipalities_brl": 72436.0,
-  "income_max_brl": 166852.0,
+  "income_min_brl": 358.65,
+  "income_median_across_municipalities_brl": 724.36,
+  "income_max_brl": 1668.52,
   "sample_based": true,
   "poverty_measure": false,
   "retention_status": "candidate_pending_pre_SOM_gate",
