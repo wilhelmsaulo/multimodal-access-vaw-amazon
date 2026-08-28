@@ -1,0 +1,40 @@
+{
+  "item": 5,
+  "status": "published",
+  "panels": [
+    {
+      "label": "A",
+      "title": "Equipamentos e serviços",
+      "source": "results/stage1_services/figures/all_service_sites.png"
+    },
+    {
+      "label": "B",
+      "title": "Rede multimodal corrigida",
+      "source": "results/stage2_network/figures/statewide_multimodal_network.png"
+    },
+    {
+      "label": "C",
+      "title": "Situação setorial na rede de referência",
+      "source": "results/stage1_sector_origins/figures/sector_reference_network_access.png"
+    },
+    {
+      "label": "D",
+      "title": "E2SFCA — agregação municipal por tipo",
+      "source": "results/e2sfca/figures/reference_municipal_maps.png"
+    },
+    {
+      "label": "E",
+      "title": "PROMETHEE II — priorização municipal",
+      "source": "results/stage4/figures/promethee_ii_rank_map.png"
+    },
+    {
+      "label": "F",
+      "title": "TOPSIS — ranking de contraste",
+      "source": "results/stage4/figures/topsis_rank_map.png"
+    }
+  ],
+  "formats": [
+    "png",
+    "pdf"
+  ]
+}
