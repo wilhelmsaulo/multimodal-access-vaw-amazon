@@ -61,6 +61,6 @@
   <path d="M640 190 C850 190 920 400 1090 330" class="arrow"/>
   <path d="M1225 375 L1225 500" class="arrow"/>
 
-  <text x="700" y="700" text-anchor="middle" class="note">Methodological schematic only. No parameterization or empirical E2SFCA result is implied by this figure.</text>
+  <text x="700" y="700" text-anchor="middle" class="note">Methodological schematic only. No parameterization or analytical E2SFCA result is implied by this figure.</text>
   <text x="700" y="728" text-anchor="middle" class="note">Implementation: src/accessibility/e2sfca.py</text>
 </svg>

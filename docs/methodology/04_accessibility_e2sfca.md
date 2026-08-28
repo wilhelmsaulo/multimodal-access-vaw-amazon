@@ -12,7 +12,7 @@ The executable implementation is available in the consolidated branch at [`src/a
 
 ![E2SFCA two-step model](figures/e2sfca_two_step_model.svg)
 
-The figure is a methodological schematic only. It does not imply that any threshold, decay function, supply mode or empirical E2SFCA result has already been frozen.
+The figure is a methodological schematic only. It does not imply that any threshold, decay function, supply mode or analytical E2SFCA result has already been frozen.
 
 ## Two-step model flow
 
@@ -126,7 +126,7 @@ E2SFCA adds a population-and-supply competition perspective and can be analyzed 
 
 The corrected E2SFCA execution is now **authoritative as a complementary accessibility analysis**. The reference specification uses unit presence, separate service types, a 120-minute catchment, no additional decay parameter, and female-population-weighted municipal aggregation among routing-ready origins. Coverage-limited origins are not assigned synthetic zeros.
 
-Four alternative configurations are published as sensitivity analyses. The complete empirical bundle is available in [`results/e2sfca/`](../../results/e2sfca/), and the formal status is maintained in [`08_reproducibility_status.md`](08_reproducibility_status.md).
+Four alternative configurations are published as sensitivity analyses. The complete analytical bundle is available in [`results/e2sfca/`](../../results/e2sfca/), and the formal status is maintained in [`08_reproducibility_status.md`](08_reproducibility_status.md).
 
 ## Output documentation rule
 

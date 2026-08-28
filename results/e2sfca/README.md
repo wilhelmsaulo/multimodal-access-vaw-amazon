@@ -1,4 +1,4 @@
-# Item 4 — pacote visual e empírico do E2SFCA
+# Item 4 — pacote visual e analítico do E2SFCA
 
 A configuração de referência usa oferta unitária, cálculo separado por tipo de serviço, limite de 120 minutos e nenhuma função adicional de decaimento. Ela minimiza novas suposições e mantém o limite já registrado no estudo. Quatro configurações adicionais são publicadas como sensibilidade.
 

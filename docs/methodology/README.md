@@ -38,7 +38,7 @@ flowchart LR
     X -. complementary / separately parameterized .-> T[E2SFCA tables and maps when frozen]
 ```
 
-**Official data sources** → **census-sector origins and service destinations** → **multimodal temporal network** → **origin–service OD matrix**. From the corrected OD, the final MCDM uses **direct municipal network-access summaries**. The E2SFCA implementation is a **parallel complementary accessibility model** that adds demand/supply competition and must be separately parameterized before its empirical outputs are declared authoritative.
+**Official data sources** → **census-sector origins and service destinations** → **multimodal temporal network** → **origin–service OD matrix**. From the corrected OD, the final MCDM uses **direct municipal network-access summaries**. The E2SFCA implementation is a **parallel complementary accessibility model** that adds demand/supply competition; its analytical outputs are parameterized and published separately from the MCDM criteria.
 
 The SOM stage is intentionally not documented as closed yet. Its page will be completed only after its input matrix, training specification and validation are frozen.
 
@@ -93,7 +93,7 @@ The SOM stage is intentionally not documented as closed yet. Its page will be co
 
 The executable model is available at [`src/accessibility/e2sfca.py`](../../src/accessibility/e2sfca.py), and its mathematical specification is documented in [`04_accessibility_e2sfca.md`](04_accessibility_e2sfca.md).
 
-At present, code availability must **not** be confused with a frozen empirical E2SFCA result. The final corrected pipeline has not yet declared an authoritative combination of supply mode, catchment threshold, decay function/parameter and municipal aggregation. The exact status and required closure conditions are recorded in [`08_reproducibility_status.md`](08_reproducibility_status.md), and the current service-capacity evidence is audited in [`09_e2sfca_parameter_audit.md`](09_e2sfca_parameter_audit.md).
+Code availability alone must **not** be confused with a frozen analytical E2SFCA result. The corrected pipeline now declares an authoritative complementary configuration: unit presence, separate service types, a 120-minute catchment, no additional decay parameter and female-population-weighted municipal aggregation among routing-ready origins. The exact status is recorded in [`08_reproducibility_status.md`](08_reproducibility_status.md), and the service-capacity evidence is audited in [`09_e2sfca_parameter_audit.md`](09_e2sfca_parameter_audit.md).
 
 ## Reproducibility policy
 

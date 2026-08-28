@@ -92,5 +92,5 @@
   <text x="320" y="622" text-anchor="middle" class="cell">wᵢⱼ = optional time-decay weight</text>
 
   <text x="700" y="700" text-anchor="middle" class="note">Unreachable OD cells remain unavailable; origins with no eligible reachable service are retained with score 0.</text>
-  <text x="700" y="728" text-anchor="middle" class="note">Methodological schematic only — not an empirical result table.</text>
+  <text x="700" y="728" text-anchor="middle" class="note">Methodological schematic only — not an analytical result table.</text>
 </svg>
