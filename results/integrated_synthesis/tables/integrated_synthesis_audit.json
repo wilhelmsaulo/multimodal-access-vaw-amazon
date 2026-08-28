@@ -9,7 +9,7 @@
   ],
   "expected_e2sfca_service_type_count": 4,
   "municipalities_with_complete_e2sfca_coverage": 143,
-  "municipalities_with_incomplete_e2sfca_coverage": -287,
+  "municipalities_with_incomplete_e2sfca_coverage": 1,
   "lower_accessibility_quartile_cutoff_on_mean_percentile": 0.3780594405594405,
   "higher_accessibility_quartile_cutoff_on_mean_percentile": 0.6123251748251748,
   "no_synthetic_zero_for_missing_e2sfca": true,
