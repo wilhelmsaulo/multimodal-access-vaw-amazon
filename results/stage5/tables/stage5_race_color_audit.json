@@ -1,0 +1,29 @@
+{
+  "stage": "Stage 5 SOM race/color acquisition audit",
+  "source": "IBGE Census 2022 universe results — official selected municipal table",
+  "reference_sidra_table": 9605,
+  "operational_file": "https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Populacao_por_cor_ou_raca_Resultados_do_universo/Tabelas_selecionadas/xlsx/Tabela_04_Pop_resid_por_cor_ou_raca_e_pessoas_indigenas_2022_MU.xlsx",
+  "period": 2022,
+  "territorial_level": "municipality",
+  "state": "Pará",
+  "municipalities": 144,
+  "female_specific": false,
+  "selected_workbook_sheet": "pop resid corRaca e ind MU",
+  "share_columns": [
+    "socio__race_share_branca",
+    "socio__race_share_preta",
+    "socio__race_share_parda",
+    "socio__race_share_amarela",
+    "socio__race_share_indigena"
+  ],
+  "share_sum_min": 0.9603163294385864,
+  "share_sum_max": 1.0000000000000002,
+  "ignored_share_min": 0.0,
+  "ignored_share_max": 0.03968367056141351,
+  "max_abs_residual_reconciliation_gap": 2.220446049250313e-16,
+  "missing_share_cells": 0,
+  "source_file_bytes": 1002938,
+  "parse_errors_other_sheets": {},
+  "compositional_warning": "Do not feed the complete raw share vector mechanically into SOM; final representation is decided at the pre-SOM redundancy/compositional gate.",
+  "interpretation_warning": "Race/color composition is a descriptive profile block, not a violence-risk score and not a normative hierarchy."
+}
