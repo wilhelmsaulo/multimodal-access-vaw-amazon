@@ -1148,7 +1148,7 @@ creas,1500131,Abel Figueiredo,3.398488086803096e-05,11,2904.0,exponential_120_ha
 creas,1500206,Acará,1.6426387341100456e-05,128,21279.0,exponential_120_half60
 creas,1500347,Água Azul do Norte,5.00489061544162e-05,38,7078.0,exponential_120_half60
 creas,1500404,Alenquer,4.0102216737498185e-05,64,24692.0,exponential_120_half60
-creas,1500503,Almeirim,7.810669374365383e-05,44,12803.0,exponential_120_half60
+creas,1500503,Almeirim,7.810669374365385e-05,44,12803.0,exponential_120_half60
 creas,1500602,Altamira,4.73581751381696e-05,254,57798.0,exponential_120_half60
 creas,1500701,Anajás,0.0001633986928104575,11,6120.0,exponential_120_half60
 creas,1500800,Ananindeua,2.6028896617226522e-05,637,216395.0,exponential_120_half60
@@ -1168,7 +1168,7 @@ creas,1501600,Bonito,6.516931060490864e-05,26,5332.0,exponential_120_half60
 creas,1501709,Bragança,4.271792693214645e-05,195,55750.0,exponential_120_half60
 creas,1501725,Brasil Novo,6.347041190228431e-05,37,8590.0,exponential_120_half60
 creas,1501758,Brejo Grande do Araguaia,3.53154242516476e-05,17,2980.0,exponential_120_half60
-creas,1501782,Breu Branco,2.889564645115923e-05,79,20704.0,exponential_120_half60
+creas,1501782,Breu Branco,2.8895646451159225e-05,79,20704.0,exponential_120_half60
 creas,1501808,Breves,3.461764807698965e-05,64,28887.0,exponential_120_half60
 creas,1501907,Bujaru,2.3135848936030226e-05,39,7707.0,exponential_120_half60
 creas,1501956,Cachoeira do Piriá,4.0131150883298395e-05,46,8304.0,exponential_120_half60
@@ -1195,7 +1195,7 @@ creas,1503077,Garrafão do Norte,4.208087703618118e-05,52,10813.0,exponential_12
 creas,1503093,Goianésia do Pará,3.8186454472055173e-05,50,11198.0,exponential_120_half60
 creas,1503101,Gurupá,0.00015444015444015442,14,6475.0,exponential_120_half60
 creas,1503200,Igarapé-Açu,5.798061124113343e-05,61,16638.0,exponential_120_half60
-creas,1503309,Igarapé-Miri,2.497209837786397e-05,52,16689.0,exponential_120_half60
+creas,1503309,Igarapé-Miri,2.4972098377863968e-05,52,16689.0,exponential_120_half60
 creas,1503408,Inhangapi,3.522822868415326e-05,27,4748.0,exponential_120_half60
 creas,1503457,Ipixuna do Pará,3.987007541694427e-05,63,11531.0,exponential_120_half60
 creas,1503507,Irituia,5.793968820825667e-05,80,12734.0,exponential_120_half60
@@ -1227,7 +1227,7 @@ creas,1505106,Óbidos,7.56232915143335e-05,74,18742.0,exponential_120_half60
 creas,1505205,Oeiras do Pará,9.891664459155521e-05,50,10899.0,exponential_120_half60
 creas,1505304,Oriximiná,4.617638285691535e-05,65,25385.0,exponential_120_half60
 creas,1505403,Ourém,6.320412693277435e-05,47,8650.0,exponential_120_half60
-creas,1505437,Ourilândia do Norte,6.607813941858165e-05,62,15106.0,exponential_120_half60
+creas,1505437,Ourilândia do Norte,6.607813941858163e-05,62,15106.0,exponential_120_half60
 creas,1505486,Pacajá,6.783177289943958e-05,64,14166.0,exponential_120_half60
 creas,1505494,Palestina do Pará,3.070488822699949e-05,13,2963.0,exponential_120_half60
 creas,1505502,Paragominas,3.0062190508222354e-05,198,51977.0,exponential_120_half60
@@ -1240,7 +1240,7 @@ creas,1505700,Ponta de Pedras,0.0001243471773190749,25,8042.0,exponential_120_ha
 creas,1505809,Portel,6.410667350471184e-05,29,15599.0,exponential_120_half60
 creas,1505908,Porto de Moz,5.789624397493239e-09,24,10600.0,exponential_120_half60
 creas,1506005,Prainha,4.391522788766051e-05,49,12430.0,exponential_120_half60
-creas,1506104,Primavera,5.4630435092560786e-05,21,5030.0,exponential_120_half60
+creas,1506104,Primavera,5.463043509256078e-05,21,5030.0,exponential_120_half60
 creas,1506112,Quatipuru,4.227679247044274e-05,23,5675.0,exponential_120_half60
 creas,1506138,Redenção,6.223096045314858e-05,162,42397.0,exponential_120_half60
 creas,1506161,Rio Maria,5.052650640490868e-05,31,8402.0,exponential_120_half60
@@ -1252,13 +1252,13 @@ creas,1506351,Santa Bárbara do Pará,2.5754336681135673e-05,44,10013.0,exponent
 creas,1506401,Santa Cruz do Arari,0.0,8,2852.0,exponential_120_half60
 creas,1506500,Santa Izabel do Pará,3.928276604682656e-05,115,32345.0,exponential_120_half60
 creas,1506559,Santa Luzia do Pará,5.401716198692435e-05,46,8898.0,exponential_120_half60
-creas,1506583,Santa Maria das Barreiras,3.0207188772647708e-05,38,6519.0,exponential_120_half60
+creas,1506583,Santa Maria das Barreiras,3.020718877264771e-05,38,6519.0,exponential_120_half60
 creas,1506609,Santa Maria do Pará,6.563665828324365e-05,56,12204.0,exponential_120_half60
 creas,1506708,Santana do Araguaia,5.808134233665065e-05,73,14754.0,exponential_120_half60
 creas,1506807,Santarém,1.806031283296934e-05,529,156731.0,exponential_120_half60
 creas,1506906,Santarém Novo,5.24645945229753e-05,16,2457.0,exponential_120_half60
 creas,1507003,Santo Antônio do Tauá,2.8291076271651908e-05,55,13411.0,exponential_120_half60
-creas,1507102,São Caetano de Odivelas,1.602931207213215e-05,42,7848.0,exponential_120_half60
+creas,1507102,São Caetano de Odivelas,1.6029312072132145e-05,42,7848.0,exponential_120_half60
 creas,1507151,São Domingos do Araguaia,5.140008271762326e-05,33,9615.0,exponential_120_half60
 creas,1507201,São Domingos do Capim,3.109352979689618e-05,44,10381.0,exponential_120_half60
 creas,1507300,São Félix do Xingu,3.378269965758501e-05,128,25504.0,exponential_120_half60
@@ -1288,7 +1288,7 @@ creas,1508357,Vitória do Xingu,4.619060530147809e-05,36,6678.0,exponential_120_
 creas,1508407,Xinguara,5.803565176039916e-05,92,25086.0,exponential_120_half60
 health,1500107,Abaetetuba,6.599626016107378e-06,189,61390.0,exponential_120_half60
 health,1500131,Abel Figueiredo,3.0188081157325625e-06,11,2904.0,exponential_120_half60
-health,1500206,Acará,6.849407014155361e-06,128,21279.0,exponential_120_half60
+health,1500206,Acará,6.849407014155363e-06,128,21279.0,exponential_120_half60
 health,1500347,Água Azul do Norte,1.6004296145543314e-05,38,7078.0,exponential_120_half60
 health,1500404,Alenquer,0.0,64,24692.0,exponential_120_half60
 health,1500503,Almeirim,0.0,44,12803.0,exponential_120_half60
@@ -1300,7 +1300,7 @@ health,1500909,Augusto Corrêa,1.6048021318745068e-05,85,19652.0,exponential_120
 health,1500958,Aurora do Pará,3.715561949739979e-05,40,9167.0,exponential_120_half60
 health,1501006,Aveiro,6.81532929573651e-05,24,4724.0,exponential_120_half60
 health,1501105,Bagre,0.0,18,6788.0,exponential_120_half60
-health,1501204,Baião,1.7039300811804262e-05,61,20104.0,exponential_120_half60
+health,1501204,Baião,1.7039300811804266e-05,61,20104.0,exponential_120_half60
 health,1501253,Bannach,7.906560346160302e-06,11,1582.0,exponential_120_half60
 health,1501303,Barcarena,5.975247337841048e-06,238,57552.0,exponential_120_half60
 health,1501402,Belém,9.5895424014352e-06,1874,637628.0,exponential_120_half60
@@ -1308,10 +1308,10 @@ health,1501451,Belterra,3.3853871624983143e-05,43,7617.0,exponential_120_half60
 health,1501501,Benevides,1.0916810634558731e-05,181,30532.0,exponential_120_half60
 health,1501576,Bom Jesus do Tocantins,3.8079415733079934e-06,35,7433.0,exponential_120_half60
 health,1501600,Bonito,3.298179958406279e-05,26,5332.0,exponential_120_half60
-health,1501709,Bragança,1.4328859876927505e-05,195,55750.0,exponential_120_half60
+health,1501709,Bragança,1.4328859876927509e-05,195,55750.0,exponential_120_half60
 health,1501725,Brasil Novo,3.168646311768314e-05,37,8590.0,exponential_120_half60
 health,1501758,Brejo Grande do Araguaia,1.7111800472720697e-06,17,2980.0,exponential_120_half60
-health,1501782,Breu Branco,5.577156608819288e-07,79,20704.0,exponential_120_half60
+health,1501782,Breu Branco,5.57715660881929e-07,79,20704.0,exponential_120_half60
 health,1501808,Breves,3.461764807698964e-05,64,28887.0,exponential_120_half60
 health,1501907,Bujaru,1.7292516104904774e-05,39,7707.0,exponential_120_half60
 health,1501956,Cachoeira do Piriá,1.8378688155837167e-05,46,8304.0,exponential_120_half60
@@ -1338,7 +1338,7 @@ health,1503077,Garrafão do Norte,2.1667468946614072e-05,52,10813.0,exponential_
 health,1503093,Goianésia do Pará,2.572074843812962e-06,50,11198.0,exponential_120_half60
 health,1503101,Gurupá,0.0,14,6475.0,exponential_120_half60
 health,1503200,Igarapé-Açu,2.6108616364910924e-05,61,16638.0,exponential_120_half60
-health,1503309,Igarapé-Miri,1.2055439574175855e-05,52,16689.0,exponential_120_half60
+health,1503309,Igarapé-Miri,1.2055439574175857e-05,52,16689.0,exponential_120_half60
 health,1503408,Inhangapi,1.5865757691067282e-05,27,4748.0,exponential_120_half60
 health,1503457,Ipixuna do Pará,2.518948009371866e-05,63,11531.0,exponential_120_half60
 health,1503507,Irituia,3.4298677483388064e-05,80,12734.0,exponential_120_half60
@@ -1356,12 +1356,12 @@ health,1504406,Marapanim,3.5708217592460898e-06,77,12496.0,exponential_120_half6
 health,1504422,Marituba,1.1795654613608863e-05,218,53590.0,exponential_120_half60
 health,1504455,Medicilândia,2.0181754388563078e-05,33,7996.0,exponential_120_half60
 health,1504505,Melgaço,0.0,9,4937.0,exponential_120_half60
-health,1504604,Mocajuba,1.72401959078162e-05,36,11153.0,exponential_120_half60
+health,1504604,Mocajuba,1.7240195907816202e-05,36,11153.0,exponential_120_half60
 health,1504703,Moju,5.7143698622123995e-06,134,28780.0,exponential_120_half60
-health,1504752,Mojuí dos Campos,2.1846930609782825e-05,37,9118.0,exponential_120_half60
+health,1504752,Mojuí dos Campos,2.184693060978282e-05,37,9118.0,exponential_120_half60
 health,1504802,Monte Alegre,0.0,95,25730.0,exponential_120_half60
 health,1504901,Muaná,0.0,25,10409.0,exponential_120_half60
-health,1504950,Nova Esperança do Piriá,1.7018356710116952e-05,32,8302.0,exponential_120_half60
+health,1504950,Nova Esperança do Piriá,1.7018356710116955e-05,32,8302.0,exponential_120_half60
 health,1504976,Nova Ipixuna,7.253064058236094e-06,25,5349.0,exponential_120_half60
 health,1505007,Nova Timboteua,2.846857598864166e-05,31,5955.0,exponential_120_half60
 health,1505031,Novo Progresso,0.0,57,15730.0,exponential_120_half60
@@ -1393,32 +1393,32 @@ health,1506203,Salinópolis,9.201891179646789e-06,73,21950.0,exponential_120_hal
 health,1506302,Salvaterra,0.0,55,10910.0,exponential_120_half60
 health,1506351,Santa Bárbara do Pará,9.062422855900649e-06,44,10013.0,exponential_120_half60
 health,1506401,Santa Cruz do Arari,0.0,8,2852.0,exponential_120_half60
-health,1506500,Santa Izabel do Pará,1.2709456310631296e-05,115,32345.0,exponential_120_half60
+health,1506500,Santa Izabel do Pará,1.2709456310631297e-05,115,32345.0,exponential_120_half60
 health,1506559,Santa Luzia do Pará,1.8263000905036704e-05,46,8898.0,exponential_120_half60
 health,1506583,Santa Maria das Barreiras,2.6639565236001352e-05,38,6519.0,exponential_120_half60
 health,1506609,Santa Maria do Pará,3.198326094575974e-05,56,12204.0,exponential_120_half60
 health,1506708,Santana do Araguaia,5.812160294174202e-05,73,14754.0,exponential_120_half60
 health,1506807,Santarém,1.3828974698681698e-05,529,156731.0,exponential_120_half60
 health,1506906,Santarém Novo,1.3962883040844574e-05,16,2457.0,exponential_120_half60
-health,1507003,Santo Antônio do Tauá,9.266255056087903e-06,55,13411.0,exponential_120_half60
+health,1507003,Santo Antônio do Tauá,9.266255056087904e-06,55,13411.0,exponential_120_half60
 health,1507102,São Caetano de Odivelas,2.502885804096527e-06,42,7848.0,exponential_120_half60
 health,1507151,São Domingos do Araguaia,3.3447910041858345e-06,33,9615.0,exponential_120_half60
 health,1507201,São Domingos do Capim,2.7361401322462968e-05,44,10381.0,exponential_120_half60
 health,1507300,São Félix do Xingu,5.210738304233407e-06,128,25504.0,exponential_120_half60
-health,1507409,São Francisco do Pará,2.1943476537363636e-05,27,6944.0,exponential_120_half60
+health,1507409,São Francisco do Pará,2.194347653736364e-05,27,6944.0,exponential_120_half60
 health,1507458,São Geraldo do Araguaia,1.8828711024278667e-07,47,10931.0,exponential_120_half60
 health,1507466,São João da Ponta,5.312435371529067e-06,18,2001.0,exponential_120_half60
-health,1507474,São João de Pirabas,1.1274938197682086e-05,36,8770.0,exponential_120_half60
+health,1507474,São João de Pirabas,1.1274938197682087e-05,36,8770.0,exponential_120_half60
 health,1507508,São João do Araguaia,3.807659705557752e-06,33,5932.0,exponential_120_half60
 health,1507607,São Miguel do Guamá,3.390909469937493e-05,100,25115.0,exponential_120_half60
 health,1507706,São Sebastião da Boa Vista,0.0,16,5557.0,exponential_120_half60
 health,1507755,Sapucaia,1.3616508100058826e-05,11,2879.0,exponential_120_half60
 health,1507805,Senador José Porfírio,0.0,31,6913.0,exponential_120_half60
 health,1507904,Soure,0.0,32,12072.0,exponential_120_half60
-health,1507953,Tailândia,6.906633104941738e-06,123,33966.0,exponential_120_half60
+health,1507953,Tailândia,6.906633104941739e-06,123,33966.0,exponential_120_half60
 health,1507961,Terra Alta,8.146239729943343e-06,23,4958.0,exponential_120_half60
 health,1507979,Terra Santa,0.0,25,8173.0,exponential_120_half60
-health,1508001,Tomé-Açu,1.2679296768596871e-05,117,30224.0,exponential_120_half60
+health,1508001,Tomé-Açu,1.267929676859687e-05,117,30224.0,exponential_120_half60
 health,1508035,Tracuateua,1.3177267003596983e-05,41,9773.0,exponential_120_half60
 health,1508050,Trairão,9.936862703750375e-05,31,6744.0,exponential_120_half60
 health,1508084,Tucumã,2.136561979351596e-05,69,18469.0,exponential_120_half60
@@ -1532,7 +1532,7 @@ specialized_justice,1506138,Redenção,0.0,162,42397.0,exponential_120_half60
 specialized_justice,1506161,Rio Maria,0.0,31,8402.0,exponential_120_half60
 specialized_justice,1506187,Rondon do Pará,1.2173922547405732e-06,62,22229.0,exponential_120_half60
 specialized_justice,1506195,Rurópolis,0.0,53,15024.0,exponential_120_half60
-specialized_justice,1506203,Salinópolis,3.243974294629449e-07,73,21950.0,exponential_120_half60
+specialized_justice,1506203,Salinópolis,3.2439742946294486e-07,73,21950.0,exponential_120_half60
 specialized_justice,1506302,Salvaterra,0.0,55,10910.0,exponential_120_half60
 specialized_justice,1506351,Santa Bárbara do Pará,2.6146195877170053e-06,44,10013.0,exponential_120_half60
 specialized_justice,1506401,Santa Cruz do Arari,0.0,8,2852.0,exponential_120_half60
@@ -1600,7 +1600,7 @@ specialized_security,1501758,Brejo Grande do Araguaia,2.0243146593607947e-06,17,
 specialized_security,1501782,Breu Branco,9.475055411070279e-06,79,20704.0,exponential_120_half60
 specialized_security,1501808,Breves,3.461764807698965e-05,64,28887.0,exponential_120_half60
 specialized_security,1501907,Bujaru,3.12720331378571e-06,39,7707.0,exponential_120_half60
-specialized_security,1501956,Cachoeira do Piriá,1.6606974337922542e-06,46,8304.0,exponential_120_half60
+specialized_security,1501956,Cachoeira do Piriá,1.660697433792254e-06,46,8304.0,exponential_120_half60
 specialized_security,1502004,Cachoeira do Arari,0.0,26,7539.0,exponential_120_half60
 specialized_security,1502103,Cametá,2.0312016440755646e-05,139,42529.0,exponential_120_half60
 specialized_security,1502152,Canaã dos Carajás,9.866639688751161e-06,108,36539.0,exponential_120_half60
@@ -1639,7 +1639,7 @@ specialized_security,1504109,Magalhães Barata,1.4883090022375869e-06,20,3887.0,
 specialized_security,1504208,Marabá,5.843637922158239e-06,474,127275.0,exponential_120_half60
 specialized_security,1504307,Maracanã,1.838990083113001e-06,81,12462.0,exponential_120_half60
 specialized_security,1504406,Marapanim,1.4112715900873242e-06,77,12496.0,exponential_120_half60
-specialized_security,1504422,Marituba,5.421412739522689e-06,218,53590.0,exponential_120_half60
+specialized_security,1504422,Marituba,5.421412739522688e-06,218,53590.0,exponential_120_half60
 specialized_security,1504455,Medicilândia,7.497000751772805e-06,33,7996.0,exponential_120_half60
 specialized_security,1504505,Melgaço,0.0,9,4937.0,exponential_120_half60
 specialized_security,1504604,Mocajuba,9.426206281928022e-07,36,11153.0,exponential_120_half60
@@ -1779,7 +1779,7 @@ creas,1503903,Juruti,5.038436757730411e-05,50,17868.0,gaussian_120_sigma60
 creas,1504000,Limoeiro do Ajuru,5.446697557894966e-05,11,4370.0,gaussian_120_sigma60
 creas,1504059,Mãe do Rio,5.611054124910494e-05,46,17225.0,gaussian_120_sigma60
 creas,1504109,Magalhães Barata,2.7920218673774763e-05,20,3887.0,gaussian_120_sigma60
-creas,1504208,Marabá,5.129120940668561e-05,474,127275.0,gaussian_120_sigma60
+creas,1504208,Marabá,5.12912094066856e-05,474,127275.0,gaussian_120_sigma60
 creas,1504307,Maracanã,3.0192613353520227e-05,81,12462.0,gaussian_120_sigma60
 creas,1504406,Marapanim,2.0390480002532953e-05,77,12496.0,gaussian_120_sigma60
 creas,1504422,Marituba,2.9108748181707652e-05,218,53590.0,gaussian_120_sigma60
@@ -1793,7 +1793,7 @@ creas,1504901,Muaná,9.607070804111827e-05,25,10409.0,gaussian_120_sigma60
 creas,1504950,Nova Esperança do Piriá,3.865906524183494e-05,32,8302.0,gaussian_120_sigma60
 creas,1504976,Nova Ipixuna,4.001628519468538e-05,25,5349.0,gaussian_120_sigma60
 creas,1505007,Nova Timboteua,7.170120129447018e-05,31,5955.0,gaussian_120_sigma60
-creas,1505031,Novo Progresso,5.450580423389073e-05,57,15730.0,gaussian_120_sigma60
+creas,1505031,Novo Progresso,5.450580423389071e-05,57,15730.0,gaussian_120_sigma60
 creas,1505064,Novo Repartimento,3.3806044680985726e-05,93,21996.0,gaussian_120_sigma60
 creas,1505106,Óbidos,7.632949197252033e-05,74,18742.0,gaussian_120_sigma60
 creas,1505205,Oeiras do Pará,9.861311472581001e-05,50,10899.0,gaussian_120_sigma60
@@ -1892,7 +1892,7 @@ health,1502103,Cametá,3.205819647481759e-06,139,42529.0,gaussian_120_sigma60
 health,1502152,Canaã dos Carajás,8.743375072576434e-06,108,36539.0,gaussian_120_sigma60
 health,1502202,Capanema,2.8552367946722018e-05,118,35064.0,gaussian_120_sigma60
 health,1502301,Capitão Poço,3.4296207813225204e-05,132,25741.0,gaussian_120_sigma60
-health,1502400,Castanhal,2.2769772691262006e-05,340,97495.0,gaussian_120_sigma60
+health,1502400,Castanhal,2.2769772691262003e-05,340,97495.0,gaussian_120_sigma60
 health,1502509,Chaves,0.0,4,2317.0,gaussian_120_sigma60
 health,1502608,Colares,1.1690895179750956e-06,33,6118.0,gaussian_120_sigma60
 health,1502707,Conceição do Araguaia,6.164005415489552e-06,79,20299.0,gaussian_120_sigma60
@@ -1922,7 +1922,7 @@ health,1503903,Juruti,0.00010080732350381926,50,17868.0,gaussian_120_sigma60
 health,1504000,Limoeiro do Ajuru,0.0,11,4370.0,gaussian_120_sigma60
 health,1504059,Mãe do Rio,4.7042650885854974e-05,46,17225.0,gaussian_120_sigma60
 health,1504109,Magalhães Barata,6.3331368518669005e-06,20,3887.0,gaussian_120_sigma60
-health,1504208,Marabá,5.885250639674622e-06,474,127275.0,gaussian_120_sigma60
+health,1504208,Marabá,5.8852506396746215e-06,474,127275.0,gaussian_120_sigma60
 health,1504307,Maracanã,7.638387630037052e-06,81,12462.0,gaussian_120_sigma60
 health,1504406,Marapanim,2.83123985781824e-06,77,12496.0,gaussian_120_sigma60
 health,1504422,Marituba,1.1458952978664963e-05,218,53590.0,gaussian_120_sigma60
@@ -1942,18 +1942,18 @@ health,1505106,Óbidos,0.0,74,18742.0,gaussian_120_sigma60
 health,1505205,Oeiras do Pará,0.0,50,10899.0,gaussian_120_sigma60
 health,1505304,Oriximiná,0.0,65,25385.0,gaussian_120_sigma60
 health,1505403,Ourém,3.1158516923509655e-05,47,8650.0,gaussian_120_sigma60
-health,1505437,Ourilândia do Norte,2.3146344317290542e-05,62,15106.0,gaussian_120_sigma60
+health,1505437,Ourilândia do Norte,2.314634431729054e-05,62,15106.0,gaussian_120_sigma60
 health,1505486,Pacajá,3.4773116431182675e-05,64,14166.0,gaussian_120_sigma60
-health,1505494,Palestina do Pará,8.533671221300664e-07,13,2963.0,gaussian_120_sigma60
+health,1505494,Palestina do Pará,8.533671221300666e-07,13,2963.0,gaussian_120_sigma60
 health,1505502,Paragominas,1.6357242077317938e-05,198,51977.0,gaussian_120_sigma60
 health,1505536,Parauapebas,5.264355319210573e-06,444,132408.0,gaussian_120_sigma60
-health,1505551,Pau D'Arco,1.9146006954051114e-05,13,2610.0,gaussian_120_sigma60
+health,1505551,Pau D'Arco,1.914600695405111e-05,13,2610.0,gaussian_120_sigma60
 health,1505601,Peixe-Boi,2.744311417725314e-05,22,4059.0,gaussian_120_sigma60
 health,1505635,Piçarra,1.1912677043795147e-06,28,4910.0,gaussian_120_sigma60
 health,1505650,Placas,7.464958140336387e-05,31,5696.0,gaussian_120_sigma60
 health,1505700,Ponta de Pedras,0.0,25,8042.0,gaussian_120_sigma60
 health,1505809,Portel,0.0,29,15599.0,gaussian_120_sigma60
-health,1505908,Porto de Moz,9.43467116903118e-05,24,10600.0,gaussian_120_sigma60
+health,1505908,Porto de Moz,9.434671169031182e-05,24,10600.0,gaussian_120_sigma60
 health,1506005,Prainha,7.454784720778093e-08,49,12430.0,gaussian_120_sigma60
 health,1506104,Primavera,1.5763062461173784e-05,21,5030.0,gaussian_120_sigma60
 health,1506112,Quatipuru,1.0850080301299696e-05,23,5675.0,gaussian_120_sigma60
@@ -1968,13 +1968,13 @@ health,1506401,Santa Cruz do Arari,0.0,8,2852.0,gaussian_120_sigma60
 health,1506500,Santa Izabel do Pará,1.271077749450549e-05,115,32345.0,gaussian_120_sigma60
 health,1506559,Santa Luzia do Pará,2.231065698398626e-05,46,8898.0,gaussian_120_sigma60
 health,1506583,Santa Maria das Barreiras,2.7406618392928164e-05,38,6519.0,gaussian_120_sigma60
-health,1506609,Santa Maria do Pará,3.725844341104894e-05,56,12204.0,gaussian_120_sigma60
+health,1506609,Santa Maria do Pará,3.7258443411048935e-05,56,12204.0,gaussian_120_sigma60
 health,1506708,Santana do Araguaia,5.773241163194624e-05,73,14754.0,gaussian_120_sigma60
 health,1506807,Santarém,1.3348867211820356e-05,529,156731.0,gaussian_120_sigma60
 health,1506906,Santarém Novo,1.577289552214938e-05,16,2457.0,gaussian_120_sigma60
 health,1507003,Santo Antônio do Tauá,8.524971009602053e-06,55,13411.0,gaussian_120_sigma60
 health,1507102,São Caetano de Odivelas,2.0264419933020883e-06,42,7848.0,gaussian_120_sigma60
-health,1507151,São Domingos do Araguaia,3.049588771629387e-06,33,9615.0,gaussian_120_sigma60
+health,1507151,São Domingos do Araguaia,3.0495887716293866e-06,33,9615.0,gaussian_120_sigma60
 health,1507201,São Domingos do Capim,3.2897192739989123e-05,44,10381.0,gaussian_120_sigma60
 health,1507300,São Félix do Xingu,5.134310688892182e-06,128,25504.0,gaussian_120_sigma60
 health,1507409,São Francisco do Pará,2.1315339197781162e-05,27,6944.0,gaussian_120_sigma60
@@ -1988,7 +1988,7 @@ health,1507755,Sapucaia,1.3926707055056148e-05,11,2879.0,gaussian_120_sigma60
 health,1507805,Senador José Porfírio,0.0,31,6913.0,gaussian_120_sigma60
 health,1507904,Soure,0.0,32,12072.0,gaussian_120_sigma60
 health,1507953,Tailândia,5.278451135236927e-06,123,33966.0,gaussian_120_sigma60
-health,1507961,Terra Alta,7.975490330686341e-06,23,4958.0,gaussian_120_sigma60
+health,1507961,Terra Alta,7.97549033068634e-06,23,4958.0,gaussian_120_sigma60
 health,1507979,Terra Santa,0.0,25,8173.0,gaussian_120_sigma60
 health,1508001,Tomé-Açu,1.1976607444710831e-05,117,30224.0,gaussian_120_sigma60
 health,1508035,Tracuateua,1.5483552404649544e-05,41,9773.0,gaussian_120_sigma60
@@ -1999,11 +1999,11 @@ health,1508126,Ulianópolis,0.0,50,17003.0,gaussian_120_sigma60
 health,1508159,Uruará,1.4950613761315579e-05,64,15110.0,gaussian_120_sigma60
 health,1508209,Vigia,3.91185255870364e-06,100,24110.0,gaussian_120_sigma60
 health,1508308,Viseu,2.6756541993434324e-05,113,24311.0,gaussian_120_sigma60
-health,1508357,Vitória do Xingu,4.27498405414312e-05,36,6678.0,gaussian_120_sigma60
+health,1508357,Vitória do Xingu,4.274984054143122e-05,36,6678.0,gaussian_120_sigma60
 health,1508407,Xinguara,1.9163374269256205e-05,92,25086.0,gaussian_120_sigma60
 specialized_justice,1500107,Abaetetuba,9.91550949974263e-07,189,61390.0,gaussian_120_sigma60
 specialized_justice,1500131,Abel Figueiredo,2.085773279835704e-06,11,2904.0,gaussian_120_sigma60
-specialized_justice,1500206,Acará,1.3819877102841255e-06,128,21279.0,gaussian_120_sigma60
+specialized_justice,1500206,Acará,1.3819877102841257e-06,128,21279.0,gaussian_120_sigma60
 specialized_justice,1500347,Água Azul do Norte,0.0,38,7078.0,gaussian_120_sigma60
 specialized_justice,1500404,Alenquer,0.0,64,24692.0,gaussian_120_sigma60
 specialized_justice,1500503,Almeirim,0.0,44,12803.0,gaussian_120_sigma60
@@ -2028,23 +2028,23 @@ specialized_justice,1501725,Brasil Novo,0.0,37,8590.0,gaussian_120_sigma60
 specialized_justice,1501758,Brejo Grande do Araguaia,2.03729764000495e-06,17,2980.0,gaussian_120_sigma60
 specialized_justice,1501782,Breu Branco,0.0,79,20704.0,gaussian_120_sigma60
 specialized_justice,1501808,Breves,0.0,64,28887.0,gaussian_120_sigma60
-specialized_justice,1501907,Bujaru,1.701171417585649e-06,39,7707.0,gaussian_120_sigma60
+specialized_justice,1501907,Bujaru,1.7011714175856493e-06,39,7707.0,gaussian_120_sigma60
 specialized_justice,1501956,Cachoeira do Piriá,5.082124814721842e-08,46,8304.0,gaussian_120_sigma60
 specialized_justice,1502004,Cachoeira do Arari,0.0,26,7539.0,gaussian_120_sigma60
 specialized_justice,1502103,Cametá,0.0,139,42529.0,gaussian_120_sigma60
 specialized_justice,1502152,Canaã dos Carajás,0.0,108,36539.0,gaussian_120_sigma60
 specialized_justice,1502202,Capanema,7.189964953696122e-07,118,35064.0,gaussian_120_sigma60
-specialized_justice,1502301,Capitão Poço,2.0149698946663962e-07,132,25741.0,gaussian_120_sigma60
-specialized_justice,1502400,Castanhal,2.6676178997737183e-06,340,97495.0,gaussian_120_sigma60
+specialized_justice,1502301,Capitão Poço,2.014969894666396e-07,132,25741.0,gaussian_120_sigma60
+specialized_justice,1502400,Castanhal,2.667617899773719e-06,340,97495.0,gaussian_120_sigma60
 specialized_justice,1502509,Chaves,0.0,4,2317.0,gaussian_120_sigma60
 specialized_justice,1502608,Colares,1.2012891018653924e-06,33,6118.0,gaussian_120_sigma60
 specialized_justice,1502707,Conceição do Araguaia,0.0,79,20299.0,gaussian_120_sigma60
-specialized_justice,1502756,Concórdia do Pará,5.730804211411815e-07,66,12238.0,gaussian_120_sigma60
+specialized_justice,1502756,Concórdia do Pará,5.730804211411816e-07,66,12238.0,gaussian_120_sigma60
 specialized_justice,1502764,Cumaru do Norte,0.0,20,4478.0,gaussian_120_sigma60
 specialized_justice,1502772,Curionópolis,1.4808810671646612e-06,49,9754.0,gaussian_120_sigma60
 specialized_justice,1502806,Curralinho,0.0,12,6588.0,gaussian_120_sigma60
 specialized_justice,1502855,Curuá,0.0,27,4836.0,gaussian_120_sigma60
-specialized_justice,1502905,Curuçá,1.2943123849705192e-06,87,19885.0,gaussian_120_sigma60
+specialized_justice,1502905,Curuçá,1.2943123849705194e-06,87,19885.0,gaussian_120_sigma60
 specialized_justice,1502939,Dom Eliseu,0.0,69,29239.0,gaussian_120_sigma60
 specialized_justice,1502954,Eldorado do Carajás,2.6799609657587585e-06,55,12850.0,gaussian_120_sigma60
 specialized_justice,1503002,Faro,0.0,21,3965.0,gaussian_120_sigma60
@@ -2068,7 +2068,7 @@ specialized_justice,1504109,Magalhães Barata,5.643435067655563e-07,20,3887.0,ga
 specialized_justice,1504208,Marabá,4.843023018515796e-06,474,127275.0,gaussian_120_sigma60
 specialized_justice,1504307,Maracanã,5.778910986224747e-07,81,12462.0,gaussian_120_sigma60
 specialized_justice,1504406,Marapanim,8.704873199184596e-07,77,12496.0,gaussian_120_sigma60
-specialized_justice,1504422,Marituba,3.3472903185292337e-06,218,53590.0,gaussian_120_sigma60
+specialized_justice,1504422,Marituba,3.347290318529234e-06,218,53590.0,gaussian_120_sigma60
 specialized_justice,1504455,Medicilândia,0.0,33,7996.0,gaussian_120_sigma60
 specialized_justice,1504505,Melgaço,0.0,9,4937.0,gaussian_120_sigma60
 specialized_justice,1504604,Mocajuba,0.0,36,11153.0,gaussian_120_sigma60
@@ -2093,7 +2093,7 @@ specialized_justice,1505536,Parauapebas,7.002425789634177e-07,444,132408.0,gauss
 specialized_justice,1505551,Pau D'Arco,0.0,13,2610.0,gaussian_120_sigma60
 specialized_justice,1505601,Peixe-Boi,7.726726007837304e-07,22,4059.0,gaussian_120_sigma60
 specialized_justice,1505635,Piçarra,2.0563510938078933e-07,28,4910.0,gaussian_120_sigma60
-specialized_justice,1505650,Placas,4.625052228914316e-09,31,5696.0,gaussian_120_sigma60
+specialized_justice,1505650,Placas,4.625052228914315e-09,31,5696.0,gaussian_120_sigma60
 specialized_justice,1505700,Ponta de Pedras,0.0,25,8042.0,gaussian_120_sigma60
 specialized_justice,1505809,Portel,0.0,29,15599.0,gaussian_120_sigma60
 specialized_justice,1505908,Porto de Moz,0.0,24,10600.0,gaussian_120_sigma60
@@ -2106,7 +2106,7 @@ specialized_justice,1506187,Rondon do Pará,7.973282628110458e-07,62,22229.0,gau
 specialized_justice,1506195,Rurópolis,0.0,53,15024.0,gaussian_120_sigma60
 specialized_justice,1506203,Salinópolis,1.8145755346308798e-07,73,21950.0,gaussian_120_sigma60
 specialized_justice,1506302,Salvaterra,0.0,55,10910.0,gaussian_120_sigma60
-specialized_justice,1506351,Santa Bárbara do Pará,2.901792708489801e-06,44,10013.0,gaussian_120_sigma60
+specialized_justice,1506351,Santa Bárbara do Pará,2.9017927084898016e-06,44,10013.0,gaussian_120_sigma60
 specialized_justice,1506401,Santa Cruz do Arari,0.0,8,2852.0,gaussian_120_sigma60
 specialized_justice,1506500,Santa Izabel do Pará,3.0875322666704825e-06,115,32345.0,gaussian_120_sigma60
 specialized_justice,1506559,Santa Luzia do Pará,3.45589652713918e-07,46,8898.0,gaussian_120_sigma60
@@ -2122,7 +2122,7 @@ specialized_justice,1507201,São Domingos do Capim,2.0919829642682597e-07,44,103
 specialized_justice,1507300,São Félix do Xingu,0.0,128,25504.0,gaussian_120_sigma60
 specialized_justice,1507409,São Francisco do Pará,1.994769335226106e-06,27,6944.0,gaussian_120_sigma60
 specialized_justice,1507458,São Geraldo do Araguaia,6.674412684326708e-07,47,10931.0,gaussian_120_sigma60
-specialized_justice,1507466,São João da Ponta,1.41921872673727e-06,18,2001.0,gaussian_120_sigma60
+specialized_justice,1507466,São João da Ponta,1.4192187267372702e-06,18,2001.0,gaussian_120_sigma60
 specialized_justice,1507474,São João de Pirabas,2.8803426628504176e-07,36,8770.0,gaussian_120_sigma60
 specialized_justice,1507508,São João do Araguaia,4.315923808889142e-06,33,5932.0,gaussian_120_sigma60
 specialized_justice,1507607,São Miguel do Guamá,1.1047325660537501e-06,100,25115.0,gaussian_120_sigma60
@@ -2131,7 +2131,7 @@ specialized_justice,1507755,Sapucaia,0.0,11,2879.0,gaussian_120_sigma60
 specialized_justice,1507805,Senador José Porfírio,0.0,31,6913.0,gaussian_120_sigma60
 specialized_justice,1507904,Soure,0.0,32,12072.0,gaussian_120_sigma60
 specialized_justice,1507953,Tailândia,0.0,123,33966.0,gaussian_120_sigma60
-specialized_justice,1507961,Terra Alta,1.9946604750224926e-06,23,4958.0,gaussian_120_sigma60
+specialized_justice,1507961,Terra Alta,1.994660475022493e-06,23,4958.0,gaussian_120_sigma60
 specialized_justice,1507979,Terra Santa,0.0,25,8173.0,gaussian_120_sigma60
 specialized_justice,1508001,Tomé-Açu,1.2185941010299938e-09,117,30224.0,gaussian_120_sigma60
 specialized_justice,1508035,Tracuateua,3.0534982215445694e-07,41,9773.0,gaussian_120_sigma60
@@ -2188,7 +2188,7 @@ specialized_security,1502772,Curionópolis,8.976003465110779e-06,49,9754.0,gauss
 specialized_security,1502806,Curralinho,0.0,12,6588.0,gaussian_120_sigma60
 specialized_security,1502855,Curuá,0.0,27,4836.0,gaussian_120_sigma60
 specialized_security,1502905,Curuçá,1.7404109955688593e-06,87,19885.0,gaussian_120_sigma60
-specialized_security,1502939,Dom Eliseu,1.283348506855786e-07,69,29239.0,gaussian_120_sigma60
+specialized_security,1502939,Dom Eliseu,1.2833485068557857e-07,69,29239.0,gaussian_120_sigma60
 specialized_security,1502954,Eldorado do Carajás,8.095152443653286e-06,55,12850.0,gaussian_120_sigma60
 specialized_security,1503002,Faro,0.0,21,3965.0,gaussian_120_sigma60
 specialized_security,1503044,Floresta do Araguaia,4.117121668250081e-06,31,7174.0,gaussian_120_sigma60
@@ -2227,12 +2227,12 @@ specialized_security,1505064,Novo Repartimento,5.62504436343486e-06,93,21996.0,g
 specialized_security,1505106,Óbidos,0.0,74,18742.0,gaussian_120_sigma60
 specialized_security,1505205,Oeiras do Pará,4.916889330043442e-06,50,10899.0,gaussian_120_sigma60
 specialized_security,1505304,Oriximiná,0.0,65,25385.0,gaussian_120_sigma60
-specialized_security,1505403,Ourém,4.44398042981038e-06,47,8650.0,gaussian_120_sigma60
+specialized_security,1505403,Ourém,4.443980429810381e-06,47,8650.0,gaussian_120_sigma60
 specialized_security,1505437,Ourilândia do Norte,1.0858874458792463e-05,62,15106.0,gaussian_120_sigma60
 specialized_security,1505486,Pacajá,3.533983306120185e-07,64,14166.0,gaussian_120_sigma60
 specialized_security,1505494,Palestina do Pará,1.7297215255803846e-06,13,2963.0,gaussian_120_sigma60
 specialized_security,1505502,Paragominas,1.15555144263107e-05,198,51977.0,gaussian_120_sigma60
-specialized_security,1505536,Parauapebas,1.0179817709368355e-05,444,132408.0,gaussian_120_sigma60
+specialized_security,1505536,Parauapebas,1.0179817709368354e-05,444,132408.0,gaussian_120_sigma60
 specialized_security,1505551,Pau D'Arco,1.2904890647853228e-05,13,2610.0,gaussian_120_sigma60
 specialized_security,1505601,Peixe-Boi,6.006159440731694e-06,22,4059.0,gaussian_120_sigma60
 specialized_security,1505635,Piçarra,1.1377190307185187e-06,28,4910.0,gaussian_120_sigma60
@@ -2251,7 +2251,7 @@ specialized_security,1506203,Salinópolis,2.966334426924426e-06,73,21950.0,gauss
 specialized_security,1506302,Salvaterra,0.0,55,10910.0,gaussian_120_sigma60
 specialized_security,1506351,Santa Bárbara do Pará,4.390812786292809e-06,44,10013.0,gaussian_120_sigma60
 specialized_security,1506401,Santa Cruz do Arari,0.0,8,2852.0,gaussian_120_sigma60
-specialized_security,1506500,Santa Izabel do Pará,4.9681145334527925e-06,115,32345.0,gaussian_120_sigma60
+specialized_security,1506500,Santa Izabel do Pará,4.968114533452792e-06,115,32345.0,gaussian_120_sigma60
 specialized_security,1506559,Santa Luzia do Pará,4.742608204445771e-06,46,8898.0,gaussian_120_sigma60
 specialized_security,1506583,Santa Maria das Barreiras,4.966868201151514e-06,38,6519.0,gaussian_120_sigma60
 specialized_security,1506609,Santa Maria do Pará,5.697052221676188e-06,56,12204.0,gaussian_120_sigma60
@@ -2284,7 +2284,7 @@ specialized_security,1508100,Tucuruí,1.2949619525205605e-05,158,44448.0,gaussia
 specialized_security,1508126,Ulianópolis,4.709863195415583e-06,50,17003.0,gaussian_120_sigma60
 specialized_security,1508159,Uruará,2.605214367355395e-07,64,15110.0,gaussian_120_sigma60
 specialized_security,1508209,Vigia,2.022644219631781e-06,100,24110.0,gaussian_120_sigma60
-specialized_security,1508308,Viseu,2.2253318161381633e-06,113,24311.0,gaussian_120_sigma60
+specialized_security,1508308,Viseu,2.225331816138163e-06,113,24311.0,gaussian_120_sigma60
 specialized_security,1508357,Vitória do Xingu,1.1234523872628606e-05,36,6678.0,gaussian_120_sigma60
 specialized_security,1508407,Xinguara,7.603348837271954e-06,92,25086.0,gaussian_120_sigma60
 creas,1500107,Abaetetuba,3.3323634841759314e-05,189,61390.0,unbounded_no_decay
