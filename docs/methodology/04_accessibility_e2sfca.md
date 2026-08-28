@@ -2,9 +2,17 @@
 
 ## Role in the pipeline
 
-The accessibility layer transforms origin–service travel times into measures of practical service access before municipal decision analysis. The E2SFCA implementation preserves competition between population demand and service supply while accounting for travel-time impedance.
+The accessibility layer transforms origin–service travel times into measures of practical service access. The E2SFCA implementation preserves competition between population demand and service supply while accounting for travel-time impedance.
 
-The executable implementation is now restored in the consolidated branch at [`src/accessibility/e2sfca.py`](../../src/accessibility/e2sfca.py). It is the same model logic recovered from the earlier accessibility branch; restoring the file is a reproducibility/organization action, not a methodological change.
+The executable implementation is available in the consolidated branch at [`src/accessibility/e2sfca.py`](../../src/accessibility/e2sfca.py). It is the same model logic recovered from the earlier accessibility branch; restoring the file is a reproducibility/organization action, not a methodological change.
+
+**Important:** the final MCDM access criteria are direct municipal summaries of the corrected OD matrix. E2SFCA is a complementary accessibility model and must not be described as the source of those four already-frozen criteria.
+
+## Static model diagram
+
+![E2SFCA two-step model](figures/e2sfca_two_step_model.svg)
+
+The figure is a methodological schematic only. It does not imply that any threshold, decay function, supply mode or empirical E2SFCA result has already been frozen.
 
 ## Two-step model flow
 
@@ -38,7 +46,9 @@ Two supply modes are implemented:
 - `observed_capacity`: use an observed, defensible capacity value;
 - `unit_presence`: use one unit per service when capacity data are not defensibly comparable.
 
-## Matrix schematic
+## Matrix structure
+
+![E2SFCA matrix structure](figures/e2sfca_matrix_structure.svg)
 
 The OD input can be understood as a temporal matrix:
 
@@ -108,7 +118,17 @@ E2SFCA and the municipal access indicators answer related but distinct questions
 3. nearest reachable-service time;
 4. median reachable-service time.
 
-These are transparent municipal network-access summaries. E2SFCA adds a supply-demand accessibility perspective and is documented as an accessibility model layer rather than silently conflated with any one of the four criteria.
+These four indicators are calculated from the corrected OD surface and are not transformations of an E2SFCA score.
+
+E2SFCA adds a population-and-supply competition perspective and can be analyzed as a complementary accessibility layer or sensitivity/interpretive analysis after its parameterization is frozen.
+
+## Current execution status
+
+The E2SFCA code is **implemented but no corrected final execution is currently declared authoritative**. The final study record has not yet frozen, as one joint specification, the supply mode, catchment threshold, decay function/parameter and municipal aggregation rule.
+
+The formal status and closure requirements are maintained in [`08_reproducibility_status.md`](08_reproducibility_status.md).
+
+No empirical E2SFCA map or score table should therefore be labeled a final study result merely because the code exists.
 
 ## Output documentation rule
 
