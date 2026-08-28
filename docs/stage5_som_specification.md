@@ -2,7 +2,7 @@
 
 ## Status
 
-**STARTED.** Stage 4 MCDM is closed on the corrected multimodal network and corrected Stage-3 matrix. Stage 5 begins with a separate profiling objective: characterize municipal socioeconomic/demographic profiles without feeding those variables back into the MCDM ranking.
+**STARTED — PRE-TRAINING DATA BUILD IN PROGRESS.** Stage 4 MCDM is closed on the corrected multimodal network and corrected Stage-3 matrix. Stage 5 has a separate profiling objective: characterize municipal socioeconomic/demographic profiles without feeding those variables back into the MCDM ranking.
 
 ## Analytical separation locked
 
@@ -22,12 +22,23 @@
    - female age-population coverage fraction retained as a quality field, not a clustering feature.
 2. Female rural share may be used for SOM profiling, even though it is also a locked MCDM territorial criterion; interpretation must acknowledge this overlap.
 
-### Additional official municipal data to acquire/audit
+### Additional official municipal data
 
-1. Race/color composition — IBGE Census 2022 universe results. Official IBGE dissemination identifies SIDRA table 9605 among the 2022 race/color result tables.
-2. Literacy/education — Census 2022 literacy universe results at municipality level; exact SIDRA table/variable selection must be resolved from official metadata before acquisition.
-3. Income/poverty — use only a 2022 Census municipal indicator with explicit definition and municipality coverage. No substitution with a different survey/year merely to fill the block.
-4. Optional household-deprivation variables (water/sewer/refuse/internet) may be audited only as a sensitivity/profile extension, not automatically included.
+1. **Race/color composition — acquisition starting.** IBGE Census 2022 universe results, SIDRA table 9605. Table 9605 supports municipal total-population composition by color/race. It must not be described as female-specific unless a sex-disaggregated official table is separately resolved. Candidate categories are branca, preta, parda, amarela and indígena.
+2. **Literacy/education — metadata resolution pending.** Use Census 2022 literacy universe results at municipality level; exact SIDRA table/variable selection must be resolved from official metadata before acquisition.
+3. **Income — candidate identified.** SIDRA table 10295 provides 2022 municipal mean monthly household per-capita income in the Census Trabalho e Rendimento dissemination. Because it is sample-estimated rather than a universe indicator, it requires an explicit coverage/definition audit before inclusion.
+4. **Poverty/deprivation — not synonymous with income.** A poverty/deprivation feature will only be included if an explicit Census 2022 municipal definition is identified and audited.
+5. Optional household-deprivation variables (water/sewer/refuse/internet) may be audited only as a sensitivity/profile extension, not automatically included.
+
+## Compositional-variable rule
+
+Race/color and age shares are compositional. The final SOM must not mechanically include a full set of raw shares without checking the induced linear dependence and geometry. Before freezing features, compare:
+
+- raw shares with one redundant component removed;
+- reduced interpretable contrasts;
+- an appropriate compositional transformation if it materially improves stability and interpretability.
+
+No racial category is a normative reference; any omitted category in a reduced representation is a mathematical parameterization choice only.
 
 ## Pre-SOM quality gate
 
@@ -39,8 +50,9 @@ No SOM is trained until the candidate table passes:
 4. temporal compatibility review (target baseline: Census 2022 for socioeconomic/demographic variables);
 5. scale/outlier audit;
 6. redundancy/correlation review within the SOM feature set;
-7. explicit decision on whether highly compositional variables are represented as raw shares, reduced contrasts, or transformed features;
-8. standardization fitted only after the final feature set is frozen.
+7. explicit decision on compositional representation;
+8. explicit decision on retention of sample-based income;
+9. standardization fitted only after the final feature set is frozen.
 
 ## SOM training plan after the gate
 
@@ -52,4 +64,4 @@ No SOM is trained until the candidate table passes:
 
 ## Immediate next action
 
-Resolve and acquire the official Census 2022 municipal socioeconomic tables (race/color, literacy/education, income/poverty), build the 144-municipality candidate SOM matrix, and run the pre-SOM quality gate before any neural-map training.
+Run the reproducible acquisition/audit of Census 2022 race/color composition for all 144 Pará municipalities, resolve the literacy table identifiers, acquire/audit the income candidate, then construct and audit the complete Stage-5 candidate matrix before any neural-map training.
