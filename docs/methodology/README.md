@@ -52,6 +52,7 @@ The SOM stage is intentionally not documented as closed yet. Its page will be co
 6. [Statistical audit and criterion selection](06_statistical_audit.md)
 7. [MCDM, robustness and final Stage-4 results](07_mcdm_robustness_results.md)
 8. [Reproducibility and publication status](08_reproducibility_status.md)
+9. [E2SFCA parameter and service-supply audit](09_e2sfca_parameter_audit.md)
 
 ## Permanent visual/result bundles
 
@@ -92,7 +93,7 @@ The SOM stage is intentionally not documented as closed yet. Its page will be co
 
 The executable model is available at [`src/accessibility/e2sfca.py`](../../src/accessibility/e2sfca.py), and its mathematical specification is documented in [`04_accessibility_e2sfca.md`](04_accessibility_e2sfca.md).
 
-At present, code availability must **not** be confused with a frozen empirical E2SFCA result. The final corrected pipeline has not yet declared an authoritative combination of supply mode, catchment threshold, decay function/parameter and municipal aggregation. The exact status and required closure conditions are recorded in [`08_reproducibility_status.md`](08_reproducibility_status.md).
+At present, code availability must **not** be confused with a frozen empirical E2SFCA result. The final corrected pipeline has not yet declared an authoritative combination of supply mode, catchment threshold, decay function/parameter and municipal aggregation. The exact status and required closure conditions are recorded in [`08_reproducibility_status.md`](08_reproducibility_status.md), and the current service-capacity evidence is audited in [`09_e2sfca_parameter_audit.md`](09_e2sfca_parameter_audit.md).
 
 ## Reproducibility policy
 
