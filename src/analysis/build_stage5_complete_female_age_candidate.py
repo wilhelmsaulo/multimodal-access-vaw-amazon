@@ -101,7 +101,6 @@ def grouped_age_categories(age_class: dict[str, Any]) -> dict[str, list[tuple[st
 
     for key in groups:
         groups[key].sort(key=lambda item: interval_bounds(item[1])[0])
-    # Require exact coverage boundaries for the first two bands and a 60+ start.
     if not groups["15_29"] or interval_bounds(groups["15_29"][0][1])[0] != 15 or interval_bounds(groups["15_29"][-1][1])[1] != 29:
         raise RuntimeError(f"Could not resolve complete grouped ages 15–29: {groups['15_29']}")
     if not groups["30_59"] or interval_bounds(groups["30_59"][0][1])[0] != 30 or interval_bounds(groups["30_59"][-1][1])[1] != 59:
@@ -113,7 +112,11 @@ def grouped_age_categories(age_class: dict[str, Any]) -> dict[str, list[tuple[st
 
 def parse_numeric(value: object) -> float | None:
     text = str(value).strip()
-    if text in {"-", "...", "..", "X", "None", "nan"}:
+    # SIDRA convention: '-' means absolute zero; X and ellipses denote
+    # inhibited/unavailable values. Preserve that distinction explicitly.
+    if text == "-":
+        return 0.0
+    if text in {"...", "..", "X", "None", "nan"}:
         return None
     try:
         return float(text.replace(",", "."))
