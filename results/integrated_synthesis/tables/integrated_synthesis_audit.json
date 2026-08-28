@@ -1,0 +1,31 @@
+{
+  "stage": "Integrated frozen-results synthesis",
+  "municipalities_in_som_promethee": 144,
+  "e2sfca_service_types": [
+    "creas",
+    "health",
+    "specialized_justice",
+    "specialized_security"
+  ],
+  "expected_e2sfca_service_type_count": 4,
+  "municipalities_with_complete_e2sfca_coverage": 143,
+  "municipalities_with_incomplete_e2sfca_coverage": -287,
+  "lower_accessibility_quartile_cutoff_on_mean_percentile": 0.3780594405594405,
+  "higher_accessibility_quartile_cutoff_on_mean_percentile": 0.6123251748251748,
+  "no_synthetic_zero_for_missing_e2sfca": true,
+  "e2sfca_raw_scores_preserved": true,
+  "cross_service_mean_percentile_is_descriptive_only": true,
+  "som_retrained": false,
+  "promethee_reranked": false,
+  "mcdm_weights_changed": false,
+  "new_integrated_ranking_created": false,
+  "outputs": [
+    "results/integrated_synthesis/tables/integrated_municipal_e2sfca_mcdm_som.csv",
+    "results/integrated_synthesis/tables/som_profile_e2sfca_service_summary.csv",
+    "results/integrated_synthesis/tables/e2sfca_promethee_associations.csv",
+    "results/integrated_synthesis/tables/integrated_profile_summary.csv",
+    "results/integrated_synthesis/tables/integrated_top20_promethee_context.csv",
+    "results/integrated_synthesis/figures/integrated_e2sfca_mcdm_som_panel.png",
+    "results/integrated_synthesis/integrated_results_synthesis.md"
+  ]
+}

@@ -1,0 +1,5 @@
+service_type,n_complete,spearman_e2sfca_percentile_vs_promethee_rank,spearman_e2sfca_percentile_vs_promethee_net_flow
+creas,143,-0.15150915114295946,0.15150915114295946
+health,143,0.307475001650618,-0.307475001650618
+specialized_justice,143,0.2708725042252999,-0.2708725042252999
+specialized_security,143,0.3502711757447207,-0.3502711757447207
