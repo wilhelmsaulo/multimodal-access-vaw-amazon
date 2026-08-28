@@ -1,0 +1,43 @@
+name: publish-e2sfca-results
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths: ['src/analysis/publish_e2sfca_results.py','.github/workflows/publish-e2sfca-results.yml']
+permissions: {contents: write, actions: read}
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: stage4-mcdm, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip}
+      - run: python -m pip install 'pandas>=2.2,<3' 'numpy>=2,<3' 'geopandas>=1.0,<2' 'pyogrio>=0.10,<1' 'matplotlib>=3.9,<4'
+      - uses: actions/download-artifact@v4
+        with: {name: pa-corrected-reference-od, path: artifacts/od, github-token: '${{ github.token }}', repository: '${{ github.repository }}', run-id: 33089335405}
+      - uses: actions/download-artifact@v4
+        with: {name: pa-frozen-routing-endpoints, path: artifacts/endpoints, github-token: '${{ github.token }}', repository: '${{ github.repository }}', run-id: 32945266691}
+      - uses: actions/download-artifact@v4
+        with: {name: pa-census-sectors-2022, path: artifacts/census, github-token: '${{ github.token }}', repository: '${{ github.repository }}', run-id: 32170796657}
+      - name: Execute and publish E2SFCA configurations
+        run: python src/analysis/publish_e2sfca_results.py --od artifacts/od/od_reference_network.csv.gz --origins artifacts/endpoints/origin_routing_endpoints.csv.gz --services artifacts/endpoints/service_routing_endpoints.csv.gz --census-gpkg artifacts/census/pa_census_sectors_2022.gpkg --out results/e2sfca
+      - name: Validate bundle
+        run: |
+          python - <<'PY'
+          import json,pandas as pd
+          from pathlib import Path
+          p=Path('results/e2sfca'); m=json.loads((p/'publication_metadata.json').read_text())
+          assert m['reference']=='reference_step_120' and m['supply_mode']=='unit_presence'
+          s=pd.read_csv(p/'tables/reference_sector_scores.csv.gz'); assert len(s)==12673*4 and s.origin_id.nunique()==12673
+          q=pd.read_csv(p/'tables/configuration_municipal_scores.csv'); assert q.configuration.nunique()==5
+          for f in ['reference_score_distributions.png','reference_sector_maps.png','reference_municipal_maps.png','configuration_agreement.png']: assert (p/'figures'/f).stat().st_size>0
+          PY
+      - name: Commit generated bundle
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add results/e2sfca
+          git commit -m 'Publish empirical E2SFCA visual bundle'
+          git fetch origin stage4-mcdm && git rebase origin/stage4-mcdm && git push origin HEAD:stage4-mcdm
