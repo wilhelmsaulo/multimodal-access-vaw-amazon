@@ -1,0 +1,73 @@
+name: Stage 5 final SOM feature gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-final-feature-gate.yml'
+      - 'src/analysis/build_stage5_final_som_matrix.py'
+      - 'results/stage5/tables/stage5_female_race_color_candidates.csv'
+      - 'results/stage5/tables/stage5_complete_female_age_candidate.csv'
+      - 'results/stage5/tables/stage5_female_literacy_candidate.csv'
+      - 'results/stage5/tables/stage5_income_candidate.csv'
+
+permissions:
+  contents: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy
+
+      - name: Freeze, transform and audit final SOM matrix
+        run: python -m src.analysis.build_stage5_final_som_matrix
+
+      - name: Validate gate output
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+          a=json.load(open('results/stage5/tables/stage5_final_feature_gate.json',encoding='utf-8'))
+          df=pd.read_csv('results/stage5/tables/stage5_som_final_standardized_matrix.csv')
+          assert a['municipalities']==144
+          assert a['final_feature_count']==10
+          assert a['missing_final_cells']==0
+          assert a['som_training_authorized'] is True
+          assert len(df)==144
+          print(json.dumps(a,ensure_ascii=False,indent=2))
+          PY
+
+      - name: Commit final Stage 5 feature gate
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage5/tables/stage5_som_final_unstandardized_matrix.csv \
+                  results/stage5/tables/stage5_som_final_standardized_matrix.csv \
+                  results/stage5/tables/stage5_final_vif.csv \
+                  results/stage5/tables/stage5_final_correlation_pearson.csv \
+                  results/stage5/tables/stage5_final_correlation_spearman.csv \
+                  results/stage5/tables/stage5_final_high_pairs_pearson.csv \
+                  results/stage5/tables/stage5_final_high_pairs_spearman.csv \
+                  results/stage5/tables/stage5_final_standardization_parameters.csv \
+                  results/stage5/tables/stage5_final_feature_gate.json
+          if git diff --cached --quiet; then
+            echo 'No final feature-gate changes to commit.'
+          else
+            git commit -m 'Publish Stage 5 final SOM feature gate'
+            git push origin HEAD:stage4-mcdm
+          fi
