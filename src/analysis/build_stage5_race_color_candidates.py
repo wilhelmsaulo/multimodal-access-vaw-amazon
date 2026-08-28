@@ -33,12 +33,14 @@ def norm_text(value: object) -> str:
     return " ".join(text.lower().strip().split())
 
 
-def find_column(frame: pd.DataFrame, *needles: str) -> str:
+def find_column(frame: pd.DataFrame, *needles: str, exclude: tuple[str, ...] = ()) -> str:
     normalized = {c: norm_text(c) for c in frame.columns}
     for c, nc in normalized.items():
-        if all(norm_text(n) in nc for n in needles):
+        if all(norm_text(n) in nc for n in needles) and not any(norm_text(x) in nc for x in exclude):
             return c
-    raise RuntimeError(f"Could not resolve SIDRA column containing {needles}; columns={list(frame.columns)}")
+    raise RuntimeError(
+        f"Could not resolve SIDRA column containing {needles} excluding {exclude}; columns={list(frame.columns)}"
+    )
 
 
 def to_numeric_sidra(series: pd.Series) -> pd.Series:
@@ -64,8 +66,8 @@ def main() -> None:
         raise RuntimeError("SIDRA table 9605 returned no records for Pará municipalities")
 
     municipality_code = find_column(frame, "municipio", "codigo")
-    municipality_name = find_column(frame, "municipio")
-    race_col = find_column(frame, "cor", "raca")
+    municipality_name = find_column(frame, "municipio", exclude=("codigo",))
+    race_col = find_column(frame, "cor", "raca", exclude=("codigo",))
     value_col = find_column(frame, "valor")
 
     work = frame[[municipality_code, municipality_name, race_col, value_col]].copy()
@@ -91,7 +93,10 @@ def main() -> None:
         rows = work[work["race_norm"].eq(label)][["municipality_code", "value"]].copy()
         category_audit[label] = int(rows["municipality_code"].nunique())
         if category_audit[label] != EXPECTED_MUNICIPALITIES:
-            raise RuntimeError(f"Race/color category {label!r} is not available for all 144 municipalities")
+            available = sorted(work["race_norm"].dropna().unique().tolist())
+            raise RuntimeError(
+                f"Race/color category {label!r} is not available for all 144 municipalities; available labels={available}"
+            )
         values = rows.drop_duplicates("municipality_code").set_index("municipality_code")["value"]
         result[output_col] = values / result["race_population_total"].replace(0, pd.NA)
 
@@ -125,9 +130,11 @@ def main() -> None:
         "missing_share_cells": int(result[share_cols].isna().sum().sum()),
         "compositional_warning": "Do not feed the complete raw share vector mechanically into SOM; final representation is decided at the pre-SOM redundancy/compositional gate.",
         "interpretation_warning": "Race/color composition is a descriptive profile block, not a violence-risk score and not a normative hierarchy.",
-        "collection_metadata": metadata.to_dict() if hasattr(metadata, "to_dict") else metadata.__dict__,
+        "collection_metadata": metadata.__dict__,
     }
-    (out / "stage5_race_color_audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    (out / "stage5_race_color_audit.json").write_text(
+        json.dumps(audit, ensure_ascii=False, indent=2, default=str), encoding="utf-8"
+    )
     print(json.dumps(audit, ensure_ascii=False, indent=2, default=str))
 
 
