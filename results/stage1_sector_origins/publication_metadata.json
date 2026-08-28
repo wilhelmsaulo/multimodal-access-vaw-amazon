@@ -1,0 +1,12 @@
+{
+  "item": 3,
+  "status": "authoritative_published_visualization",
+  "census_sector_run": 32170796657,
+  "routing_endpoint_run": 32945266691,
+  "corrected_od_run": 33089335405,
+  "sectors": 16714,
+  "routing_ready_origins": 12673,
+  "map_crs": "EPSG:5880",
+  "geographic_crs": "EPSG:4674",
+  "coverage_limited_class_preserved": true
+}
