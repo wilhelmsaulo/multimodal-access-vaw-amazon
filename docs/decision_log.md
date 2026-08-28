@@ -111,3 +111,15 @@ Use one entry for every methodological decision that can change the interpretati
 **Decision:** close Stage 5 after data audit, final feature gate, neural training/model selection, macroprofile interpretation, spatialization and post-hoc PROMETHEE comparison.
 
 **Consequence:** subsequent work is manuscript synthesis, sensitivity extension or focused case-study analysis. Any new SOM variable requires reopening the feature gate and retraining the SOM from the beginning.
+
+## 2026-08-28 — Spatial testing of SOM profiles is categorical, not numeric Moran's I
+
+**Decision:** test spatial organization of frozen P1–P4 assignments with a Queen-contiguity graph, global same-profile neighbor share, nominal assortativity and profile-specific join counts under label permutations. Do not compute Moran's I on numeric profile identifiers.
+
+**Reason:** P1–P4 are nominal categories. Treating their numeric IDs as a continuous or ordered quantity would impose artificial distances between profiles.
+
+**Implementation:** official IBGE Municipal Digital Mesh 2022 for Pará; 144 municipalities; 384 undirected Queen-neighbor edges; no islands; 9,999 fixed-graph permutations preserving the exact profile sizes; Holm correction across four profile-specific join-count tests.
+
+**Result:** same-profile neighbor share = 0.5078 versus permutation mean 0.2639 (p=0.0001); nominal assortativity = 0.3248 versus permutation mean -0.0081 (p=0.0001). All four profiles show significant same-profile adjacency enrichment after Holm correction.
+
+**Consequence:** the frozen socioeconomic-demographic profiles exhibit statistically supported spatial assortment, but geography remains post-training interpretation and was not an input to the SOM objective. No causal geographic interpretation is implied.
