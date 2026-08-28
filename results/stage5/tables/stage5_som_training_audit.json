@@ -1,0 +1,57 @@
+{
+  "stage": "Stage 5 SOM multi-grid multi-seed training and selection",
+  "municipalities": 144,
+  "feature_count": 10,
+  "features": [
+    "criterion__rural_female_share",
+    "socio__female_literacy_rate_15plus",
+    "socio__household_per_capita_income_mean_brl",
+    "profile__female_age_ilr_1",
+    "profile__female_age_ilr_2",
+    "profile__female_age_ilr_3",
+    "profile__female_race_ilr_1",
+    "profile__female_race_ilr_2",
+    "profile__female_race_ilr_3",
+    "profile__female_race_ilr_4"
+  ],
+  "candidate_grids": [
+    [
+      5,
+      5
+    ],
+    [
+      6,
+      6
+    ],
+    [
+      7,
+      7
+    ]
+  ],
+  "seeds_per_grid": 10,
+  "total_models": 30,
+  "iterations_per_model": 6000,
+  "metrics": [
+    "quantization_error",
+    "topographic_error",
+    "pairwise-distance mapping stability across seeds"
+  ],
+  "topographic_neighbor_definition": "Chebyshev grid distance <= 1 (horizontal, vertical or diagonal immediate cell)",
+  "mapping_stability_definition": "Spearman correlation of all pairwise municipal BMU distances, normalized by grid diagonal; invariant to rotations/reflections",
+  "grid_selection": "equal-weight normalized median QE, median TE and median mapping instability",
+  "selected_grid": [
+    5,
+    5
+  ],
+  "selected_grid_selection_score": 0.34634057456471073,
+  "selected_grid_qe_median": 1.712488908535612,
+  "selected_grid_te_median": 0.010416666666666666,
+  "selected_grid_mapping_stability_median_spearman": 0.8566768939502517,
+  "selected_seed": 5,
+  "selected_seed_quantization_error": 1.6921857518088055,
+  "selected_seed_topographic_error": 0.0,
+  "selected_seed_mapping_stability": 0.8832080910866775,
+  "selection_not_visual": true,
+  "analytical_role": "descriptive socioeconomic/demographic profiling; no feedback into Stage-4 MCDM",
+  "next_action": "Interpret selected SOM component planes / municipal profiles and only then cross-tab profiles with frozen PROMETHEE-II priority results."
+}

@@ -1,0 +1,145 @@
+municipality_code,municipality_name,som_grid_rows,som_grid_cols,som_seed,som_bmu_row,som_bmu_col,som_bmu_index
+1500107,Abaetetuba,5,5,5,1,0,5
+1500131,Abel Figueiredo,5,5,5,2,0,10
+1500206,Acará,5,5,5,0,2,2
+1500305,Afuá,5,5,5,0,4,4
+1500347,Água Azul do Norte,5,5,5,2,1,11
+1500404,Alenquer,5,5,5,1,3,8
+1500503,Almeirim,5,5,5,2,2,12
+1500602,Altamira,5,5,5,3,1,16
+1500701,Anajás,5,5,5,0,4,4
+1500800,Ananindeua,5,5,5,4,0,20
+1500859,Anapu,5,5,5,2,3,13
+1500909,Augusto Corrêa,5,5,5,2,4,14
+1500958,Aurora do Pará,5,5,5,0,2,2
+1501006,Aveiro,5,5,5,2,3,13
+1501105,Bagre,5,5,5,0,4,4
+1501204,Baião,5,5,5,0,0,0
+1501253,Bannach,5,5,5,2,2,12
+1501303,Barcarena,5,5,5,4,1,21
+1501402,Belém,5,5,5,4,0,20
+1501451,Belterra,5,5,5,3,4,19
+1501501,Benevides,5,5,5,4,1,21
+1501576,Bom Jesus do Tocantins,5,5,5,3,2,17
+1501600,Bonito,5,5,5,4,3,23
+1501709,Bragança,5,5,5,4,3,23
+1501725,Brasil Novo,5,5,5,2,1,11
+1501758,Brejo Grande do Araguaia,5,5,5,1,1,6
+1501782,Breu Branco,5,5,5,1,1,6
+1501808,Breves,5,5,5,0,4,4
+1501907,Bujaru,5,5,5,0,2,2
+1501956,Cachoeira do Piriá,5,5,5,0,2,2
+1502004,Cachoeira do Arari,5,5,5,0,1,1
+1502103,Cametá,5,5,5,1,1,6
+1502152,Canaã dos Carajás,5,5,5,3,0,15
+1502202,Capanema,5,5,5,4,2,22
+1502301,Capitão Poço,5,5,5,4,3,23
+1502400,Castanhal,5,5,5,4,1,21
+1502509,Chaves,5,5,5,0,3,3
+1502608,Colares,5,5,5,4,4,24
+1502707,Conceição do Araguaia,5,5,5,4,1,21
+1502756,Concórdia do Pará,5,5,5,0,1,1
+1502764,Cumaru do Norte,5,5,5,2,2,12
+1502772,Curionópolis,5,5,5,2,0,10
+1502806,Curralinho,5,5,5,0,4,4
+1502855,Curuá,5,5,5,2,4,14
+1502905,Curuçá,5,5,5,4,4,24
+1502939,Dom Eliseu,5,5,5,2,0,10
+1502954,Eldorado do Carajás,5,5,5,1,1,6
+1503002,Faro,5,5,5,2,4,14
+1503044,Floresta do Araguaia,5,5,5,2,1,11
+1503077,Garrafão do Norte,5,5,5,3,3,18
+1503093,Goianésia do Pará,5,5,5,2,1,11
+1503101,Gurupá,5,5,5,1,4,9
+1503200,Igarapé-Açu,5,5,5,4,3,23
+1503309,Igarapé-Miri,5,5,5,0,1,1
+1503408,Inhangapi,5,5,5,0,1,1
+1503457,Ipixuna do Pará,5,5,5,0,3,3
+1503507,Irituia,5,5,5,0,2,2
+1503606,Itaituba,5,5,5,3,0,15
+1503705,Itupiranga,5,5,5,1,2,7
+1503754,Jacareacanga,5,5,5,2,3,13
+1503804,Jacundá,5,5,5,2,0,10
+1503903,Juruti,5,5,5,2,4,14
+1504000,Limoeiro do Ajuru,5,5,5,2,4,14
+1504059,Mãe do Rio,5,5,5,4,2,22
+1504109,Magalhães Barata,5,5,5,4,4,24
+1504208,Marabá,5,5,5,3,0,15
+1504307,Maracanã,5,5,5,4,4,24
+1504406,Marapanim,5,5,5,4,4,24
+1504422,Marituba,5,5,5,4,0,20
+1504455,Medicilândia,5,5,5,1,2,7
+1504505,Melgaço,5,5,5,0,4,4
+1504604,Mocajuba,5,5,5,1,0,5
+1504703,Moju,5,5,5,0,2,2
+1504752,Mojuí dos Campos,5,5,5,3,4,19
+1504802,Monte Alegre,5,5,5,4,4,24
+1504901,Muaná,5,5,5,2,4,14
+1504950,Nova Esperança do Piriá,5,5,5,1,4,9
+1504976,Nova Ipixuna,5,5,5,0,1,1
+1505007,Nova Timboteua,5,5,5,4,3,23
+1505031,Novo Progresso,5,5,5,3,0,15
+1505064,Novo Repartimento,5,5,5,2,2,12
+1505106,Óbidos,5,5,5,1,1,6
+1505205,Oeiras do Pará,5,5,5,0,3,3
+1505304,Oriximiná,5,5,5,2,2,12
+1505403,Ourém,5,5,5,0,1,1
+1505437,Ourilândia do Norte,5,5,5,2,1,11
+1505486,Pacajá,5,5,5,1,2,7
+1505494,Palestina do Pará,5,5,5,1,1,6
+1505502,Paragominas,5,5,5,3,0,15
+1505536,Parauapebas,5,5,5,3,0,15
+1505551,Pau D'Arco,5,5,5,2,2,12
+1505601,Peixe-Boi,5,5,5,4,3,23
+1505635,Piçarra,5,5,5,1,1,6
+1505650,Placas,5,5,5,1,2,7
+1505700,Ponta de Pedras,5,5,5,1,1,6
+1505809,Portel,5,5,5,0,4,4
+1505908,Porto de Moz,5,5,5,1,4,9
+1506005,Prainha,5,5,5,1,4,9
+1506104,Primavera,5,5,5,4,3,23
+1506112,Quatipuru,5,5,5,4,3,23
+1506138,Redenção,5,5,5,4,0,20
+1506161,Rio Maria,5,5,5,4,1,21
+1506187,Rondon do Pará,5,5,5,4,1,21
+1506195,Rurópolis,5,5,5,1,1,6
+1506203,Salinópolis,5,5,5,4,2,22
+1506302,Salvaterra,5,5,5,0,0,0
+1506351,Santa Bárbara do Pará,5,5,5,1,0,5
+1506401,Santa Cruz do Arari,5,5,5,0,0,0
+1506500,Santa Izabel do Pará,5,5,5,4,1,21
+1506559,Santa Luzia do Pará,5,5,5,3,2,17
+1506583,Santa Maria das Barreiras,5,5,5,2,1,11
+1506609,Santa Maria do Pará,5,5,5,4,2,22
+1506708,Santana do Araguaia,5,5,5,2,0,10
+1506807,Santarém,5,5,5,4,1,21
+1506906,Santarém Novo,5,5,5,4,4,24
+1507003,Santo Antônio do Tauá,5,5,5,4,4,24
+1507102,São Caetano de Odivelas,5,5,5,4,4,24
+1507151,São Domingos do Araguaia,5,5,5,2,1,11
+1507201,São Domingos do Capim,5,5,5,0,2,2
+1507300,São Félix do Xingu,5,5,5,2,2,12
+1507409,São Francisco do Pará,5,5,5,4,4,24
+1507458,São Geraldo do Araguaia,5,5,5,2,1,11
+1507466,São João da Ponta,5,5,5,3,4,19
+1507474,São João de Pirabas,5,5,5,4,3,23
+1507508,São João do Araguaia,5,5,5,0,2,2
+1507607,São Miguel do Guamá,5,5,5,1,0,5
+1507706,São Sebastião da Boa Vista,5,5,5,2,4,14
+1507755,Sapucaia,5,5,5,2,0,10
+1507805,Senador José Porfírio,5,5,5,1,3,8
+1507904,Soure,5,5,5,0,0,0
+1507953,Tailândia,5,5,5,2,0,10
+1507961,Terra Alta,5,5,5,4,4,24
+1507979,Terra Santa,5,5,5,3,4,19
+1508001,Tomé-Açu,5,5,5,2,3,13
+1508035,Tracuateua,5,5,5,3,4,19
+1508050,Trairão,5,5,5,2,2,12
+1508084,Tucumã,5,5,5,3,0,15
+1508100,Tucuruí,5,5,5,4,0,20
+1508126,Ulianópolis,5,5,5,2,0,10
+1508159,Uruará,5,5,5,2,1,11
+1508209,Vigia,5,5,5,4,2,22
+1508308,Viseu,5,5,5,1,4,9
+1508357,Vitória do Xingu,5,5,5,2,2,12
+1508407,Xinguara,5,5,5,3,0,15
