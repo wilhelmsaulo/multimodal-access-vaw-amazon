@@ -25,7 +25,7 @@
 ### Additional official municipal data
 
 1. **Race/color composition — acquisition starting.** IBGE Census 2022 universe results, SIDRA table 9605. Table 9605 supports municipal total-population composition by color/race. It must not be described as female-specific unless a sex-disaggregated official table is separately resolved. Candidate categories are branca, preta, parda, amarela and indígena.
-2. **Literacy/education — metadata resolution pending.** Use Census 2022 literacy universe results at municipality level; exact SIDRA table/variable selection must be resolved from official metadata before acquisition.
+2. **Literacy/education — official female-specific route confirmed, exact identifiers pending.** The Census 2022 literacy universe dissemination is available at municipality level and is disaggregated by sex, age group and color/race for persons aged 15 years or older. The preferred candidate is therefore female literacy/illiteracy among women aged 15+, provided the exact SIDRA categories can be resolved reproducibly.
 3. **Income — candidate identified.** SIDRA table 10295 provides 2022 municipal mean monthly household per-capita income in the Census Trabalho e Rendimento dissemination. Because it is sample-estimated rather than a universe indicator, it requires an explicit coverage/definition audit before inclusion.
 4. **Poverty/deprivation — not synonymous with income.** A poverty/deprivation feature will only be included if an explicit Census 2022 municipal definition is identified and audited.
 5. Optional household-deprivation variables (water/sewer/refuse/internet) may be audited only as a sensitivity/profile extension, not automatically included.
@@ -64,4 +64,4 @@ No SOM is trained until the candidate table passes:
 
 ## Immediate next action
 
-Run the reproducible acquisition/audit of Census 2022 race/color composition for all 144 Pará municipalities, resolve the literacy table identifiers, acquire/audit the income candidate, then construct and audit the complete Stage-5 candidate matrix before any neural-map training.
+Run the reproducible acquisition/audit of Census 2022 race/color composition for all 144 Pará municipalities, lock the female-literacy SIDRA categories, acquire/audit the income candidate, then construct and audit the complete Stage-5 candidate matrix before any neural-map training.
