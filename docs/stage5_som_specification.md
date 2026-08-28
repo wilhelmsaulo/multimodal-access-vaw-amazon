@@ -2,7 +2,7 @@
 
 ## Status
 
-**COMPLETED THROUGH DATA AUDIT, SOM TRAINING, PROFILE INTERPRETATION, SPATIALIZATION AND POST-HOC MCDM CROSS-TAB.** Stage 4 MCDM remains closed and unchanged. Stage 5 characterizes socioeconomic/demographic municipal profiles and examines their exploratory association with the frozen priority results.
+**COMPLETED THROUGH DATA AUDIT, SOM TRAINING, PROFILE INTERPRETATION, REAL NEURAL-MAP DIAGNOSTICS, SPATIALIZATION AND POST-HOC MCDM CROSS-TAB.** Stage 4 MCDM remains closed and unchanged. Stage 5 characterizes socioeconomic/demographic municipal profiles and examines their exploratory association with the frozen priority results.
 
 ## Analytical separation locked
 
@@ -81,6 +81,30 @@ Mapping stability is the Spearman agreement of all pairwise municipal BMU distan
 - seed mapping stability: **0.88321**;
 - median 5×5 mapping stability across seeds: **0.85668**.
 
+## Real neural-map diagnostics
+
+Publication-ready SOM diagnostics are calculated directly from the frozen selected codebook and BMU mapping. They are distinct from any conceptual or illustrative SOM figure.
+
+### U-Matrix
+
+For each neuron, the U-Matrix value is the mean Euclidean distance between that neuron's 10-dimensional codebook vector and all valid immediately adjacent neurons in the Moore neighborhood (horizontal, vertical and diagonal neighbors). This neighborhood definition is consistent with the selected-model topographic adjacency convention.
+
+Observed real U-Matrix values range from **1.17321** to **1.84217**. The maximum local codebook separation occurs at raw SOM index `(2,3)` (display row 3, column 4), while the lowest value occurs at raw index `(4,4)` (display row 5, column 5). These values describe local separation in codebook space; they are not risk magnitudes.
+
+### BMU hits
+
+The hit map is the exact number of the 144 municipalities whose selected-model BMU falls in each neuron. Occupancy ranges from **1 to 11 municipalities per neuron** and sums exactly to 144. No municipality is omitted from the hit map.
+
+### Component planes
+
+Ten component planes display the actual selected-neuron codebook values for the ten frozen SOM dimensions. All planes share a symmetric color scale around zero because training used the frozen standardized feature matrix. Profile boundaries are overlaid only as a post-training visual aid and do not alter the codebook.
+
+### Macroprofile lattice
+
+The 25 neurons are colored according to their frozen P1–P4 macroprofile membership. Municipality counts can be shown inside each neuron to connect codebook topology with BMU occupancy.
+
+The diagnostic routine performs **no retraining, no profile reclassification and no MCDM feedback**. Its audit explicitly requires all plotted values to originate from frozen Stage-5 outputs.
+
 ## Macroprofile construction
 
 The selected 25-node codebook was partitioned with k-means candidates k=2..6. A solution is preferred when every macroprofile contains at least 8 municipalities, and the eligible solution with the highest codebook silhouette is selected.
@@ -141,6 +165,16 @@ This pattern is an exploratory association between socioeconomic/demographic pro
 - `results/stage5/tables/stage5_som_final_standardized_matrix.csv`
 - `results/stage5/tables/stage5_som_training_audit.json`
 - `results/stage5/tables/stage5_som_selected_mapping.csv`
+- `results/stage5/tables/stage5_som_selected_codebook.csv`
+
+### Real neural-map diagnostics
+- `results/stage5/tables/stage5_som_real_node_diagnostics.csv`
+- `results/stage5/tables/stage5_som_real_visual_audit.json`
+- `results/stage5/figures/stage5_som_real_umatrix.png` / `.pdf`
+- `results/stage5/figures/stage5_som_real_hits.png` / `.pdf`
+- `results/stage5/figures/stage5_som_real_macroprofiles.png` / `.pdf`
+- `results/stage5/figures/stage5_som_real_component_planes.png` / `.pdf`
+- `results/stage5/figures/stage5_som_real_diagnostic_panel.png` / `.pdf`
 
 ### Profile interpretation
 - `results/stage5/tables/stage5_som_interpretation_audit.json`
@@ -150,9 +184,7 @@ This pattern is an exploratory association between socioeconomic/demographic pro
 - `results/stage5/tables/stage5_som_profile_promethee_summary.csv`
 - `results/stage5/tables/stage5_spatial_interpretation_audit.json`
 
-### Figures
-- `results/stage5/figures/stage5_som_component_planes.png`
-- `results/stage5/figures/stage5_som_profile_map.png`
+### Spatial/profile figures
 - `results/stage5/figures/stage5_som_profiles_pará_map.png`
 - `results/stage5/figures/stage5_som_profile_characteristics_heatmap.png`
 - `results/stage5/figures/stage5_som_mcdm_profile_association.png`
@@ -161,4 +193,4 @@ This pattern is an exploratory association between socioeconomic/demographic pro
 
 ## Stage-5 closure
 
-Stage 5 modeling and first-order interpretation are now closed. Any subsequent work should be treated as manuscript synthesis, sensitivity extension or focused case-study analysis. New variables must not be inserted into the already frozen SOM without reopening the Stage-5 feature gate and retraining the model from the beginning.
+Stage 5 modeling and first-order interpretation are closed. The real neural-map diagnostic publication does not reopen the model; it exposes the already-frozen neural representation in publication-ready form. Any subsequent work should be treated as manuscript synthesis, sensitivity extension or focused case-study analysis. New variables must not be inserted into the already frozen SOM without reopening the Stage-5 feature gate and retraining the model from the beginning.
