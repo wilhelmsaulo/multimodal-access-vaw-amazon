@@ -8,11 +8,14 @@
   "ibge_boundary_release": "PA_Municipios_2023.zip",
   "ibge_boundary_url": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2023/UFs/PA/PA_Municipios_2023.zip",
   "map_crs": "EPSG:5880 — SIRGAS 2000 / Brazil Polyconic",
+  "geographic_crs": "EPSG:4674 — SIRGAS 2000",
+  "graticule_interval_degrees": 2,
   "cartographic_elements": [
     "title",
     "legend",
     "scale_bar",
     "north_arrow",
+    "geographic_coordinates",
     "source_and_year"
   ]
 }

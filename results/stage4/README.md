@@ -20,7 +20,7 @@ The TOPSIS table contains all 144 municipalities, but Afuá has no TOPSIS rank b
 
 ## Statewide maps
 
-All maps include title, legend, cartographic scale, north arrow, source/year and the municipal boundary reference.
+All maps include title, legend, cartographic scale, north arrow, geographic latitude/longitude graticule, source/year, map projection and geographic coordinate reference system.
 
 ### PROMETHEE II
 
