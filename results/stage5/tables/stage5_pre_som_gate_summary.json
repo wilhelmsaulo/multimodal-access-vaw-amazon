@@ -1,14 +1,14 @@
 {
-  "stage": "Stage 5 pre-SOM candidate quality gate",
+  "stage": "Stage 5 pre-SOM candidate quality gate — complete municipal age revision",
   "municipalities": 144,
   "candidate_feature_count": 11,
   "candidate_features": [
     "criterion__rural_female_share",
     "socio__female_literacy_rate_15plus",
     "socio__household_per_capita_income_mean_brl",
-    "diagnostic__female_15_29_share_age_covered",
-    "diagnostic__female_30_59_share_age_covered",
-    "diagnostic__female_60_plus_share_age_covered",
+    "socio__female_age_share_15_29",
+    "socio__female_age_share_30_59",
+    "socio__female_age_share_60_plus",
     "socio__race_share_branca",
     "socio__race_share_preta",
     "socio__race_share_parda",
@@ -16,14 +16,14 @@
     "socio__race_share_indigena"
   ],
   "quality_fields": [
-    "diagnostic__age_female_coverage_fraction",
+    "diagnostic__female_age_selected_share_sum",
     "diagnostic__race_ignored_share"
   ],
   "missing_candidate_cells": 0,
   "high_abs_correlation_threshold": 0.8,
   "high_pearson_pair_count": 1,
   "high_spearman_pair_count": 1,
-  "max_finite_vif": 529.5009737958491,
+  "max_finite_vif": 537.8862471399315,
   "infinite_vif_features": [],
   "race_composition": {
     "declared_share_sum_min": 0.9603163294385864,
@@ -39,21 +39,21 @@
       "socio__race_share_amarela": 2,
       "socio__race_share_indigena": 0
     },
-    "decision": "Do not freeze the five raw shares for SOM until zero-aware compositional/reduced representation is selected and sensitivity checked."
+    "decision": "Do not freeze the five raw shares for SOM until a zero-aware reduced/compositional representation is selected and sensitivity checked."
   },
   "age_block": {
-    "selected_age_share_sum_min": 0.608678469807145,
-    "selected_age_share_sum_median": 0.7419448188840421,
-    "selected_age_share_sum_max": 0.8344568627883222,
-    "age_population_coverage_min": 0.6123074150824399,
-    "age_population_coverage_median": 0.9273533756585953,
-    "age_population_coverage_max": 1.0,
+    "source": "IBGE Census 2022 universe results, SIDRA 9514, municipality level, female-specific",
+    "missing_cells": 0,
+    "selected_age_share_sum_min": 0.6037470426497857,
+    "selected_age_share_sum_median": 0.7398088777613478,
+    "selected_age_share_sum_max": 0.8340879493406252,
     "zero_counts": {
-      "diagnostic__female_15_29_share_age_covered": 0,
-      "diagnostic__female_30_59_share_age_covered": 0,
-      "diagnostic__female_60_plus_share_age_covered": 0
+      "socio__female_age_share_15_29": 0,
+      "socio__female_age_share_30_59": 0,
+      "socio__female_age_share_60_plus": 0
     },
-    "decision": "Retain age shares as candidates but inspect coverage sensitivity before freezing them as SOM training features."
+    "replacement_of_partial_sector_age": true,
+    "decision": "Coverage limitation is closed; retain the three complete municipal age shares as candidates and decide reduction only from redundancy diagnostics."
   },
   "income": {
     "source_year": 2022,
@@ -64,12 +64,13 @@
   "gates": {
     "municipality_key_integrity": "PASS",
     "candidate_missingness": "PASS",
+    "female_age_source_completeness": "PASS",
     "temporal_baseline": "PASS_WITH_CAVEAT",
     "scale_standardization": "PENDING_FINAL_FEATURE_FREEZE",
     "income_retention": "REVIEW_SAMPLE_BASED_CENSUS_2022_ESTIMATE",
     "race_compositional_representation": "REVIEW_REQUIRED",
-    "age_coverage_representation": "REVIEW_REQUIRED",
+    "age_redundancy_representation": "REVIEW_IF_CORRELATION_OR_VIF_REMAINS_HIGH",
     "som_training_authorized": false
   },
-  "next_action": "Resolve race compositional representation and age-coverage sensitivity, then freeze/standardize the final SOM feature matrix. No SOM training before that decision."
+  "next_action": "Resolve race compositional representation and any residual age redundancy, then freeze and standardize the final SOM feature matrix. No SOM training before that decision."
 }
