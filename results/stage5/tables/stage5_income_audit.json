@@ -1,0 +1,30 @@
+{
+  "stage": "Stage 5 SOM municipal income acquisition audit",
+  "source": "IBGE Census 2022 Trabalho e Rendimento — preliminary sample results via SIDRA table 10295",
+  "sidra_table": 10295,
+  "period": 2022,
+  "state": "Pará",
+  "territorial_level": "municipality",
+  "municipalities": 144,
+  "candidate_feature": "socio__household_per_capita_income_mean_brl",
+  "selected_variable": {
+    "variable_id": "13431",
+    "variable": "Valor do rendimento nominal médio mensal domiciliar per capita dos moradores em domicílios particulares permanentes ocupados, exclusive os cuja condição no domicílio era pensionista, empregado(a) doméstico(a) ou parente do(a) empregado(a) doméstico(a)",
+    "unit": "Reais"
+  },
+  "excluded_same_construct_variable": {
+    "variable_id": "13534",
+    "description": "municipal median household per-capita monthly income",
+    "reason": "not included alongside mean income without a separate theoretical justification; avoids duplicating the same income construct"
+  },
+  "missing_values": 0,
+  "income_min_brl": 35865.0,
+  "income_median_across_municipalities_brl": 72436.0,
+  "income_max_brl": 166852.0,
+  "sample_based": true,
+  "poverty_measure": false,
+  "retention_status": "candidate_pending_pre_SOM_gate",
+  "methodological_warning": "This is a Census 2022 sample estimate of mean household per-capita monthly income; it is not a direct poverty rate and requires explicit retention review before SOM training.",
+  "request_url": "https://servicodados.ibge.gov.br/api/v3/agregados/10295/periodos/2022/variaveis?localidades=N6[N3[15]]",
+  "metadata_name": "Moradores em domicílios particulares permanentes ocupados, exclusive os cuja condição no domicílio era pensionista, empregado(a) doméstico(a) ou parente do(a) empregado(a) doméstico(a), valor do rendimento domiciliar mensal per capita, médio e mediano, por sexo, cor ou raça e grupos de idade"
+}
