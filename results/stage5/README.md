@@ -1,6 +1,6 @@
 # Stage 5 — SOM validation and artifact index
 
-Stage 5 is complete through data acquisition, compositional feature treatment, SOM training/model selection, macroprofile interpretation, spatialization, real neural-map diagnostics and post-hoc comparison with the frozen PROMETHEE-II results. Stage 4 MCDM remains unchanged.
+Stage 5 is complete through data acquisition, compositional feature treatment, SOM training/model selection, macroprofile interpretation, spatialization, real neural-map diagnostics, real topology interpretation and post-hoc comparison with the frozen PROMETHEE-II results. Stage 4 MCDM remains unchanged.
 
 ## Validation checkpoints
 
@@ -47,11 +47,32 @@ Stage 5 is complete through data acquisition, compositional feature treatment, S
    - no model retraining, no profile reclassification and no MCDM feedback;
    - all plotted neural-map values are calculated from frozen SOM outputs, not illustrative graphics.
 
+8. **Real SOM topology interpretation** — `tables/stage5_som_real_topology_interpretation_audit.json`
+   - adjacent-neuron boundaries computed from the frozen 5×5 topology;
+   - boundary strength = Euclidean distance between standardized codebook vectors;
+   - P1–P4 are not directly adjacent in the selected SOM;
+   - strongest mean boundary is P2–P4 (1.8933), followed by P1–P2 (1.8304);
+   - no retraining, reclassification or feedback to MCDM.
+
 ## Real SOM diagnostics
 
-The publication-ready neural-map diagnostics are now separated from the earlier conceptual illustration. The real outputs are computed from `stage5_som_selected_codebook.csv`, `stage5_som_node_profiles.csv` and `stage5_som_municipal_profiles.csv`.
+The publication-ready neural-map diagnostics are computed from `stage5_som_selected_codebook.csv`, `stage5_som_node_profiles.csv` and `stage5_som_municipal_profiles.csv`.
 
 The U-Matrix shows the strongest local codebook separation around neuron row 3 / column 4 in 1-based display coordinates (raw index 2,3; mean neighbor distance 1.84217), while the lowest local separation occurs at raw index 4,4 (1.17321). BMU occupancy ranges from 1 to 11 municipalities per neuron and sums exactly to 144.
+
+## Real SOM topology interpretation
+
+The selected SOM forms a non-ordinal two-dimensional profile topology. Direct cross-profile boundaries are P1–P2, P1–P3, P2–P3, P2–P4 and P3–P4; **P1 and P4 do not share a direct neural boundary**.
+
+Mean boundary distances:
+
+- P2–P4: 1.8933;
+- P1–P2: 1.8304;
+- P3–P4: 1.7609;
+- P2–P3: 1.6606;
+- P1–P3: 1.5621.
+
+The strongest feature contrasts along each boundary are stored in `tables/stage5_som_real_transition_feature_contributions.csv`. Particularly notable is P2–P4, whose three strongest contrasts are all female-age ILR coordinates, consistent with the older raw female age structure of P2 and the younger raw female age structure of P4. Full interpretation is documented in `stage5_real_som_topology_interpretation.md`.
 
 ## Profile signatures
 
@@ -104,9 +125,14 @@ Extreme municipalities are retained for within-profile heterogeneity diagnostics
 - `tables/stage5_som_promethee_top_quartile_crosstab.csv`
 - `tables/stage5_spatial_interpretation_audit.json`
 
-### Real neural-map diagnostics
+### Real neural-map diagnostics and topology
 - `tables/stage5_som_real_node_diagnostics.csv`
 - `tables/stage5_som_real_visual_audit.json`
+- `tables/stage5_som_real_topology_edges.csv`
+- `tables/stage5_som_real_profile_transition_summary.csv`
+- `tables/stage5_som_real_transition_feature_contributions.csv`
+- `tables/stage5_som_real_profile_codebook_centroids.csv`
+- `tables/stage5_som_real_topology_interpretation_audit.json`
 
 ## Figures
 
@@ -116,6 +142,8 @@ Extreme municipalities are retained for within-profile heterogeneity diagnostics
 - `figures/stage5_som_real_macroprofiles.png` / `.pdf`
 - `figures/stage5_som_real_component_planes.png` / `.pdf`
 - `figures/stage5_som_real_diagnostic_panel.png` / `.pdf`
+- `figures/stage5_som_real_profile_transition_matrix.png` / `.pdf`
+- `figures/stage5_som_real_transition_feature_contributions.png` / `.pdf`
 
 ### Earlier neural/profile diagnostics
 - `figures/stage5_som_component_planes.png`
@@ -140,6 +168,7 @@ Extreme municipalities are retained for within-profile heterogeneity diagnostics
 - `src/analysis/interpret_stage5_som.py` — macroprofile construction and post-hoc PROMETHEE cross-tab;
 - `src/analysis/publish_stage5_spatial_interpretation.py` — representative/extreme municipalities, signatures and spatial artifacts;
 - `src/analysis/publish_stage5_real_som_diagnostics.py` — real U-Matrix, BMU hits, macroprofile lattice and ten component planes;
+- `src/analysis/interpret_stage5_real_som_topology.py` — adjacent-profile boundary strength and feature contributions;
 - `src/analysis/publish_stage5_final_visual_panel.py` — consolidated spatial/profile publication panel.
 
-For methodological details see `docs/stage5_som_specification.md`.
+For methodological details see `docs/stage5_som_specification.md` and the detailed topology note `stage5_real_som_topology_interpretation.md`.
