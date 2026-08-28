@@ -1,0 +1,78 @@
+name: Stage 5 real SOM topology interpretation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-real-som-topology-interpretation.yml'
+      - 'src/analysis/interpret_stage5_real_som_topology.py'
+      - 'results/stage5/tables/stage5_som_selected_codebook.csv'
+      - 'results/stage5/tables/stage5_som_node_profiles.csv'
+
+permissions:
+  contents: write
+
+jobs:
+  interpret:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy matplotlib
+
+      - name: Interpret real SOM topology
+        run: python -m src.analysis.interpret_stage5_real_som_topology
+
+      - name: Validate outputs
+        run: |
+          python - <<'PY'
+          import json, pandas as pd
+          a=json.load(open('results/stage5/tables/stage5_som_real_topology_interpretation_audit.json',encoding='utf-8'))
+          s=pd.read_csv('results/stage5/tables/stage5_som_real_profile_transition_summary.csv')
+          c=pd.read_csv('results/stage5/tables/stage5_som_real_transition_feature_contributions.csv')
+          assert a['municipalities']==144
+          assert a['neurons']==25
+          assert a['features']==10
+          assert a['source_model_retrained'] is False
+          assert a['profile_reclassification_performed'] is False
+          assert a['mcdm_feedback'] is False
+          assert len(s) >= 1
+          assert set(c['profile_pair']) == set(s['profile_pair'])
+          print(s.to_string(index=False))
+          PY
+          test -s results/stage5/figures/stage5_som_real_profile_transition_matrix.png
+          test -s results/stage5/figures/stage5_som_real_transition_feature_contributions.png
+
+      - name: Commit topology interpretation outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage5/tables/stage5_som_real_topology_edges.csv \
+                  results/stage5/tables/stage5_som_real_profile_transition_summary.csv \
+                  results/stage5/tables/stage5_som_real_transition_feature_contributions.csv \
+                  results/stage5/tables/stage5_som_real_profile_codebook_centroids.csv \
+                  results/stage5/tables/stage5_som_real_topology_interpretation_audit.json \
+                  results/stage5/figures/stage5_som_real_profile_transition_matrix.png \
+                  results/stage5/figures/stage5_som_real_profile_transition_matrix.pdf \
+                  results/stage5/figures/stage5_som_real_transition_feature_contributions.png \
+                  results/stage5/figures/stage5_som_real_transition_feature_contributions.pdf
+          if git diff --cached --quiet; then
+            echo 'No topology interpretation changes to commit.'
+          else
+            git commit -m 'Publish Stage 5 real SOM topology interpretation'
+            git pull --rebase origin stage4-mcdm
+            git push origin HEAD:stage4-mcdm
+          fi
