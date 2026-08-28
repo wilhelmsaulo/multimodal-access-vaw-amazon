@@ -2,9 +2,9 @@
 
 ## Role in the pipeline
 
-The accessibility layer transforms origin–service travel times into measures of practical service access before municipal decision analysis. The E2SFCA implementation is designed to preserve competition between population demand and service supply while accounting for travel-time impedance.
+The accessibility layer transforms origin–service travel times into measures of practical service access before municipal decision analysis. The E2SFCA implementation preserves competition between population demand and service supply while accounting for travel-time impedance.
 
-The executable E2SFCA implementation currently exists in repository history on branch `agent/stage1-stage2-accessibility` at `src/accessibility/e2sfca.py`. This documentation makes the model logic explicit in the current methodological pathway; migration of the executable file into the consolidated branch is a reproducibility housekeeping task, not a change to the model definition.
+The executable implementation is now restored in the consolidated branch at [`src/accessibility/e2sfca.py`](../../src/accessibility/e2sfca.py). It is the same model logic recovered from the earlier accessibility branch; restoring the file is a reproducibility/organization action, not a methodological change.
 
 ## Two-step model flow
 
@@ -73,8 +73,6 @@ The service ratio is then:
 
 when weighted demand is positive.
 
-This means a service serving a larger weighted population has a lower supply-to-demand ratio, all else equal.
-
 A compact Step-1 output table has the conceptual form:
 
 | Scenario | Service type | Service | Weighted demand `D_j` | Supply `S_j` | Ratio `R_j` |
@@ -87,8 +85,6 @@ For each origin `i`, the E2SFCA score within service type and scenario is:
 
 `A_i = Σ_j R_j * w_ij`
 
-The score therefore combines the supply-demand pressure around reachable services with travel-time impedance from the origin.
-
 A compact Step-2 output table has the conceptual form:
 
 | Scenario | Service type | Origin | E2SFCA score |
@@ -97,48 +93,43 @@ A compact Step-2 output table has the conceptual form:
 
 ## Zero-access preservation
 
-A critical implementation safeguard is that origins with no eligible reachable service are retained explicitly with `e2sfca_score = 0`. They are not dropped from the output.
-
-Dropping zero-access origins would bias subsequent municipal summaries upward, especially in rural, riverine or structurally disconnected areas.
+Origins with no eligible reachable service are retained explicitly with `e2sfca_score = 0`; they are not dropped. This prevents upward bias in municipal summaries, especially for rural and riverine origins.
 
 ## Thresholds and scenarios
 
-The implementation permits a maximum catchment time when a threshold is substantively justified. Scores are computed separately by scenario and service type.
-
-Season-comparison utilities exist in the historical implementation, but flood/dry labels are not asserted in the current reference model unless temporal evidence supports those scenarios. The Stage-2 reference model explicitly avoided fabricated seasonal labels.
+The implementation permits a maximum catchment time when substantively justified. Scores are computed separately by scenario and service type. Seasonal comparison utilities exist in code, but flood/dry labels must not be asserted unless supported by evidence in the reference model.
 
 ## Relationship to municipal MCDM indicators
 
-E2SFCA and the municipal access indicators answer related but distinct questions.
-
-The current core MCDM accessibility criteria are:
+E2SFCA and the municipal access indicators answer related but distinct questions. The current core MCDM accessibility criteria are:
 
 1. reachable-service fraction;
 2. fraction of services within 120 minutes;
 3. nearest reachable-service time;
 4. median reachable-service time.
 
-These are transparent municipal network-access summaries. E2SFCA adds a supply-demand accessibility perspective and should be documented as an accessibility model layer rather than silently conflated with any one of those four criteria.
+These are transparent municipal network-access summaries. E2SFCA adds a supply-demand accessibility perspective and is documented as an accessibility model layer rather than silently conflated with any one of the four criteria.
 
-## Required output documentation
+## Output documentation rule
 
-The reproducibility package should publish:
+When an E2SFCA execution is declared authoritative, its publication bundle must contain:
 
-- the E2SFCA two-step flow shown above;
-- compact example matrices for travel time, weighted demand and service ratios;
-- service-ratio summary tables;
-- origin/sector E2SFCA score tables;
-- municipal aggregation tables when used;
-- statewide accessibility maps by service type/scenario when the corresponding model run is authoritative;
-- sensitivity figures for threshold/decay/supply mode when used in the final analysis.
+- exact input OD/network version;
+- supply specification and capacity/unit-presence rule;
+- threshold and decay parameters;
+- service-ratio table;
+- origin/sector score table;
+- municipal aggregation table when used;
+- statewide maps by service type/scenario;
+- sensitivity results for threshold/decay/supply mode when applicable.
 
-Every final map must include **title, legend, scale, north/orientation and source/year**.
+Every final map must include **title, legend, cartographic scale, north/orientation, latitude/longitude coordinates, source/year, map projection and geographic CRS**.
 
 ## Code reference
 
-Historical executable implementation:
+Current executable implementation:
 
-`agent/stage1-stage2-accessibility:src/accessibility/e2sfca.py`
+[`src/accessibility/e2sfca.py`](../../src/accessibility/e2sfca.py)
 
 Core functions:
 
@@ -147,4 +138,4 @@ Core functions:
 - `gaussian_decay(...)`
 - `compare_seasons(...)`
 
-No additional E2SFCA result should be declared authoritative until its exact input OD/network version and supply specification are recorded alongside the output.
+No additional E2SFCA output is declared authoritative merely by restoring the implementation; the exact input and parameterization must be recorded alongside any published result.
