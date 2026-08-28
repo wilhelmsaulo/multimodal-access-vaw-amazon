@@ -1,0 +1,38 @@
+{
+  "stage": "Stage 5 categorical spatial profile test",
+  "spatial_source": "IBGE Malha Municipal Digital 2022 - Para",
+  "spatial_source_url": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2022/UFs/PA/PA_Municipios_2022.zip",
+  "spatial_source_bytes": 2390975,
+  "municipalities": 144,
+  "profile_sizes": {
+    "P1": 30,
+    "P2": 33,
+    "P3": 53,
+    "P4": 28
+  },
+  "profile_ids_treated_as_nominal": true,
+  "numeric_morans_i_on_profile_ids_used": false,
+  "contiguity": "Queen",
+  "undirected_edge_count": 384,
+  "island_count": 0,
+  "island_municipality_codes": [],
+  "permutations": 9999,
+  "seed": 20260828,
+  "permutation_rule": "shuffle frozen P1-P4 labels over the fixed Queen graph; profile sizes therefore remain exactly preserved",
+  "global_test_alternative": "more same-profile neighboring/assortative structure than expected under random label allocation",
+  "profile_specific_multiple_testing": "Holm correction across four profile-specific same-profile join-count tests",
+  "som_retrained": false,
+  "profiles_reclassified": false,
+  "mcdm_changed": false,
+  "e2sfca_changed": false,
+  "outputs": [
+    "results/spatial_profile_test/tables/stage5_som_spatial_global_test.csv",
+    "results/spatial_profile_test/tables/stage5_som_spatial_profile_join_tests.csv",
+    "results/spatial_profile_test/tables/stage5_som_spatial_profile_adjacency_matrix.csv",
+    "results/spatial_profile_test/tables/stage5_som_spatial_queen_graph_municipalities.csv",
+    "results/spatial_profile_test/figures/stage5_som_spatial_assortativity_permutation.png",
+    "results/spatial_profile_test/figures/stage5_som_spatial_assortativity_permutation.pdf",
+    "results/spatial_profile_test/figures/stage5_som_spatial_profile_join_enrichment.png",
+    "results/spatial_profile_test/figures/stage5_som_spatial_profile_join_enrichment.pdf"
+  ]
+}

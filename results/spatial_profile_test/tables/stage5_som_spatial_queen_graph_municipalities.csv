@@ -1,0 +1,145 @@
+municipality_code,municipality_name,som_profile,queen_neighbor_count,queen_island
+1500107,Abaetetuba,3,5,False
+1500131,Abel Figueiredo,1,2,False
+1500206,Acará,3,9,False
+1500305,Afuá,4,4,False
+1500347,Água Azul do Norte,3,8,False
+1500404,Alenquer,4,5,False
+1500503,Almeirim,3,6,False
+1500602,Altamira,1,10,False
+1500701,Anajás,4,7,False
+1500800,Ananindeua,1,4,False
+1500859,Anapu,4,6,False
+1500909,Augusto Corrêa,4,2,False
+1500958,Aurora do Pará,3,5,False
+1501006,Aveiro,4,5,False
+1501105,Bagre,4,6,False
+1501204,Baião,3,8,False
+1501253,Bannach,3,7,False
+1501303,Barcarena,1,5,False
+1501402,Belém,1,8,False
+1501451,Belterra,2,5,False
+1501501,Benevides,1,6,False
+1501576,Bom Jesus do Tocantins,2,4,False
+1501600,Bonito,2,7,False
+1501709,Bragança,2,4,False
+1501725,Brasil Novo,3,5,False
+1501758,Brejo Grande do Araguaia,3,4,False
+1501782,Breu Branco,3,6,False
+1501808,Breves,4,7,False
+1501907,Bujaru,3,8,False
+1501956,Cachoeira do Piriá,3,2,False
+1502004,Cachoeira do Arari,3,8,False
+1502103,Cametá,3,4,False
+1502152,Canaã dos Carajás,1,4,False
+1502202,Capanema,2,5,False
+1502301,Capitão Poço,2,8,False
+1502400,Castanhal,1,9,False
+1502509,Chaves,4,5,False
+1502608,Colares,2,4,False
+1502707,Conceição do Araguaia,1,3,False
+1502756,Concórdia do Pará,3,4,False
+1502764,Cumaru do Norte,3,6,False
+1502772,Curionópolis,1,8,False
+1502806,Curralinho,4,5,False
+1502855,Curuá,4,3,False
+1502905,Curuçá,2,4,False
+1502939,Dom Eliseu,1,4,False
+1502954,Eldorado do Carajás,3,5,False
+1503002,Faro,4,2,False
+1503044,Floresta do Araguaia,3,4,False
+1503077,Garrafão do Norte,2,3,False
+1503093,Goianésia do Pará,3,8,False
+1503101,Gurupá,4,5,False
+1503200,Igarapé-Açu,2,6,False
+1503309,Igarapé-Miri,3,6,False
+1503408,Inhangapi,3,4,False
+1503457,Ipixuna do Pará,4,9,False
+1503507,Irituia,3,5,False
+1503606,Itaituba,1,6,False
+1503705,Itupiranga,3,4,False
+1503754,Jacareacanga,4,2,False
+1503804,Jacundá,1,5,False
+1503903,Juruti,4,5,False
+1504000,Limoeiro do Ajuru,4,6,False
+1504059,Mãe do Rio,2,4,False
+1504109,Magalhães Barata,2,2,False
+1504208,Marabá,1,12,False
+1504307,Maracanã,2,6,False
+1504406,Marapanim,2,6,False
+1504422,Marituba,1,5,False
+1504455,Medicilândia,3,4,False
+1504505,Melgaço,4,5,False
+1504604,Mocajuba,3,5,False
+1504703,Moju,3,9,False
+1504752,Mojuí dos Campos,2,4,False
+1504802,Monte Alegre,2,4,False
+1504901,Muaná,4,6,False
+1504950,Nova Esperança do Piriá,4,7,False
+1504976,Nova Ipixuna,3,4,False
+1505007,Nova Timboteua,2,5,False
+1505031,Novo Progresso,1,3,False
+1505064,Novo Repartimento,3,9,False
+1505106,Óbidos,3,6,False
+1505205,Oeiras do Pará,4,6,False
+1505304,Oriximiná,3,4,False
+1505403,Ourém,3,6,False
+1505437,Ourilândia do Norte,3,6,False
+1505486,Pacajá,3,5,False
+1505494,Palestina do Pará,3,2,False
+1505502,Paragominas,1,5,False
+1505536,Parauapebas,1,6,False
+1505551,Pau D'Arco,3,4,False
+1505601,Peixe-Boi,2,5,False
+1505635,Piçarra,3,4,False
+1505650,Placas,3,5,False
+1505700,Ponta de Pedras,3,7,False
+1505809,Portel,4,7,False
+1505908,Porto de Moz,4,9,False
+1506005,Prainha,4,6,False
+1506104,Primavera,2,5,False
+1506112,Quatipuru,2,4,False
+1506138,Redenção,1,6,False
+1506161,Rio Maria,1,5,False
+1506187,Rondon do Pará,1,7,False
+1506195,Rurópolis,3,5,False
+1506203,Salinópolis,2,2,False
+1506302,Salvaterra,3,3,False
+1506351,Santa Bárbara do Pará,3,5,False
+1506401,Santa Cruz do Arari,3,4,False
+1506500,Santa Izabel do Pará,1,6,False
+1506559,Santa Luzia do Pará,2,7,False
+1506583,Santa Maria das Barreiras,3,4,False
+1506609,Santa Maria do Pará,2,6,False
+1506708,Santana do Araguaia,1,3,False
+1506807,Santarém,1,10,False
+1506906,Santarém Novo,2,6,False
+1507003,Santo Antônio do Tauá,2,7,False
+1507102,São Caetano de Odivelas,2,5,False
+1507151,São Domingos do Araguaia,3,4,False
+1507201,São Domingos do Capim,3,7,False
+1507300,São Félix do Xingu,3,10,False
+1507409,São Francisco do Pará,2,5,False
+1507458,São Geraldo do Araguaia,3,6,False
+1507466,São João da Ponta,2,3,False
+1507474,São João de Pirabas,2,5,False
+1507508,São João do Araguaia,3,4,False
+1507607,São Miguel do Guamá,3,8,False
+1507706,São Sebastião da Boa Vista,4,5,False
+1507755,Sapucaia,1,4,False
+1507805,Senador José Porfírio,4,6,False
+1507904,Soure,3,3,False
+1507953,Tailândia,1,4,False
+1507961,Terra Alta,2,7,False
+1507979,Terra Santa,2,3,False
+1508001,Tomé-Açu,4,6,False
+1508035,Tracuateua,2,6,False
+1508050,Trairão,3,2,False
+1508084,Tucumã,1,2,False
+1508100,Tucuruí,1,5,False
+1508126,Ulianópolis,1,2,False
+1508159,Uruará,3,7,False
+1508209,Vigia,2,5,False
+1508308,Viseu,4,5,False
+1508357,Vitória do Xingu,3,5,False
+1508407,Xinguara,1,7,False
