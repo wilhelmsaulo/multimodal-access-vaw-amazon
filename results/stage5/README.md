@@ -1,6 +1,6 @@
-# Stage 5 — SOM validation index
+# Stage 5 — SOM validation and artifact index
 
-Stage 5 is complete through SOM training, macroprofile interpretation and post-hoc comparison with the frozen PROMETHEE-II results. Stage 4 MCDM remains unchanged.
+Stage 5 is complete through data acquisition, compositional feature treatment, SOM training/model selection, macroprofile interpretation, spatialization and post-hoc comparison with the frozen PROMETHEE-II results. Stage 4 MCDM remains unchanged.
 
 ## Validation checkpoints
 
@@ -33,25 +33,88 @@ Stage 5 is complete through SOM training, macroprofile interpretation and post-h
    - P4: 50.0%;
    - comparison occurs only after profile construction and never feeds back into MCDM.
 
+6. **Spatial interpretation audit** — `tables/stage5_spatial_interpretation_audit.json`
+   - official IBGE Municipal Digital Mesh 2022;
+   - 144/144 Pará municipal polygons validated;
+   - representative and extreme municipalities selected by standardized distance to each profile centroid;
+   - profile signatures derived from standardized differences from the Pará municipal mean;
+   - spatial and SOM×MCDM figures published in PNG and PDF.
+
+## Profile signatures
+
+The profile labels P1–P4 remain neutral mathematical identifiers. The most distinguishing profile-average characteristics are stored in `tables/stage5_som_profile_signatures.csv`.
+
+- **P1:** lower rural female share; higher household per-capita income, higher female branca share and higher female 30–59 share.
+- **P2:** higher female 60+ and parda shares, with lower female preta and 15–29 shares.
+- **P3:** higher female preta share and moderately higher rural female share; otherwise comparatively intermediate characteristics.
+- **P4:** higher female 15–29 and rural shares and lower household per-capita income, female 30–59 and 60+ shares.
+
+These are descriptive profile signatures, not violence-risk labels and not causal interpretations.
+
+## Representative and extreme municipalities
+
+`tables/stage5_som_profile_representative_extreme_municipalities.csv` contains three municipalities nearest to and three farthest from each profile centroid in the globally standardized 11-variable interpretable space.
+
+Representative municipalities:
+
+- P1: Xinguara, Paragominas, Tucuruí;
+- P2: Primavera, São Francisco do Pará, São Caetano de Odivelas;
+- P3: Breu Branco, Eldorado do Carajás, Itupiranga;
+- P4: Ipixuna do Pará, Curralinho, Breves.
+
+Extreme municipalities are retained for within-profile heterogeneity diagnostics; they are not labelled outliers automatically.
+
 ## Main tables
 
+### Data and feature gate
 - `tables/stage5_som_final_unstandardized_matrix.csv`
 - `tables/stage5_som_final_standardized_matrix.csv`
 - `tables/stage5_final_vif.csv`
+- `tables/stage5_final_feature_gate.json`
+
+### SOM training
 - `tables/stage5_som_training_runs.csv`
 - `tables/stage5_som_grid_selection.csv`
 - `tables/stage5_som_selected_mapping.csv`
 - `tables/stage5_som_selected_codebook.csv`
+- `tables/stage5_som_training_audit.json`
+
+### Interpretation and MCDM comparison
 - `tables/stage5_som_profile_k_selection.csv`
 - `tables/stage5_som_municipal_profiles.csv`
 - `tables/stage5_som_profile_characteristics.csv`
 - `tables/stage5_som_profile_standardized_characteristics.csv`
+- `tables/stage5_som_profile_signatures.csv`
+- `tables/stage5_som_profile_representative_extreme_municipalities.csv`
 - `tables/stage5_som_profiles_with_promethee.csv`
 - `tables/stage5_som_profile_promethee_summary.csv`
+- `tables/stage5_som_promethee_top_quartile_crosstab.csv`
+- `tables/stage5_spatial_interpretation_audit.json`
 
 ## Figures
 
+### Neural-map diagnostics
 - `figures/stage5_som_component_planes.png`
 - `figures/stage5_som_profile_map.png`
+
+### Spatial/profile interpretation
+- `figures/stage5_som_profiles_pará_map.png`
+- `figures/stage5_som_profiles_para_map.pdf`
+- `figures/stage5_som_profile_characteristics_heatmap.png`
+- `figures/stage5_som_profile_characteristics_heatmap.pdf`
+- `figures/stage5_som_mcdm_profile_association.png`
+- `figures/stage5_som_mcdm_profile_association.pdf`
+
+### Final publication panel
+- `figures/stage5_final_som_interpretation_panel.png`
+- `figures/stage5_final_som_interpretation_panel.pdf`
+
+## Reproducibility entry points
+
+- `src/analysis/build_stage5_final_som_features.py` — feature freeze/compositional treatment;
+- `src/analysis/train_stage5_som.py` — multi-grid/multi-seed SOM training;
+- `src/analysis/interpret_stage5_som.py` — macroprofile construction and post-hoc PROMETHEE cross-tab;
+- `src/analysis/publish_stage5_spatial_interpretation.py` — representative/extreme municipalities, signatures and spatial artifacts;
+- `src/analysis/publish_stage5_final_visual_panel.py` — consolidated publication panel.
 
 For methodological details see `docs/stage5_som_specification.md`.
