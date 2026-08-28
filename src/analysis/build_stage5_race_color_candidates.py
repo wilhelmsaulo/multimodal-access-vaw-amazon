@@ -9,7 +9,6 @@ reference. The source is total-population composition, not female-specific.
 
 import io
 import json
-import re
 import unicodedata
 from pathlib import Path
 
@@ -58,15 +57,18 @@ def find_header_row(raw: pd.DataFrame) -> int:
 
 
 def flatten_headers(raw: pd.DataFrame, header_row: int) -> list[str]:
-    # Some IBGE selected tables use two adjacent header rows. Combine the race
-    # labels visible on the detected row with the preceding structural labels.
-    previous = raw.iloc[max(0, header_row - 1)].tolist()
+    # IBGE uses merged cells for the 'Absoluto' and 'Percentual' column groups.
+    # Forward-fill the group row so that every race column has a unique label.
+    previous = pd.Series(raw.iloc[max(0, header_row - 1)].tolist()).ffill().tolist()
     current = raw.iloc[header_row].tolist()
     headers: list[str] = []
+    seen: dict[str, int] = {}
     for i, (a, b) in enumerate(zip(previous, current)):
         na, nb = norm_text(a), norm_text(b)
-        label = " ".join(x for x in (na, nb) if x)
-        headers.append(label or f"col_{i}")
+        label = " ".join(x for x in (na, nb) if x) or f"col_{i}"
+        count = seen.get(label, 0)
+        seen[label] = count + 1
+        headers.append(label if count == 0 else f"{label}__{count + 1}")
     return headers
 
 
@@ -81,8 +83,14 @@ def find_col(columns: list[str], required: tuple[str, ...], excluded: tuple[str,
 def numeric(series: pd.Series) -> pd.Series:
     out = series.astype(str).str.strip()
     out = out.replace({"-": "0", "...": pd.NA, "..": pd.NA, "X": pd.NA, "nan": pd.NA})
-    out = out.str.replace(".", "", regex=False).str.replace(",", ".", regex=False).str.replace(" ", "", regex=False)
-    return pd.to_numeric(out, errors="coerce")
+    # Excel usually supplies numeric cells directly; this path also handles
+    # formatted Brazilian strings if they occur.
+    direct = pd.to_numeric(out, errors="coerce")
+    formatted = pd.to_numeric(
+        out.str.replace(".", "", regex=False).str.replace(",", ".", regex=False).str.replace(" ", "", regex=False),
+        errors="coerce",
+    )
+    return direct.fillna(formatted)
 
 
 def parse_sheet(raw: pd.DataFrame) -> pd.DataFrame:
@@ -92,8 +100,6 @@ def parse_sheet(raw: pd.DataFrame) -> pd.DataFrame:
     data.columns = headers
     data = data.dropna(how="all")
 
-    # Resolve location columns. Selected IBGE tables normally expose a code plus
-    # a geographic-name column; keep a fallback for variants without explicit labels.
     columns = list(data.columns)
     code_candidates = [c for c in columns if "cod" in norm_text(c)]
     geo_candidates = [
@@ -102,14 +108,12 @@ def parse_sheet(raw: pd.DataFrame) -> pd.DataFrame:
         and "cod" not in norm_text(c)
     ]
     if not code_candidates:
-        # Detect a column dominated by seven-digit municipality codes.
         for c in columns[:4]:
             vals = data[c].astype(str).str.extract(r"(\d{7})", expand=False)
             if vals.notna().sum() >= EXPECTED_MUNICIPALITIES:
                 code_candidates.append(c)
                 break
     if not geo_candidates:
-        # Geographic names are usually among the first three columns.
         geo_candidates = [c for c in columns[:4] if c not in code_candidates]
     if not code_candidates or not geo_candidates:
         raise RuntimeError(f"Could not resolve municipality code/name columns: {columns}")
@@ -125,16 +129,22 @@ def parse_sheet(raw: pd.DataFrame) -> pd.DataFrame:
             f"Expected 144 Pará municipalities in official workbook; got {data['municipality_code'].nunique()}"
         )
 
-    # Identify the total and race/color count columns from the combined headers.
-    total_col = find_col(columns, ("total",), ("percent", "indigena"))
     race_cols: dict[str, str] = {}
     for race in RACE_LABELS:
-        race_cols[race] = find_col(columns, (race,), ("percent", "pessoas indigenas"))
+        race_cols[race] = find_col(columns, ("absoluto", race), ("percentual",))
+    ignored_col = find_col(columns, ("absoluto", "ignorados"), ("percentual",))
 
     result = data[["municipality_code", "municipality_name"]].copy()
-    result["race_population_total"] = numeric(data[total_col])
+    absolute_counts: dict[str, pd.Series] = {race: numeric(data[col]) for race, col in race_cols.items()}
+    ignored = numeric(data[ignored_col]).fillna(0)
+    denominator = ignored.copy()
+    for counts in absolute_counts.values():
+        denominator = denominator.add(counts, fill_value=pd.NA)
+    result["race_population_total"] = denominator
+    result["diagnostic__race_ignored_count"] = ignored
+    result["diagnostic__race_ignored_share"] = ignored / denominator.replace(0, pd.NA)
     for race, output_col in RACE_LABELS.items():
-        result[output_col] = numeric(data[race_cols[race]]) / result["race_population_total"].replace(0, pd.NA)
+        result[output_col] = absolute_counts[race] / denominator.replace(0, pd.NA)
 
     return result.drop_duplicates("municipality_code")
 
@@ -153,7 +163,7 @@ def main() -> None:
         raw = pd.read_excel(xls, sheet_name=sheet, header=None, engine="openpyxl")
         try:
             candidate = parse_sheet(raw)
-        except Exception as exc:  # audited below; preserve diagnostics across sheets
+        except Exception as exc:
             parse_errors[sheet] = str(exc)
             continue
         if candidate["municipality_code"].nunique() == EXPECTED_MUNICIPALITIES:
@@ -176,6 +186,12 @@ def main() -> None:
     if ((result[share_cols] < 0) | (result[share_cols] > 1)).any().any():
         raise RuntimeError("Race/color shares fall outside [0,1]")
 
+    # Because the five declared race/color shares exclude 'Ignorados', their
+    # residual must equal the explicitly retained ignored-response share.
+    residual_gap = (result["diagnostic__race_share_residual"] - result["diagnostic__race_ignored_share"]).abs()
+    if residual_gap.max() > 1e-10:
+        raise RuntimeError(f"Race/color residual does not reconcile to ignored share; max gap={residual_gap.max()}")
+
     result = result.sort_values("municipality_code").reset_index(drop=True)
     result.to_csv(out / "stage5_race_color_candidates.csv", index=False)
 
@@ -193,7 +209,9 @@ def main() -> None:
         "share_columns": share_cols,
         "share_sum_min": float(result["diagnostic__race_share_sum"].min()),
         "share_sum_max": float(result["diagnostic__race_share_sum"].max()),
-        "max_abs_residual": float(result["diagnostic__race_share_residual"].abs().max()),
+        "ignored_share_min": float(result["diagnostic__race_ignored_share"].min()),
+        "ignored_share_max": float(result["diagnostic__race_ignored_share"].max()),
+        "max_abs_residual_reconciliation_gap": float(residual_gap.max()),
         "missing_share_cells": int(result[share_cols].isna().sum().sum()),
         "source_file_bytes": len(content),
         "parse_errors_other_sheets": parse_errors,
