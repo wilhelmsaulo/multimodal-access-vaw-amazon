@@ -2,10 +2,10 @@ from __future__ import annotations
 
 """Build the Stage 5 municipal candidate matrix and execute the pre-SOM quality gate.
 
-This step does NOT train a SOM. It joins the already-audited Census 2022 profile
-blocks, tests 144-municipality integrity, missingness, distributions, outliers,
-correlation/redundancy and compositional constraints, and records what must be
-resolved before the training feature set can be frozen.
+This step does NOT train a SOM. It joins the audited Census 2022 profile blocks,
+including the complete municipality-level female age source (SIDRA 9514), and
+tests 144-municipality integrity, missingness, distributions, outliers,
+correlation/redundancy and compositional constraints.
 """
 
 import json
@@ -21,11 +21,12 @@ BASE_PATH = Path("results/stage3/tables/municipal_analytical_matrix.csv")
 RACE_PATH = OUT / "stage5_race_color_candidates.csv"
 LITERACY_PATH = OUT / "stage5_female_literacy_candidate.csv"
 INCOME_PATH = OUT / "stage5_income_candidate.csv"
+AGE_PATH = OUT / "stage5_complete_female_age_candidate.csv"
 
 AGE_FEATURES = [
-    "diagnostic__female_15_29_share_age_covered",
-    "diagnostic__female_30_59_share_age_covered",
-    "diagnostic__female_60_plus_share_age_covered",
+    "socio__female_age_share_15_29",
+    "socio__female_age_share_30_59",
+    "socio__female_age_share_60_plus",
 ]
 RACE_FEATURES = [
     "socio__race_share_branca",
@@ -41,7 +42,7 @@ OTHER_FEATURES = [
 ]
 CANDIDATE_FEATURES = [*OTHER_FEATURES, *AGE_FEATURES, *RACE_FEATURES]
 QUALITY_FIELDS = [
-    "diagnostic__age_female_coverage_fraction",
+    "diagnostic__female_age_selected_share_sum",
     "diagnostic__race_ignored_share",
 ]
 
@@ -59,7 +60,6 @@ def read_keyed(path: Path) -> pd.DataFrame:
 
 
 def vif_table(frame: pd.DataFrame) -> pd.DataFrame:
-    """Compute VIF from standardized linear regressions using complete rows."""
     x = frame.astype(float).copy()
     rows: list[dict[str, float | str]] = []
     for target in x.columns:
@@ -135,14 +135,9 @@ def main() -> None:
     race = read_keyed(RACE_PATH)
     literacy = read_keyed(LITERACY_PATH)
     income = read_keyed(INCOME_PATH)
+    age = read_keyed(AGE_PATH)
 
-    base_cols = [
-        "municipality_code",
-        "municipality_name",
-        "criterion__rural_female_share",
-        "diagnostic__age_female_coverage_fraction",
-        *AGE_FEATURES,
-    ]
+    base_cols = ["municipality_code", "municipality_name", "criterion__rural_female_share"]
     missing_base = [c for c in base_cols if c not in base.columns]
     if missing_base:
         raise RuntimeError(f"Stage 3 matrix lacks expected Stage 5 fields: {missing_base}")
@@ -150,8 +145,10 @@ def main() -> None:
     race_cols = ["municipality_code", *RACE_FEATURES, "diagnostic__race_ignored_share"]
     literacy_cols = ["municipality_code", "socio__female_literacy_rate_15plus"]
     income_cols = ["municipality_code", "socio__household_per_capita_income_mean_brl"]
+    age_cols = ["municipality_code", *AGE_FEATURES, "diagnostic__female_age_selected_share_sum"]
 
     matrix = base[base_cols].copy()
+    matrix = matrix.merge(age[age_cols], on="municipality_code", how="left", validate="one_to_one")
     matrix = matrix.merge(race[race_cols], on="municipality_code", how="left", validate="one_to_one")
     matrix = matrix.merge(literacy[literacy_cols], on="municipality_code", how="left", validate="one_to_one")
     matrix = matrix.merge(income[income_cols], on="municipality_code", how="left", validate="one_to_one")
@@ -177,7 +174,6 @@ def main() -> None:
     vif = vif_table(matrix[CANDIDATE_FEATURES])
     vif.to_csv(OUT / "stage5_candidate_vif.csv", index=False)
 
-    # Compositional diagnostics.
     race_declared_sum = matrix[RACE_FEATURES].sum(axis=1)
     race_plus_ignored = race_declared_sum + matrix["diagnostic__race_ignored_share"]
     race_rank = int(np.linalg.matrix_rank(matrix[RACE_FEATURES].to_numpy(float)))
@@ -185,7 +181,6 @@ def main() -> None:
 
     age_selected_sum = matrix[AGE_FEATURES].sum(axis=1)
     age_zero_counts = {c: int((matrix[c] == 0).sum()) for c in AGE_FEATURES}
-    age_coverage = matrix["diagnostic__age_female_coverage_fraction"]
 
     finite_vif = vif["vif"].replace([np.inf, -np.inf], np.nan).dropna()
     max_finite_vif = float(finite_vif.max()) if not finite_vif.empty else None
@@ -194,16 +189,17 @@ def main() -> None:
     gates = {
         "municipality_key_integrity": "PASS",
         "candidate_missingness": "PASS" if missing_candidate_cells == 0 else "REVIEW",
+        "female_age_source_completeness": "PASS",
         "temporal_baseline": "PASS_WITH_CAVEAT",
         "scale_standardization": "PENDING_FINAL_FEATURE_FREEZE",
         "income_retention": "REVIEW_SAMPLE_BASED_CENSUS_2022_ESTIMATE",
         "race_compositional_representation": "REVIEW_REQUIRED",
-        "age_coverage_representation": "REVIEW_REQUIRED",
+        "age_redundancy_representation": "REVIEW_IF_CORRELATION_OR_VIF_REMAINS_HIGH",
         "som_training_authorized": False,
     }
 
     summary = {
-        "stage": "Stage 5 pre-SOM candidate quality gate",
+        "stage": "Stage 5 pre-SOM candidate quality gate — complete municipal age revision",
         "municipalities": int(matrix["municipality_code"].nunique()),
         "candidate_feature_count": len(CANDIDATE_FEATURES),
         "candidate_features": CANDIDATE_FEATURES,
@@ -222,17 +218,17 @@ def main() -> None:
             "raw_share_matrix_rank": race_rank,
             "raw_share_feature_count": len(RACE_FEATURES),
             "zero_counts": race_zero_counts,
-            "decision": "Do not freeze the five raw shares for SOM until zero-aware compositional/reduced representation is selected and sensitivity checked.",
+            "decision": "Do not freeze the five raw shares for SOM until a zero-aware reduced/compositional representation is selected and sensitivity checked.",
         },
         "age_block": {
+            "source": "IBGE Census 2022 universe results, SIDRA 9514, municipality level, female-specific",
+            "missing_cells": int(matrix[AGE_FEATURES].isna().sum().sum()),
             "selected_age_share_sum_min": float(age_selected_sum.min()),
             "selected_age_share_sum_median": float(age_selected_sum.median()),
             "selected_age_share_sum_max": float(age_selected_sum.max()),
-            "age_population_coverage_min": float(age_coverage.min()),
-            "age_population_coverage_median": float(age_coverage.median()),
-            "age_population_coverage_max": float(age_coverage.max()),
             "zero_counts": age_zero_counts,
-            "decision": "Retain age shares as candidates but inspect coverage sensitivity before freezing them as SOM training features.",
+            "replacement_of_partial_sector_age": True,
+            "decision": "Coverage limitation is closed; retain the three complete municipal age shares as candidates and decide reduction only from redundancy diagnostics.",
         },
         "income": {
             "source_year": 2022,
@@ -241,7 +237,7 @@ def main() -> None:
             "decision": "Candidate retained for gate review; final inclusion must acknowledge Census sample estimation and must not be called poverty.",
         },
         "gates": gates,
-        "next_action": "Resolve race compositional representation and age-coverage sensitivity, then freeze/standardize the final SOM feature matrix. No SOM training before that decision.",
+        "next_action": "Resolve race compositional representation and any residual age redundancy, then freeze and standardize the final SOM feature matrix. No SOM training before that decision.",
     }
     (OUT / "stage5_pre_som_gate_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
