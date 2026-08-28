@@ -1,0 +1,52 @@
+{
+  "stage": "Stage 5 real SOM diagnostics",
+  "source_codebook": "results/stage5/tables/stage5_som_selected_codebook.csv",
+  "source_node_profiles": "results/stage5/tables/stage5_som_node_profiles.csv",
+  "source_municipal_mapping": "results/stage5/tables/stage5_som_municipal_profiles.csv",
+  "selected_grid": [
+    5,
+    5
+  ],
+  "selected_seed": 5,
+  "municipalities": 144,
+  "neurons": 25,
+  "features": [
+    "criterion__rural_female_share",
+    "socio__female_literacy_rate_15plus",
+    "socio__household_per_capita_income_mean_brl",
+    "profile__female_age_ilr_1",
+    "profile__female_age_ilr_2",
+    "profile__female_age_ilr_3",
+    "profile__female_race_ilr_1",
+    "profile__female_race_ilr_2",
+    "profile__female_race_ilr_3",
+    "profile__female_race_ilr_4"
+  ],
+  "feature_count": 10,
+  "u_matrix_definition": "mean Euclidean distance from each codebook vector to all valid Moore-neighborhood (8-neighbor) codebook vectors",
+  "component_plane_scale": "frozen standardized SOM codebook values; shared symmetric color scale across all ten planes",
+  "hits_definition": "count of municipalities whose selected-model BMU is each neuron",
+  "macroprofiles": {
+    "1": 30,
+    "2": 33,
+    "3": 53,
+    "4": 28
+  },
+  "model_retrained": false,
+  "profile_reclassification_performed": false,
+  "mcdm_feedback": false,
+  "all_visual_values_computed_from_frozen_som": true,
+  "outputs": [
+    "results/stage5/tables/stage5_som_real_node_diagnostics.csv",
+    "results/stage5/figures/stage5_som_real_umatrix.png",
+    "results/stage5/figures/stage5_som_real_umatrix.pdf",
+    "results/stage5/figures/stage5_som_real_hits.png",
+    "results/stage5/figures/stage5_som_real_hits.pdf",
+    "results/stage5/figures/stage5_som_real_macroprofiles.png",
+    "results/stage5/figures/stage5_som_real_macroprofiles.pdf",
+    "results/stage5/figures/stage5_som_real_component_planes.png",
+    "results/stage5/figures/stage5_som_real_component_planes.pdf",
+    "results/stage5/figures/stage5_som_real_diagnostic_panel.png",
+    "results/stage5/figures/stage5_som_real_diagnostic_panel.pdf"
+  ]
+}
