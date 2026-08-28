@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760">
+  <style>
+    .title { font:700 30px Arial, sans-serif; fill:#111; }
+    .head { font:700 20px Arial, sans-serif; fill:#111; }
+    .cell { font:400 19px Arial, sans-serif; fill:#111; }
+    .formula { font:italic 19px Georgia, serif; fill:#111; }
+    .grid { stroke:#555; stroke-width:1.5; fill:white; }
+    .note { font:400 17px Arial, sans-serif; fill:#444; }
+  </style>
+  <rect width="1400" height="760" fill="#fafafa"/>
+  <text x="700" y="48" text-anchor="middle" class="title">E2SFCA — matrix structure and two-step transformations</text>
+
+  <text x="320" y="105" text-anchor="middle" class="head">Input: corrected OD travel-time matrix</text>
+  <g transform="translate(70,130)">
+    <rect x="0" y="0" width="500" height="330" class="grid"/>
+    <line x1="125" y1="0" x2="125" y2="330" class="grid"/>
+    <line x1="250" y1="0" x2="250" y2="330" class="grid"/>
+    <line x1="375" y1="0" x2="375" y2="330" class="grid"/>
+    <line x1="0" y1="66" x2="500" y2="66" class="grid"/>
+    <line x1="0" y1="132" x2="500" y2="132" class="grid"/>
+    <line x1="0" y1="198" x2="500" y2="198" class="grid"/>
+    <line x1="0" y1="264" x2="500" y2="264" class="grid"/>
+    <text x="62" y="42" text-anchor="middle" class="head">Origin</text>
+    <text x="187" y="42" text-anchor="middle" class="head">Service 1</text>
+    <text x="312" y="42" text-anchor="middle" class="head">Service 2</text>
+    <text x="437" y="42" text-anchor="middle" class="head">Service j</text>
+    <text x="62" y="108" text-anchor="middle" class="cell">i = 1</text>
+    <text x="187" y="108" text-anchor="middle" class="formula">t₁₁</text>
+    <text x="312" y="108" text-anchor="middle" class="formula">t₁₂</text>
+    <text x="437" y="108" text-anchor="middle" class="formula">t₁ⱼ</text>
+    <text x="62" y="174" text-anchor="middle" class="cell">i = 2</text>
+    <text x="187" y="174" text-anchor="middle" class="formula">t₂₁</text>
+    <text x="312" y="174" text-anchor="middle" class="formula">t₂₂</text>
+    <text x="437" y="174" text-anchor="middle" class="formula">t₂ⱼ</text>
+    <text x="62" y="240" text-anchor="middle" class="cell">…</text>
+    <text x="187" y="240" text-anchor="middle" class="cell">…</text>
+    <text x="312" y="240" text-anchor="middle" class="cell">…</text>
+    <text x="437" y="240" text-anchor="middle" class="cell">…</text>
+    <text x="62" y="306" text-anchor="middle" class="cell">i</text>
+    <text x="187" y="306" text-anchor="middle" class="formula">tᵢ₁</text>
+    <text x="312" y="306" text-anchor="middle" class="formula">tᵢ₂</text>
+    <text x="437" y="306" text-anchor="middle" class="formula">tᵢⱼ</text>
+  </g>
+
+  <text x="900" y="105" text-anchor="middle" class="head">Step 1: service supply-to-demand table</text>
+  <g transform="translate(650,130)">
+    <rect x="0" y="0" width="650" height="198" class="grid"/>
+    <line x1="130" y1="0" x2="130" y2="198" class="grid"/>
+    <line x1="260" y1="0" x2="260" y2="198" class="grid"/>
+    <line x1="390" y1="0" x2="390" y2="198" class="grid"/>
+    <line x1="520" y1="0" x2="520" y2="198" class="grid"/>
+    <line x1="0" y1="66" x2="650" y2="66" class="grid"/>
+    <line x1="0" y1="132" x2="650" y2="132" class="grid"/>
+    <text x="65" y="42" text-anchor="middle" class="head">Service</text>
+    <text x="195" y="42" text-anchor="middle" class="head">Dⱼ</text>
+    <text x="325" y="42" text-anchor="middle" class="head">Sⱼ</text>
+    <text x="455" y="42" text-anchor="middle" class="head">Rⱼ</text>
+    <text x="585" y="42" text-anchor="middle" class="head">Type</text>
+    <text x="65" y="108" text-anchor="middle" class="cell">j = 1</text>
+    <text x="195" y="108" text-anchor="middle" class="formula">Σ Pᵢwᵢ₁</text>
+    <text x="325" y="108" text-anchor="middle" class="formula">S₁</text>
+    <text x="455" y="108" text-anchor="middle" class="formula">S₁ / D₁</text>
+    <text x="585" y="108" text-anchor="middle" class="cell">k</text>
+    <text x="65" y="174" text-anchor="middle" class="cell">j</text>
+    <text x="195" y="174" text-anchor="middle" class="formula">Σ Pᵢwᵢⱼ</text>
+    <text x="325" y="174" text-anchor="middle" class="formula">Sⱼ</text>
+    <text x="455" y="174" text-anchor="middle" class="formula">Sⱼ / Dⱼ</text>
+    <text x="585" y="174" text-anchor="middle" class="cell">k</text>
+  </g>
+
+  <text x="975" y="405" text-anchor="middle" class="head">Step 2: origin accessibility table</text>
+  <g transform="translate(730,430)">
+    <rect x="0" y="0" width="490" height="198" class="grid"/>
+    <line x1="155" y1="0" x2="155" y2="198" class="grid"/>
+    <line x1="310" y1="0" x2="310" y2="198" class="grid"/>
+    <line x1="0" y1="66" x2="490" y2="66" class="grid"/>
+    <line x1="0" y1="132" x2="490" y2="132" class="grid"/>
+    <text x="77" y="42" text-anchor="middle" class="head">Origin</text>
+    <text x="232" y="42" text-anchor="middle" class="head">Service type</text>
+    <text x="400" y="42" text-anchor="middle" class="head">E2SFCA score</text>
+    <text x="77" y="108" text-anchor="middle" class="cell">i = 1</text>
+    <text x="232" y="108" text-anchor="middle" class="cell">k</text>
+    <text x="400" y="108" text-anchor="middle" class="formula">ΣⱼRⱼw₁ⱼ</text>
+    <text x="77" y="174" text-anchor="middle" class="cell">i</text>
+    <text x="232" y="174" text-anchor="middle" class="cell">k</text>
+    <text x="400" y="174" text-anchor="middle" class="formula">ΣⱼRⱼwᵢⱼ</text>
+  </g>
+
+  <text x="320" y="520" text-anchor="middle" class="head">Required metadata outside the OD cells</text>
+  <text x="320" y="558" text-anchor="middle" class="cell">Pᵢ = female population at origin i</text>
+  <text x="320" y="590" text-anchor="middle" class="cell">Sⱼ = observed capacity or unit presence at service j</text>
+  <text x="320" y="622" text-anchor="middle" class="cell">wᵢⱼ = optional time-decay weight</text>
+
+  <text x="700" y="700" text-anchor="middle" class="note">Unreachable OD cells remain unavailable; origins with no eligible reachable service are retained with score 0.</text>
+  <text x="700" y="728" text-anchor="middle" class="note">Methodological schematic only — not an empirical result table.</text>
+</svg>
