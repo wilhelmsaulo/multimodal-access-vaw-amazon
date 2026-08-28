@@ -12,6 +12,7 @@ filled synthetically.
 """
 
 import json
+import time
 import unicodedata
 from pathlib import Path
 from typing import Any
@@ -40,10 +41,19 @@ def norm(value: object) -> str:
     return " ".join(text.lower().strip().split())
 
 
-def get_json(client: httpx.Client, url: str) -> Any:
-    response = client.get(url)
-    response.raise_for_status()
-    return response.json()
+def get_json(client: httpx.Client, url: str, attempts: int = 4) -> Any:
+    last_error: Exception | None = None
+    for attempt in range(1, attempts + 1):
+        try:
+            response = client.get(url)
+            response.raise_for_status()
+            return response.json()
+        except (httpx.TimeoutException, httpx.NetworkError, httpx.HTTPStatusError) as exc:
+            last_error = exc
+            if attempt == attempts:
+                break
+            time.sleep(2 ** (attempt - 1))
+    raise RuntimeError(f"IBGE request failed after {attempts} attempts: {url}") from last_error
 
 
 def iter_categories(classification: dict[str, Any]):
@@ -153,7 +163,8 @@ def main() -> None:
     out = Path("results/stage5/tables")
     out.mkdir(parents=True, exist_ok=True)
 
-    with httpx.Client(timeout=90, follow_redirects=True) as client:
+    timeout = httpx.Timeout(120.0, connect=45.0)
+    with httpx.Client(timeout=timeout, follow_redirects=True) as client:
         metadata = get_json(client, f"{API_BASE}/{AGGREGATE}/metadados")
         sex = find_classification(metadata, "sexo")
         age = find_classification(metadata, "idade")
