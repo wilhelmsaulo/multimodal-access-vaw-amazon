@@ -1,0 +1,65 @@
+name: Integrated E2SFCA MCDM SOM synthesis
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/integrated-e2sfca-mcdm-som-synthesis.yml'
+      - 'src/analysis/publish_integrated_e2sfca_mcdm_som_synthesis.py'
+      - 'results/e2sfca/tables/reference_municipal_scores.csv'
+      - 'results/stage5/tables/stage5_som_profiles_with_promethee.csv'
+
+permissions:
+  contents: write
+
+jobs:
+  synthesize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy matplotlib scipy
+      - name: Build integrated synthesis
+        run: python -m src.analysis.publish_integrated_e2sfca_mcdm_som_synthesis
+      - name: Validate integrated outputs
+        run: |
+          python - <<'PY'
+          import json, pandas as pd
+          a=json.load(open('results/integrated_synthesis/tables/integrated_synthesis_audit.json',encoding='utf-8'))
+          d=pd.read_csv('results/integrated_synthesis/tables/integrated_municipal_e2sfca_mcdm_som.csv')
+          p=pd.read_csv('results/integrated_synthesis/tables/integrated_profile_summary.csv')
+          assert len(d)==144
+          assert sorted(d['som_profile'].dropna().astype(int).unique().tolist())==[1,2,3,4]
+          assert len(p)==4
+          assert a['no_synthetic_zero_for_missing_e2sfca'] is True
+          assert a['som_retrained'] is False
+          assert a['promethee_reranked'] is False
+          assert a['new_integrated_ranking_created'] is False
+          print(json.dumps(a,ensure_ascii=False,indent=2))
+          PY
+          test -s results/integrated_synthesis/figures/integrated_e2sfca_mcdm_som_panel.png
+          test -s results/integrated_synthesis/figures/integrated_e2sfca_mcdm_som_panel.pdf
+          test -s results/integrated_synthesis/integrated_results_synthesis.md
+      - name: Commit integrated synthesis
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/integrated_synthesis
+          if git diff --cached --quiet; then
+            echo 'No integrated synthesis changes to commit.'
+          else
+            git commit -m 'Publish integrated E2SFCA MCDM SOM synthesis'
+            git pull --rebase origin stage4-mcdm
+            git push origin HEAD:stage4-mcdm
+          fi
