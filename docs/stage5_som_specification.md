@@ -2,7 +2,7 @@
 
 ## Status
 
-**COMPLETED THROUGH SOM TRAINING, PROFILE INTERPRETATION AND POST-HOC MCDM CROSS-TAB.** Stage 4 MCDM remains closed and unchanged. Stage 5 characterizes socioeconomic/demographic municipal profiles and examines their exploratory association with the frozen priority results.
+**COMPLETED THROUGH DATA AUDIT, SOM TRAINING, PROFILE INTERPRETATION, SPATIALIZATION AND POST-HOC MCDM CROSS-TAB.** Stage 4 MCDM remains closed and unchanged. Stage 5 characterizes socioeconomic/demographic municipal profiles and examines their exploratory association with the frozen priority results.
 
 ## Analytical separation locked
 
@@ -93,6 +93,36 @@ Selected solution:
 
 P1–P4 are neutral mathematical identifiers and are **not ordinal risk classes**.
 
+## Interpretable profile signatures
+
+Profile signatures are calculated after training from the original 11 interpretable municipal variables. For each profile, mean values are standardized relative to the complete Pará municipal distribution. The three largest positive and negative standardized differences are retained as concise descriptors.
+
+- **P1:** distinctly lower rural female share; higher household per-capita income, female branca share and female 30–59 share.
+- **P2:** higher female 60+ and parda shares; lower female preta and 15–29 shares.
+- **P3:** higher female preta share and moderately higher rural female share; most other dimensions remain comparatively intermediate.
+- **P4:** higher female 15–29 and rural shares; lower household per-capita income and lower female 30–59 and 60+ shares.
+
+These signatures are descriptive. They are not causal interpretations, vulnerability scores or violence-risk labels.
+
+## Representative and extreme municipalities
+
+To avoid selecting case examples visually, municipalities are ranked within each profile by Euclidean distance to the corresponding profile centroid in the globally standardized 11-variable interpretable space.
+
+The three nearest municipalities are used as representative cases:
+
+- P1: Xinguara, Paragominas, Tucuruí;
+- P2: Primavera, São Francisco do Pará, São Caetano de Odivelas;
+- P3: Breu Branco, Eldorado do Carajás, Itupiranga;
+- P4: Ipixuna do Pará, Curralinho, Breves.
+
+The three farthest municipalities per profile are retained as within-profile heterogeneity diagnostics. They are not automatically classified as statistical outliers.
+
+## Spatialization
+
+The frozen P1–P4 assignments are joined to the official **IBGE Malha Municipal Digital 2022 — Pará**. The spatial gate requires exactly 144 unique municipal polygons and 144 profile assignments before map publication.
+
+Spatialization is descriptive and does not add geographic proximity to the SOM objective after the fact. In other words, neighboring municipalities may or may not share a profile because the SOM was trained on socioeconomic/demographic characteristics, not spatial coordinates.
+
 ## Post-hoc association with frozen PROMETHEE II
 
 Only after SOM profile construction were the profiles joined to the corrected Stage-4 PROMETHEE-II outputs. The exploratory top-quartile shares are:
@@ -106,16 +136,29 @@ This pattern is an exploratory association between socioeconomic/demographic pro
 
 ## Principal reproducible outputs
 
+### Gate and model
 - `results/stage5/tables/stage5_final_feature_gate.json`
 - `results/stage5/tables/stage5_som_final_standardized_matrix.csv`
 - `results/stage5/tables/stage5_som_training_audit.json`
 - `results/stage5/tables/stage5_som_selected_mapping.csv`
+
+### Profile interpretation
 - `results/stage5/tables/stage5_som_interpretation_audit.json`
 - `results/stage5/tables/stage5_som_profile_characteristics.csv`
+- `results/stage5/tables/stage5_som_profile_signatures.csv`
+- `results/stage5/tables/stage5_som_profile_representative_extreme_municipalities.csv`
 - `results/stage5/tables/stage5_som_profile_promethee_summary.csv`
+- `results/stage5/tables/stage5_spatial_interpretation_audit.json`
+
+### Figures
 - `results/stage5/figures/stage5_som_component_planes.png`
 - `results/stage5/figures/stage5_som_profile_map.png`
+- `results/stage5/figures/stage5_som_profiles_pará_map.png`
+- `results/stage5/figures/stage5_som_profile_characteristics_heatmap.png`
+- `results/stage5/figures/stage5_som_mcdm_profile_association.png`
+- `results/stage5/figures/stage5_final_som_interpretation_panel.png`
+- PDF equivalents are published for the spatial/profile figures and final panel.
 
-## Next analytical action
+## Stage-5 closure
 
-Stage 5 modeling is now complete through first-order interpretation. The next work should focus on publication-quality synthesis: inspect the four profiles municipality-by-municipality, prepare concise substantive labels/descriptions that remain non-normative, map their spatial distribution if useful, and integrate the SOM findings with the manuscript without altering the locked MCDM model.
+Stage 5 modeling and first-order interpretation are now closed. Any subsequent work should be treated as manuscript synthesis, sensitivity extension or focused case-study analysis. New variables must not be inserted into the already frozen SOM without reopening the Stage-5 feature gate and retraining the model from the beginning.
