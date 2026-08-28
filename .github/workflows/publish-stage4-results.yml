@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: stage4-mcdm
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -60,6 +61,8 @@ jobs:
           assert len(prom)==144 and prom['promethee_rank'].notna().sum()==144
           assert len(top)==144 and top['topsis_contrast_rank'].notna().sum()==143
           assert meta['stage4_run']==33090126353
+          assert 'geographic_coordinates' in meta['cartographic_elements']
+          assert meta['geographic_crs'].startswith('EPSG:4674')
           for f in [
               p/'figures/promethee_ii_rank_map.png',
               p/'figures/promethee_ii_rank_map.svg',
@@ -79,5 +82,7 @@ jobs:
             echo 'No publication changes to commit.'
           else
             git commit -m 'Publish complete Stage 4 rankings and maps'
+            git fetch origin stage4-mcdm
+            git rebase origin/stage4-mcdm
             git push origin HEAD:stage4-mcdm
           fi
