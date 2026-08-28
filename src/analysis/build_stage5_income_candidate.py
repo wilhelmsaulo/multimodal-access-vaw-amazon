@@ -60,6 +60,19 @@ def extract_series(payload: list[dict[str, Any]]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def parse_ibge_numeric(series: pd.Series) -> pd.Series:
+    """Parse Aggregates API values without destroying its decimal point.
+
+    The API returns values such as ``771.33`` for R$ 771.33.  Unlike formatted
+    Brazilian display strings, the JSON endpoint uses a dot as decimal separator.
+    Commas are accepted defensively, but dots are never stripped as thousands
+    separators here.
+    """
+    cleaned = series.astype(str).str.strip().replace({"-": pd.NA, "...": pd.NA, "..": pd.NA, "X": pd.NA})
+    cleaned = cleaned.str.replace(",", ".", regex=False)
+    return pd.to_numeric(cleaned, errors="coerce")
+
+
 def main() -> None:
     out = Path("results/stage5/tables")
     out.mkdir(parents=True, exist_ok=True)
@@ -78,14 +91,8 @@ def main() -> None:
         raise RuntimeError("IBGE aggregate 10295 returned no municipal income results")
     frame["municipality_code"] = frame["municipality_code"].astype(str).str.extract(r"(\d{7})", expand=False)
     frame = frame[frame["municipality_code"].str.startswith(PARA_UF_CODE, na=False)].copy()
-    frame["value_numeric"] = pd.to_numeric(
-        frame["value"].astype(str).str.replace(".", "", regex=False).str.replace(",", ".", regex=False),
-        errors="coerce",
-    )
+    frame["value_numeric"] = parse_ibge_numeric(frame["value"])
 
-    # The first audit confirmed that 10295 exposes mean (13431) and median
-    # (13534). Select the mean explicitly and keep the median out of the SOM
-    # candidate block to avoid an unjustified duplicate representation of income.
     selected = frame[frame["variable_id"].eq(MEAN_VARIABLE_ID)].copy()
     if selected.empty:
         mean_name_mask = frame["variable"].map(norm).str.contains(
@@ -110,6 +117,14 @@ def main() -> None:
         raise RuntimeError(f"Income candidate contains unavailable/suppressed values: {bad.to_dict(orient='records')}")
     if (selected["value_numeric"] <= 0).any():
         raise RuntimeError("Income candidate contains non-positive municipal values")
+    # Scientific sanity gate: the 2022 municipal per-capita income is expected in
+    # hundreds/low thousands of BRL, not tens of thousands. This catches decimal
+    # separator regressions immediately.
+    if selected["value_numeric"].max() > 10_000:
+        raise RuntimeError(
+            "Income values exceed R$10,000; likely decimal-separator parsing error. "
+            f"Observed max={selected['value_numeric'].max()}"
+        )
 
     result = selected[["municipality_code", "municipality_name"]].copy()
     result["socio__household_per_capita_income_mean_brl"] = selected["value_numeric"].to_numpy()
