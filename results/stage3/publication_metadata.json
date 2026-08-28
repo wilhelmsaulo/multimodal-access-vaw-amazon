@@ -1,0 +1,19 @@
+{
+  "stage3_run": 33090126353,
+  "source_artifact": "stage3-corrected-after-network-fix",
+  "municipalities": 144,
+  "criteria": [
+    "criterion__reachable_service_fraction",
+    "criterion__services_within_120_fraction",
+    "criterion__nearest_reachable_service_time_min",
+    "criterion__median_reachable_service_time_min",
+    "criterion__health_specialized_absence",
+    "criterion__creas_absence",
+    "criterion__specialized_security_absence",
+    "criterion__specialized_justice_absence",
+    "criterion__rural_female_share"
+  ],
+  "ibge_boundary_release": "PA_Municipios_2023.zip",
+  "map_crs": "EPSG:5880",
+  "geographic_crs": "EPSG:4674"
+}

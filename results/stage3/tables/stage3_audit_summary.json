@@ -1,0 +1,82 @@
+{
+  "stage": "Stage 3 - pre-MCDM statistical audit",
+  "input": "artifacts/stage3_sociodemographic/municipal_analytical_matrix_with_sociospatial_candidate.csv",
+  "rows": 144,
+  "columns": 41,
+  "candidate_indicators_audited": 9,
+  "indicators": [
+    "criterion__reachable_service_fraction",
+    "criterion__services_within_120_fraction",
+    "criterion__nearest_reachable_service_time_min",
+    "criterion__median_reachable_service_time_min",
+    "criterion__health_specialized_absence",
+    "criterion__creas_absence",
+    "criterion__specialized_security_absence",
+    "criterion__specialized_justice_absence",
+    "criterion__rural_female_share"
+  ],
+  "diagnostic_columns_excluded_from_statistics": [
+    "diagnostic__health_specialized_unit_count",
+    "diagnostic__creas_unit_count",
+    "diagnostic__specialized_security_unit_count",
+    "diagnostic__specialized_justice_unit_count",
+    "diagnostic__health_specialized_present",
+    "diagnostic__creas_present",
+    "diagnostic__specialized_security_present",
+    "diagnostic__specialized_justice_present",
+    "diagnostic__institutional_pillars_present",
+    "diagnostic__institutional_pillar_deficit_fraction",
+    "diagnostic__census_sector_count",
+    "diagnostic__female_population_observed",
+    "diagnostic__female_rural_observed",
+    "diagnostic__female_urban_observed",
+    "diagnostic__female_population_unavailable_sector_count",
+    "diagnostic__female_age_covered",
+    "diagnostic__female_15_29",
+    "diagnostic__female_30_59",
+    "diagnostic__female_60_plus",
+    "diagnostic__age_complete_sector_count",
+    "diagnostic__age_female_coverage_fraction",
+    "diagnostic__female_15_29_share_age_covered",
+    "diagnostic__female_30_59_share_age_covered",
+    "diagnostic__female_60_plus_share_age_covered"
+  ],
+  "max_missing_fraction": 0.006944444444444444,
+  "indicators_with_any_missing": 4,
+  "correlation_threshold_abs": 0.8,
+  "redundant_pairs_flagged": 0,
+  "vif_threshold": 5.0,
+  "vif_indicators_flagged": 0,
+  "vif_max": 3.2826404630416786,
+  "temporal_metadata_columns_detected": [
+    {
+      "column": "reference_year",
+      "n_nonmissing": 144,
+      "n_unique": 1,
+      "sample_values": [
+        "2022"
+      ]
+    },
+    {
+      "column": "reference_date",
+      "n_nonmissing": 144,
+      "n_unique": 1,
+      "sample_values": [
+        "2026-08-26"
+      ]
+    },
+    {
+      "column": "source",
+      "n_nonmissing": 144,
+      "n_unique": 2,
+      "sample_values": [
+        "IBGE Census 2022 female population + frozen Stage 2 reference-network OD",
+        "IBGE municipality universe; no primary routing-ready origin in frozen Stage 2 endpoints"
+      ]
+    }
+  ],
+  "pca_recommended_for_diagnostic_or_sensitivity_analysis": false,
+  "pca_reason": "No configured correlation/VIF threshold was exceeded; PCA is not required at this stage.",
+  "mcdm_ready": false,
+  "mcdm_readiness_note": "MCDM readiness must be decided after scientific review of missingness, temporal compatibility, redundancy, scale, sociodemographic inclusion, and weighting/model specification."
+}

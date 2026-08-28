@@ -1,0 +1,10 @@
+indicator,vif,n_complete
+criterion__reachable_service_fraction,3.2826404630416786,143
+criterion__services_within_120_fraction,3.1679483202462717,143
+criterion__median_reachable_service_time_min,2.9588044229561756,143
+criterion__specialized_security_absence,1.6028828883176296,143
+criterion__creas_absence,1.392886852549735,143
+criterion__specialized_justice_absence,1.3750140155151835,143
+criterion__nearest_reachable_service_time_min,1.3711203591398449,143
+criterion__rural_female_share,1.344244507719327,143
+criterion__health_specialized_absence,1.1303932270711279,143

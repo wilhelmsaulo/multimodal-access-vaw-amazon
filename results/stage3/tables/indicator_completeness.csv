@@ -1,0 +1,10 @@
+indicator,n_rows,n_nonmissing,n_missing,missing_fraction,n_unique
+criterion__median_reachable_service_time_min,144,143,1,0.006944444444444444,143
+criterion__nearest_reachable_service_time_min,144,143,1,0.006944444444444444,143
+criterion__reachable_service_fraction,144,143,1,0.006944444444444444,55
+criterion__services_within_120_fraction,144,143,1,0.006944444444444444,136
+criterion__creas_absence,144,144,0,0.0,2
+criterion__health_specialized_absence,144,144,0,0.0,2
+criterion__rural_female_share,144,144,0,0.0,144
+criterion__specialized_justice_absence,144,144,0,0.0,2
+criterion__specialized_security_absence,144,144,0,0.0,2
