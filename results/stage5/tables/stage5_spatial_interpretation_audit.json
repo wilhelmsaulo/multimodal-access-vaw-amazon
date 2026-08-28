@@ -1,0 +1,30 @@
+{
+  "stage": "Stage 5 post-training spatial and interpretive artifact publication",
+  "municipalities": 144,
+  "som_profiles": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "profile_labels_are_neutral": true,
+  "representative_rule": "three municipalities nearest to each profile centroid in globally standardized 11-variable interpretable space",
+  "extreme_rule": "three municipalities farthest from each profile centroid in the same standardized interpretable space",
+  "signature_rule": "three highest and three lowest profile mean z-differences relative to all Pará municipalities",
+  "spatial_source": "IBGE Malha Municipal Digital 2022 — Pará",
+  "spatial_source_url": "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/malhas_municipais/municipio_2022/UFs/PA/PA_Municipios_2022.zip",
+  "spatial_source_bytes": 2390975,
+  "spatial_polygon_count": 144,
+  "mcdm_cross_tab_role": "post-hoc descriptive association only; no feedback into SOM training or Stage-4 ranking",
+  "artifacts": {
+    "map_png": "results/stage5/figures/stage5_som_profiles_pará_map.png",
+    "map_pdf": "results/stage5/figures/stage5_som_profiles_para_map.pdf",
+    "characteristics_png": "results/stage5/figures/stage5_som_profile_characteristics_heatmap.png",
+    "characteristics_pdf": "results/stage5/figures/stage5_som_profile_characteristics_heatmap.pdf",
+    "mcdm_association_png": "results/stage5/figures/stage5_som_mcdm_profile_association.png",
+    "mcdm_association_pdf": "results/stage5/figures/stage5_som_mcdm_profile_association.pdf",
+    "representative_extreme_table": "results/stage5/tables/stage5_som_profile_representative_extreme_municipalities.csv",
+    "profile_signatures": "results/stage5/tables/stage5_som_profile_signatures.csv",
+    "top_quartile_crosstab": "results/stage5/tables/stage5_som_promethee_top_quartile_crosstab.csv"
+  }
+}

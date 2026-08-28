@@ -1,0 +1,25 @@
+som_profile,direction,rank,feature,feature_label,z_difference_from_state_mean
+1,lower,1,criterion__rural_female_share,Rural female share,-1.3115613812240254
+1,lower,2,socio__female_race_share_parda,Women parda,-0.6698425940474965
+1,lower,3,socio__female_race_share_indigena,Women indígena,-0.1441844993615336
+1,higher,1,socio__household_per_capita_income_mean_brl,Household income pc,1.3403599409330433
+1,higher,2,socio__female_race_share_branca,Women branca,1.0854564540747187
+1,higher,3,socio__female_age_share_30_59,Women 30–59,0.8126634640803453
+2,lower,1,socio__female_race_share_preta,Women preta,-0.9620896733280622
+2,lower,2,socio__female_age_share_15_29,Women 15–29,-0.8185149491457493
+2,lower,3,socio__household_per_capita_income_mean_brl,Household income pc,-0.2642767399861951
+2,higher,1,socio__female_age_share_60_plus,Women 60+,1.097548121306095
+2,higher,2,socio__female_race_share_parda,Women parda,0.6727840242360703
+2,higher,3,socio__female_age_share_30_59,Women 30–59,0.5203546831167406
+3,lower,1,socio__female_race_share_parda,Women parda,-0.31360525126586813
+3,lower,2,socio__female_race_share_amarela,Women amarela,-0.17006072601670838
+3,lower,3,socio__female_race_share_branca,Women branca,-0.1449155465432983
+3,higher,1,socio__female_race_share_preta,Women preta,0.7654786683857259
+3,higher,2,criterion__rural_female_share,Rural female share,0.28515230633653893
+3,higher,3,socio__female_age_share_30_59,Women 30–59,0.014034464244419132
+4,lower,1,socio__female_age_share_30_59,Women 30–59,-1.510551252507756
+4,lower,2,socio__female_age_share_60_plus,Women 60+,-1.012927721579551
+4,lower,3,socio__household_per_capita_income_mean_brl,Household income pc,-0.9580263022598547
+4,higher,1,socio__female_age_share_15_29,Women 15–29,1.1509541135163817
+4,higher,2,criterion__rural_female_share,Rural female share,0.7570660819090828
+4,higher,3,socio__female_race_share_parda,Women parda,0.5183744049544861

@@ -1,0 +1,25 @@
+som_profile,selection_type,within_type_rank,municipality_code,municipality_name,standardized_distance_to_profile_centroid
+1,extreme,1,1501402,Belém,5.124306254303279
+1,extreme,2,1500800,Ananindeua,2.9106873634992727
+1,extreme,3,1507953,Tailândia,2.8714385745918256
+1,representative,1,1508407,Xinguara,0.8819224686878515
+1,representative,2,1505502,Paragominas,1.0388119079201217
+1,representative,3,1508100,Tucuruí,1.2254499291849255
+2,extreme,1,1507466,São João da Ponta,3.7134551602592065
+2,extreme,2,1508035,Tracuateua,3.1192188623118473
+2,extreme,3,1503077,Garrafão do Norte,2.973635820437776
+2,representative,1,1506104,Primavera,0.9809398845724244
+2,representative,2,1507409,São Francisco do Pará,1.1350357903144628
+2,representative,3,1507102,São Caetano de Odivelas,1.1805068363908862
+3,extreme,1,1502764,Cumaru do Norte,5.197307257630257
+3,extreme,2,1506401,Santa Cruz do Arari,4.930178504940489
+3,extreme,3,1501204,Baião,4.2195800906862395
+3,representative,1,1501782,Breu Branco,0.8933589750618527
+3,representative,2,1502954,Eldorado do Carajás,1.0827966465542638
+3,representative,3,1503705,Itupiranga,1.0942817029395522
+4,extreme,1,1503754,Jacareacanga,12.601141472315561
+4,extreme,2,1508001,Tomé-Açu,5.986212131223698
+4,extreme,3,1500859,Anapu,5.959748301349334
+4,representative,1,1503457,Ipixuna do Pará,1.7322488039705353
+4,representative,2,1502806,Curralinho,1.7401190544367724
+4,representative,3,1501808,Breves,1.753885087372613
