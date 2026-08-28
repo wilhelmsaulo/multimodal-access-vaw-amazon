@@ -21,6 +21,7 @@ AGGREGATE = 10295
 PERIOD = "2022"
 EXPECTED_MUNICIPALITIES = 144
 PARA_UF_CODE = "15"
+MEAN_VARIABLE_ID = "13431"
 
 
 def norm(value: object) -> str:
@@ -82,26 +83,20 @@ def main() -> None:
         errors="coerce",
     )
 
-    # Select the municipal mean household per-capita monthly income explicitly.
-    candidate_mask = frame["variable"].map(norm).str.contains("rendimento", na=False)
-    candidate_mask &= frame["variable"].map(norm).str.contains("domiciliar", na=False)
-    candidate_mask &= frame["variable"].map(norm).str.contains("per capita", na=False)
-    mean_mask = frame["variable"].map(norm).str.contains("medio|media", regex=True, na=False)
-    selected = frame[candidate_mask & mean_mask].copy()
+    # The first audit confirmed that 10295 exposes mean (13431) and median
+    # (13534). Select the mean explicitly and keep the median out of the SOM
+    # candidate block to avoid an unjustified duplicate representation of income.
+    selected = frame[frame["variable_id"].eq(MEAN_VARIABLE_ID)].copy()
     if selected.empty:
-        # Some aggregate metadata names the only variable without the word 'médio'.
-        income_vars = frame.loc[candidate_mask, "variable"].drop_duplicates().tolist()
-        if len(income_vars) == 1:
-            selected = frame[frame["variable"].eq(income_vars[0])].copy()
-        else:
-            raise RuntimeError(
-                f"Could not uniquely identify household per-capita mean income; variables="
-                f"{frame[['variable_id','variable','unit']].drop_duplicates().to_dict(orient='records')}"
-            )
-
+        mean_name_mask = frame["variable"].map(norm).str.contains(
+            "rendimento nominal medio mensal domiciliar per capita", na=False
+        )
+        mean_name_mask &= ~frame["variable"].map(norm).str.contains("mediano", na=False)
+        selected = frame[mean_name_mask].copy()
     if selected["variable"].nunique() != 1:
         raise RuntimeError(
-            f"Income selection is not unique: {selected[['variable_id','variable','unit']].drop_duplicates().to_dict(orient='records')}"
+            f"Could not uniquely select mean income variable 13431: "
+            f"{frame[['variable_id','variable','unit']].drop_duplicates().to_dict(orient='records')}"
         )
 
     selected = selected.sort_values("municipality_code").drop_duplicates("municipality_code")
@@ -131,9 +126,14 @@ def main() -> None:
         "municipalities": int(result["municipality_code"].nunique()),
         "candidate_feature": "socio__household_per_capita_income_mean_brl",
         "selected_variable": selected_meta,
+        "excluded_same_construct_variable": {
+            "variable_id": "13534",
+            "description": "municipal median household per-capita monthly income",
+            "reason": "not included alongside mean income without a separate theoretical justification; avoids duplicating the same income construct",
+        },
         "missing_values": int(result["socio__household_per_capita_income_mean_brl"].isna().sum()),
         "income_min_brl": float(result["socio__household_per_capita_income_mean_brl"].min()),
-        "income_median_brl": float(result["socio__household_per_capita_income_mean_brl"].median()),
+        "income_median_across_municipalities_brl": float(result["socio__household_per_capita_income_mean_brl"].median()),
         "income_max_brl": float(result["socio__household_per_capita_income_mean_brl"].max()),
         "sample_based": True,
         "poverty_measure": False,
