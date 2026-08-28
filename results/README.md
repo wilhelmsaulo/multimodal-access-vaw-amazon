@@ -51,7 +51,7 @@ Contains:
 
 The E2SFCA implementation and mathematical model are documented in [`../docs/methodology/04_accessibility_e2sfca.md`](../docs/methodology/04_accessibility_e2sfca.md).
 
-At present there is **no final corrected E2SFCA execution declared authoritative**, so this directory intentionally does not contain an empirical E2SFCA result bundle yet. This prevents a non-frozen supply/threshold/decay specification from being mistaken for a final study result.
+The corrected complementary E2SFCA execution is published in [`e2sfca/`](e2sfca/). It contains sector and municipal scores, supply-demand ratios, score distributions, maps and configuration-sensitivity comparisons. Coverage-limited origins are preserved without synthetic zero imputation.
 
 The execution/publication status of every analytical component is tracked in [`../docs/methodology/08_reproducibility_status.md`](../docs/methodology/08_reproducibility_status.md).
 

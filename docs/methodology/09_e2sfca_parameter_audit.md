@@ -1,6 +1,10 @@
 # 09 — E2SFCA parameter and service-supply audit
 
-This page records the pre-execution audit required before any E2SFCA output can be declared authoritative.
+This page records the pre-execution audit that supported the authoritative complementary E2SFCA bundle published in [`results/e2sfca/`](../../results/e2sfca/).
+
+## Closure update — 2026-08-28
+
+The reference execution is frozen with `unit_presence`, separate service types, a 120-minute catchment, no additional reference decay parameter, and female-population-weighted municipal aggregation among routing-ready origins. Four alternative configurations are published as sensitivity analyses. Coverage-limited origins are not zero-imputed.
 
 ## Question audited
 

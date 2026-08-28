@@ -20,7 +20,7 @@ The purpose is to prevent executable code, diagnostic experiments and final anal
 | Service destinations / institutional inventory | AUTHORITATIVE + PUBLISHED | validated service inventories | `docs/methodology/01_data_sources.md`, Stage-3 tables |
 | Multimodal temporal network | AUTHORITATIVE + PUBLISHED | corrected backbone used by run `33089335405` | `results/stage2_network/` |
 | Full corrected origin–service OD matrix | AUTHORITATIVE ARTIFACT | run `33089335405`; 2,851,425 OD pairs | `results/stage2_od/` contains summaries/figures; full matrix retained as workflow artifact |
-| E2SFCA implementation | IMPLEMENTED / NOT YET AUTHORITATIVE | `src/accessibility/e2sfca.py` | `docs/methodology/04_accessibility_e2sfca.md` |
+| E2SFCA complementary accessibility analysis | AUTHORITATIVE + PUBLISHED | corrected OD run `33089335405`; unit-presence reference plus four sensitivities | `results/e2sfca/`, `docs/methodology/04_accessibility_e2sfca.md` |
 | Municipal network-access indicators | AUTHORITATIVE + PUBLISHED | corrected OD → Stage-3 municipal matrix | `results/stage3/`, `docs/methodology/05_municipal_indicators.md` |
 | Institutional absence indicators | AUTHORITATIVE + PUBLISHED | validated 2026 institutional inventories | `results/stage3/` |
 | Rural female share | AUTHORITATIVE + PUBLISHED | Census 2022 | `results/stage3/` |
@@ -35,18 +35,16 @@ The purpose is to prevent executable code, diagnostic experiments and final anal
 
 The repository contains a complete two-step floating catchment implementation, including female-population demand weighting, service-type separation, optional catchment threshold, optional exponential/Gaussian decay, observed-capacity or unit-presence supply modes, and explicit preservation of zero-access origins.
 
-However, **no corrected final E2SFCA execution is currently declared authoritative**. In particular, the final study record has not yet frozen all of the following choices together:
+The corrected E2SFCA execution is now authoritative as a **complementary** analysis. The frozen reference choices are:
 
-1. supply mode (`observed_capacity` versus `unit_presence`);
-2. service-capacity definition if `observed_capacity` is used;
-3. catchment threshold, if any;
-4. decay function and parameter, if any;
-5. aggregation rule from origin/sector scores to municipalities;
-6. sensitivity specification for the above assumptions.
+1. `unit_presence` supply, separately by service type;
+2. 120-minute reference catchment;
+3. no additional reference decay parameter;
+4. female-population-weighted municipal aggregation among routing-ready origins;
+5. no synthetic zero for coverage-limited origins;
+6. four explicitly labeled sensitivity/diagnostic configurations.
 
-Therefore no E2SFCA map, score table or municipality ranking should be presented as a final empirical result until these choices are explicitly frozen and run against the corrected OD matrix.
-
-This is intentional scientific bookkeeping, not a missing-code problem. It prevents an attractive but unrecorded parameter choice from being silently introduced after the MCDM results were already closed.
+The published maps and tables are in `results/e2sfca/`. This result remains separate from the frozen direct-OD criteria used by the MCDM.
 
 ## Relationship between OD indicators and E2SFCA
 

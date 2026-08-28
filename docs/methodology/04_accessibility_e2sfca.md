@@ -124,11 +124,9 @@ E2SFCA adds a population-and-supply competition perspective and can be analyzed 
 
 ## Current execution status
 
-The E2SFCA code is **implemented but no corrected final execution is currently declared authoritative**. The final study record has not yet frozen, as one joint specification, the supply mode, catchment threshold, decay function/parameter and municipal aggregation rule.
+The corrected E2SFCA execution is now **authoritative as a complementary accessibility analysis**. The reference specification uses unit presence, separate service types, a 120-minute catchment, no additional decay parameter, and female-population-weighted municipal aggregation among routing-ready origins. Coverage-limited origins are not assigned synthetic zeros.
 
-The formal status and closure requirements are maintained in [`08_reproducibility_status.md`](08_reproducibility_status.md).
-
-No empirical E2SFCA map or score table should therefore be labeled a final study result merely because the code exists.
+Four alternative configurations are published as sensitivity analyses. The complete empirical bundle is available in [`results/e2sfca/`](../../results/e2sfca/), and the formal status is maintained in [`08_reproducibility_status.md`](08_reproducibility_status.md).
 
 ## Output documentation rule
 
