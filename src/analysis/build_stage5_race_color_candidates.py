@@ -68,9 +68,22 @@ def main() -> None:
     municipality_code = find_column(frame, "municipio", "codigo")
     municipality_name = find_column(frame, "municipio", exclude=("codigo",))
     race_col = find_column(frame, "cor", "raca", exclude=("codigo",))
+    variable_col = find_column(frame, "variavel", exclude=("codigo",))
     value_col = find_column(frame, "valor")
 
-    work = frame[[municipality_code, municipality_name, race_col, value_col]].copy()
+    variable_norm = frame[variable_col].map(norm_text)
+    absolute_mask = variable_norm.str.contains("populacao residente", na=False) & ~variable_norm.str.contains(
+        "percentual", na=False
+    )
+    absolute = frame.loc[absolute_mask].copy()
+    if absolute.empty:
+        available_variables = sorted(variable_norm.dropna().unique().tolist())
+        raise RuntimeError(
+            "Could not isolate the absolute resident-population variable in SIDRA 9605; "
+            f"available variables={available_variables}"
+        )
+
+    work = absolute[[municipality_code, municipality_name, race_col, value_col]].copy()
     work.columns = ["municipality_code", "municipality_name", "race_color", "value"]
     work["municipality_code"] = work["municipality_code"].astype(str).str.extract(r"(\d{7})", expand=False)
     work = work[work["municipality_code"].str.startswith(PARA_UF_CODE, na=False)].copy()
@@ -122,6 +135,7 @@ def main() -> None:
         "state": "Pará",
         "municipalities": municipality_count,
         "female_specific": False,
+        "selected_variable": sorted(absolute[variable_col].astype(str).unique().tolist()),
         "categories_complete_municipalities": category_audit,
         "share_columns": share_cols,
         "share_sum_min": float(result["diagnostic__race_share_sum"].min()),
