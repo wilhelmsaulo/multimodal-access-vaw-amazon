@@ -1,0 +1,77 @@
+{
+  "stage": "Stage 5 SOM profile interpretation and post-hoc MCDM cross-tab",
+  "selected_grid": [
+    5,
+    5
+  ],
+  "profile_k_candidates": [
+    {
+      "k": 2,
+      "silhouette_nodes": 0.3038731746858066,
+      "inertia": 69.60463549494898,
+      "min_municipalities_per_profile": 55
+    },
+    {
+      "k": 3,
+      "silhouette_nodes": 0.3284231222756718,
+      "inertia": 48.2749798075746,
+      "min_municipalities_per_profile": 33
+    },
+    {
+      "k": 4,
+      "silhouette_nodes": 0.3639814875922685,
+      "inertia": 32.800729283958944,
+      "min_municipalities_per_profile": 28
+    },
+    {
+      "k": 5,
+      "silhouette_nodes": 0.32846961556629417,
+      "inertia": 27.4176476371287,
+      "min_municipalities_per_profile": 10
+    },
+    {
+      "k": 6,
+      "silhouette_nodes": 0.304574892890073,
+      "inertia": 22.074422759202605,
+      "min_municipalities_per_profile": 10
+    }
+  ],
+  "profile_k_eligibility_rule": "prefer solutions with at least 8 municipalities per profile; among eligible choose highest node-codebook silhouette",
+  "selected_profile_count": 4,
+  "selected_silhouette": 0.3639814875922685,
+  "profile_sizes": {
+    "1": 30,
+    "2": 33,
+    "3": 53,
+    "4": 28
+  },
+  "profile_labels": "P1..Pk are neutral mathematical identifiers, not ordinal risk classes",
+  "interpretation_variables": [
+    "criterion__rural_female_share",
+    "socio__female_literacy_rate_15plus",
+    "socio__household_per_capita_income_mean_brl",
+    "socio__female_age_share_15_29",
+    "socio__female_age_share_30_59",
+    "socio__female_age_share_60_plus",
+    "socio__female_race_share_branca",
+    "socio__female_race_share_preta",
+    "socio__female_race_share_parda",
+    "socio__female_race_share_amarela",
+    "socio__female_race_share_indigena"
+  ],
+  "mcdm_cross_tab_performed_after_profile_construction": true,
+  "mcdm_feedback_to_som_or_ranking": false,
+  "promethee_cross_tab_fields": [
+    "promethee_rank",
+    "promethee_net_flow",
+    "top_10",
+    "top_quartile",
+    "robustness_top_quartile_probability"
+  ],
+  "outputs": {
+    "component_planes": "results/stage5/figures/stage5_som_component_planes.png",
+    "profile_map": "results/stage5/figures/stage5_som_profile_map.png",
+    "profile_characteristics": "results/stage5/tables/stage5_som_profile_characteristics.csv",
+    "promethee_summary": "results/stage5/tables/stage5_som_profile_promethee_summary.csv"
+  }
+}
