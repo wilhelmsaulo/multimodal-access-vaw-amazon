@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import tempfile
 import urllib.request
 import zipfile
@@ -12,12 +13,14 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 import pandas as pd
+from shapely.geometry import LineString
 
 IBGE_PA_2023 = (
     "https://geoftp.ibge.gov.br/organizacao_do_territorio/malhas_territoriais/"
     "malhas_municipais/municipio_2023/UFs/PA/PA_Municipios_2023.zip"
 )
 MAP_CRS = 5880  # SIRGAS 2000 / Brazil Polyconic, metric units for scale bar.
+GEO_CRS = 4674  # SIRGAS 2000 geographic coordinates (latitude/longitude).
 
 
 def load_ibge_pa() -> gpd.GeoDataFrame:
@@ -95,11 +98,44 @@ def add_scale_bar(ax, length_km: int = 200) -> None:
     ax.text(x0 + length_m, y0 + 2.1 * tick, f"{length_km} km", ha="center", va="bottom", fontsize=7)
 
 
+def _degree_label(value: float, latitude: bool) -> str:
+    hemi = ("N" if value >= 0 else "S") if latitude else ("E" if value >= 0 else "W")
+    return f"{abs(value):.0f}°{hemi}"
+
+
+def add_geographic_graticule(ax, geographic_extent: tuple[float, float, float, float]) -> None:
+    """Overlay latitude/longitude graticule on a metric projected map."""
+    min_lon, min_lat, max_lon, max_lat = geographic_extent
+    lon_start = math.ceil(min_lon)
+    lon_end = math.floor(max_lon)
+    lat_start = math.ceil(min_lat)
+    lat_end = math.floor(max_lat)
+    lon_values = list(range(lon_start, lon_end + 1, 2))
+    lat_values = list(range(lat_start, lat_end + 1, 2))
+
+    lat_samples = [min_lat + (max_lat - min_lat) * i / 80 for i in range(81)]
+    lon_samples = [min_lon + (max_lon - min_lon) * i / 80 for i in range(81)]
+
+    for lon in lon_values:
+        line = gpd.GeoSeries([LineString([(lon, lat) for lat in lat_samples])], crs=f"EPSG:{GEO_CRS}").to_crs(epsg=MAP_CRS)
+        x, y = line.iloc[0].xy
+        ax.plot(x, y, color="0.55", linewidth=0.45, linestyle=":", alpha=0.65, zorder=0)
+        ax.text(x[0], y[0], _degree_label(float(lon), False), fontsize=7, ha="center", va="top", clip_on=False)
+
+    for lat in lat_values:
+        line = gpd.GeoSeries([LineString([(lon, lat) for lon in lon_samples])], crs=f"EPSG:{GEO_CRS}").to_crs(epsg=MAP_CRS)
+        x, y = line.iloc[0].xy
+        ax.plot(x, y, color="0.55", linewidth=0.45, linestyle=":", alpha=0.65, zorder=0)
+        ax.text(x[0], y[0], _degree_label(float(lat), True), fontsize=7, ha="right", va="center", clip_on=False)
+
+
 def map_rank(gdf: gpd.GeoDataFrame, table: pd.DataFrame, rank_col: str, title: str, stem: str, out: Path) -> None:
-    m = gdf.merge(table, on="municipality_code", how="left", validate="one_to_one")
-    if len(m) != 144:
+    m_geo = gdf.merge(table, on="municipality_code", how="left", validate="one_to_one")
+    if len(m_geo) != 144:
         raise RuntimeError("Map join did not retain 144 municipalities")
-    m = m.to_crs(epsg=MAP_CRS)
+    m_geo = m_geo.to_crs(epsg=GEO_CRS)
+    geographic_extent = tuple(m_geo.total_bounds.tolist())
+    m = m_geo.to_crs(epsg=MAP_CRS)
 
     fig, ax = plt.subplots(figsize=(11, 9.5))
     m.plot(
@@ -112,6 +148,8 @@ def map_rank(gdf: gpd.GeoDataFrame, table: pd.DataFrame, rank_col: str, title: s
         missing_kwds={"color": "0.92", "edgecolor": "0.25", "hatch": "///"},
         ax=ax,
     )
+
+    add_geographic_graticule(ax, geographic_extent)
 
     top = m[m[rank_col].le(10)].copy()
     top.boundary.plot(ax=ax, linewidth=1.4, edgecolor="black")
@@ -126,6 +164,7 @@ def map_rank(gdf: gpd.GeoDataFrame, table: pd.DataFrame, rank_col: str, title: s
     handles = [
         Line2D([0], [0], color="black", linewidth=1.4, label="Top-10 (número = posição)"),
         Line2D([0], [0], color="black", linewidth=1.5, linestyle="--", label="Cobertura limitada"),
+        Line2D([0], [0], color="0.55", linewidth=0.8, linestyle=":", label="Coordenadas geográficas (2°)"),
         Patch(facecolor="0.92", edgecolor="0.25", hatch="///", label="Sem rank completo"),
     ]
     ax.legend(handles=handles, loc="lower right", frameon=True, fontsize=8, title="Legenda")
@@ -137,7 +176,7 @@ def map_rank(gdf: gpd.GeoDataFrame, table: pd.DataFrame, rank_col: str, title: s
     ax.text(
         0.01, 0.005,
         "Fonte: resultados do modelo MCDM (execução corrigida 2026); malha municipal IBGE 2023.\n"
-        "Projeção cartográfica: SIRGAS 2000 / Brazil Polyconic (EPSG:5880).",
+        "Projeção do mapa: SIRGAS 2000 / Brazil Polyconic (EPSG:5880); coordenadas geográficas: SIRGAS 2000 (EPSG:4674).",
         transform=ax.transAxes,
         fontsize=7.5,
         va="bottom",
@@ -177,7 +216,7 @@ def write_readme(out: Path, prom: pd.DataFrame, topsis: pd.DataFrame, metadata: 
         "",
         "## Statewide maps",
         "",
-        "All maps include title, legend, cartographic scale, north arrow, source/year and the municipal boundary reference.",
+        "All maps include title, legend, cartographic scale, north arrow, geographic latitude/longitude graticule, source/year, map projection and geographic coordinate reference system.",
         "",
         "### PROMETHEE II",
         "",
@@ -252,7 +291,11 @@ def main() -> None:
         "ibge_boundary_release": "PA_Municipios_2023.zip",
         "ibge_boundary_url": IBGE_PA_2023,
         "map_crs": "EPSG:5880 — SIRGAS 2000 / Brazil Polyconic",
-        "cartographic_elements": ["title", "legend", "scale_bar", "north_arrow", "source_and_year"],
+        "geographic_crs": "EPSG:4674 — SIRGAS 2000",
+        "graticule_interval_degrees": 2,
+        "cartographic_elements": [
+            "title", "legend", "scale_bar", "north_arrow", "geographic_coordinates", "source_and_year"
+        ],
     }
     (args.out / "publication_metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
     write_readme(args.out, prom, topsis, metadata)
