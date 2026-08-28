@@ -1,0 +1,106 @@
+{
+  "stage": "Stage 5 complete municipal female age acquisition audit",
+  "source": "IBGE Census 2022 universe results via SIDRA table 9514",
+  "sidra_table": 9514,
+  "period": 2022,
+  "municipalities": 144,
+  "female_specific": true,
+  "universe_results": true,
+  "missing_share_cells": 0,
+  "candidate_features": [
+    "socio__female_age_share_15_29",
+    "socio__female_age_share_30_59",
+    "socio__female_age_share_60_plus"
+  ],
+  "resolved_age_categories": {
+    "15_29": [
+      {
+        "id": "93086",
+        "label": "15 a 19 anos"
+      },
+      {
+        "id": "93087",
+        "label": "20 a 24 anos"
+      },
+      {
+        "id": "93088",
+        "label": "25 a 29 anos"
+      }
+    ],
+    "30_59": [
+      {
+        "id": "93089",
+        "label": "30 a 34 anos"
+      },
+      {
+        "id": "93090",
+        "label": "35 a 39 anos"
+      },
+      {
+        "id": "93091",
+        "label": "40 a 44 anos"
+      },
+      {
+        "id": "93092",
+        "label": "45 a 49 anos"
+      },
+      {
+        "id": "93093",
+        "label": "50 a 54 anos"
+      },
+      {
+        "id": "93094",
+        "label": "55 a 59 anos"
+      }
+    ],
+    "60_plus": [
+      {
+        "id": "93095",
+        "label": "60 a 64 anos"
+      },
+      {
+        "id": "93096",
+        "label": "65 a 69 anos"
+      },
+      {
+        "id": "93097",
+        "label": "70 a 74 anos"
+      },
+      {
+        "id": "93098",
+        "label": "75 a 79 anos"
+      },
+      {
+        "id": "49108",
+        "label": "80 a 84 anos"
+      },
+      {
+        "id": "49109",
+        "label": "85 a 89 anos"
+      },
+      {
+        "id": "60040",
+        "label": "90 a 94 anos"
+      },
+      {
+        "id": "60041",
+        "label": "95 a 99 anos"
+      },
+      {
+        "id": "6653",
+        "label": "100 anos ou mais"
+      }
+    ]
+  },
+  "selected_share_sum_min": 0.6037470426497857,
+  "selected_share_sum_median": 0.739808877761348,
+  "selected_share_sum_max": 0.8340879493406255,
+  "request_urls": {
+    "total": "https://servicodados.ibge.gov.br/api/v3/agregados/9514/periodos/2022/variaveis?localidades=N6[N3[15]]&classificacao=2[5]|286[113635]|287[100362]",
+    "15_29": "https://servicodados.ibge.gov.br/api/v3/agregados/9514/periodos/2022/variaveis?localidades=N6[N3[15]]&classificacao=2[5]|286[113635]|287[93086,93087,93088]",
+    "30_59": "https://servicodados.ibge.gov.br/api/v3/agregados/9514/periodos/2022/variaveis?localidades=N6[N3[15]]&classificacao=2[5]|286[113635]|287[93089,93090,93091,93092,93093,93094]",
+    "60_plus": "https://servicodados.ibge.gov.br/api/v3/agregados/9514/periodos/2022/variaveis?localidades=N6[N3[15]]&classificacao=2[5]|286[113635]|287[93095,93096,93097,93098,49108,49109,60040,60041,6653]"
+  },
+  "source_note": "IBGE corrected tables 1209, 9514 and 9515 on 2023-12-22 for Abel Figueiredo (PA) / São Pedro da Água Branca (MA); the current API is the corrected dissemination.",
+  "replacement_decision": "For Stage 5 SOM profiling, use complete municipality-level table 9514 age shares instead of the partial sector-derived age shares. Stage 3/4 MCDM remains unchanged."
+}
