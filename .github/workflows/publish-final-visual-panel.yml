@@ -1,0 +1,32 @@
+name: publish-final-visual-panel
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths: ['src/analysis/publish_final_visual_panel.py','.github/workflows/publish-final-visual-panel.yml']
+permissions: {contents: write}
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: stage4-mcdm, fetch-depth: 0}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install 'matplotlib>=3.9,<4' 'pillow>=10,<13'
+      - run: python src/analysis/publish_final_visual_panel.py --root . --out results/final_visual_panel
+      - name: Validate panel
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('results/final_visual_panel')
+          assert (p/'final_multimethod_panel.png').stat().st_size>500000
+          assert (p/'final_multimethod_panel.pdf').stat().st_size>100000
+          PY
+      - name: Commit panel
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add results/final_visual_panel
+          git commit -m 'Publish final multimethod visual panel'
+          git fetch origin stage4-mcdm && git rebase origin/stage4-mcdm && git push origin HEAD:stage4-mcdm
