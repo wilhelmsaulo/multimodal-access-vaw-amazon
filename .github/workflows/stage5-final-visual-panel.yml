@@ -1,0 +1,50 @@
+name: Stage 5 final visual panel
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-final-visual-panel.yml'
+      - 'src/analysis/publish_stage5_final_visual_panel.py'
+      - 'results/stage5/figures/stage5_som_profiles_pará_map.png'
+      - 'results/stage5/figures/stage5_som_profile_characteristics_heatmap.png'
+      - 'results/stage5/figures/stage5_som_mcdm_profile_association.png'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install matplotlib
+      - name: Build final Stage 5 visual panel
+        run: python -m src.analysis.publish_stage5_final_visual_panel
+      - name: Validate panel
+        run: |
+          test -s results/stage5/figures/stage5_final_som_interpretation_panel.png
+          test -s results/stage5/figures/stage5_final_som_interpretation_panel.pdf
+      - name: Commit final panel
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage5/figures/stage5_final_som_interpretation_panel.png \
+                  results/stage5/figures/stage5_final_som_interpretation_panel.pdf
+          if git diff --cached --quiet; then
+            echo 'No final panel changes to commit.'
+          else
+            git commit -m 'Publish Stage 5 final SOM interpretation panel'
+            git push origin HEAD:stage4-mcdm
+          fi
