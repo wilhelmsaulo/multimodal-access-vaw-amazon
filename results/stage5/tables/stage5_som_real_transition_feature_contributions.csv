@@ -1,0 +1,51 @@
+profile_pair,rank,feature,feature_label,mean_absolute_standardized_difference,share_of_l1_boundary_difference
+P1-P2,1,socio__household_per_capita_income_mean_brl,Household per-capita income,0.7632311306292874,0.14874444470667175
+P1-P2,2,profile__female_race_ilr_2,Race/color ILR2,0.7563686420756661,0.1474070293311057
+P1-P2,3,socio__female_literacy_rate_15plus,Female literacy 15+,0.6683701487461629,0.1302571955520137
+P1-P2,4,profile__female_race_ilr_3,Race/color ILR3,0.5950386791356483,0.1159657859265353
+P1-P2,5,criterion__rural_female_share,Rural female share,0.5300306497350056,0.10329651334759714
+P1-P2,6,profile__female_age_ilr_3,Age ILR3,0.4379451209575409,0.08535016617458441
+P1-P2,7,profile__female_race_ilr_4,Race/color ILR4,0.40733052725213836,0.07938375500779161
+P1-P2,8,profile__female_age_ilr_1,Age ILR1,0.3944765259924061,0.0768786668334383
+P1-P2,9,profile__female_race_ilr_1,Race/color ILR1,0.2992381416573947,0.05831786654088239
+P1-P2,10,profile__female_age_ilr_2,Age ILR2,0.27912764869424034,0.054398576579379555
+P1-P3,1,criterion__rural_female_share,Rural female share,0.807042199987587,0.19528045510894945
+P1-P3,2,socio__household_per_capita_income_mean_brl,Household per-capita income,0.704378694516112,0.17043890893966845
+P1-P3,3,profile__female_age_ilr_1,Age ILR1,0.6020113101926144,0.14566901537113783
+P1-P3,4,socio__female_literacy_rate_15plus,Female literacy 15+,0.411695510701972,0.09961819431180802
+P1-P3,5,profile__female_race_ilr_1,Race/color ILR1,0.38366130240679075,0.09283474116080019
+P1-P3,6,profile__female_race_ilr_4,Race/color ILR4,0.3090999215823138,0.07479308190038048
+P1-P3,7,profile__female_age_ilr_2,Age ILR2,0.29106500699564986,0.0704291634728324
+P1-P3,8,profile__female_age_ilr_3,Age ILR3,0.2550544310005825,0.0617156641426111
+P1-P3,9,profile__female_race_ilr_3,Race/color ILR3,0.21066010844922692,0.05097354494213365
+P1-P3,10,profile__female_race_ilr_2,Race/color ILR2,0.1580656351385911,0.038247230649678526
+P2-P3,1,profile__female_race_ilr_2,Race/color ILR2,0.7471510671199478,0.16356478044563552
+P2-P3,2,profile__female_age_ilr_1,Age ILR1,0.6673834989077516,0.1461022278836708
+P2-P3,3,profile__female_race_ilr_3,Race/color ILR3,0.5835247781540506,0.12774404859149166
+P2-P3,4,profile__female_race_ilr_1,Race/color ILR1,0.5363568697730391,0.11741814675190902
+P2-P3,5,profile__female_age_ilr_3,Age ILR3,0.5338591611486904,0.11687135349852647
+P2-P3,6,profile__female_race_ilr_4,Race/color ILR4,0.5191129263283992,0.11364313799175066
+P2-P3,7,profile__female_age_ilr_2,Age ILR2,0.34380701248802703,0.07526552659563568
+P2-P3,8,socio__household_per_capita_income_mean_brl,Household per-capita income,0.2723518302736675,0.05962270454139337
+P2-P3,9,criterion__rural_female_share,Rural female share,0.23088186319244133,0.05054418433412779
+P2-P3,10,socio__female_literacy_rate_15plus,Female literacy 15+,0.1334924307397222,0.029223889365859027
+P2-P4,1,profile__female_age_ilr_3,Age ILR3,0.9051116798370948,0.1777230228550193
+P2-P4,2,profile__female_age_ilr_2,Age ILR2,0.8983732706150132,0.1763999038600263
+P2-P4,3,profile__female_age_ilr_1,Age ILR1,0.7324785959423282,0.14382568819673258
+P2-P4,4,profile__female_race_ilr_4,Race/color ILR4,0.5066102377828001,0.09947535190824672
+P2-P4,5,profile__female_race_ilr_2,Race/color ILR2,0.4872793673204022,0.09567964270514098
+P2-P4,6,profile__female_race_ilr_3,Race/color ILR3,0.38359086020498345,0.07531990663014844
+P2-P4,7,socio__household_per_capita_income_mean_brl,Household per-capita income,0.36258980670061236,0.07119624896990413
+P2-P4,8,profile__female_race_ilr_1,Race/color ILR1,0.3286870978462627,0.06453928935398899
+P2-P4,9,criterion__rural_female_share,Rural female share,0.2844974765288888,0.05586244509897309
+P2-P4,10,socio__female_literacy_rate_15plus,Female literacy 15+,0.20360337728263644,0.039978500421819566
+P3-P4,1,profile__female_race_ilr_3,Race/color ILR3,0.7564608860143959,0.1582779924661314
+P3-P4,2,profile__female_age_ilr_2,Age ILR2,0.6616835733168145,0.13844727410057867
+P3-P4,3,profile__female_race_ilr_2,Race/color ILR2,0.6124250007118857,0.12814066323966108
+P3-P4,4,profile__female_age_ilr_3,Age ILR3,0.515057324486157,0.10776795050721809
+P3-P4,5,profile__female_race_ilr_4,Race/color ILR4,0.44672017061988917,0.09346943524387086
+P3-P4,6,socio__household_per_capita_income_mean_brl,Household per-capita income,0.4370369982874664,0.09144337797400391
+P3-P4,7,profile__female_race_ilr_1,Race/color ILR1,0.4267175193963676,0.08928418318630585
+P3-P4,8,socio__female_literacy_rate_15plus,Female literacy 15+,0.34324275241705193,0.07181835146475302
+P3-P4,9,profile__female_age_ilr_1,Age ILR1,0.320583849538032,0.06707731894677023
+P3-P4,10,criterion__rural_female_share,Rural female share,0.25939009969702903,0.05427345287070681
