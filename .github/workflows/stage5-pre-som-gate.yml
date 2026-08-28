@@ -1,0 +1,73 @@
+name: Stage 5 pre-SOM gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-pre-som-gate.yml'
+      - 'src/analysis/build_stage5_pre_som_gate.py'
+      - 'results/stage5/tables/stage5_race_color_candidates.csv'
+      - 'results/stage5/tables/stage5_female_literacy_candidate.csv'
+      - 'results/stage5/tables/stage5_income_candidate.csv'
+      - 'results/stage3/tables/municipal_analytical_matrix.csv'
+
+permissions:
+  contents: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy
+
+      - name: Build candidate matrix and run pre-SOM gate
+        run: python -m src.analysis.build_stage5_pre_som_gate
+
+      - name: Validate gate outputs
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+          p = 'results/stage5/tables/stage5_som_candidate_matrix.csv'
+          df = pd.read_csv(p, dtype={'municipality_code': str})
+          assert len(df) == 144
+          assert df['municipality_code'].nunique() == 144
+          audit = json.load(open('results/stage5/tables/stage5_pre_som_gate_summary.json', encoding='utf-8'))
+          assert audit['municipalities'] == 144
+          assert audit['missing_candidate_cells'] == 0
+          assert audit['gates']['som_training_authorized'] is False
+          print(json.dumps(audit, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit audited Stage 5 gate outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage5/tables/stage5_som_candidate_matrix.csv \
+                  results/stage5/tables/stage5_candidate_distributions.csv \
+                  results/stage5/tables/stage5_candidate_correlation_pearson.csv \
+                  results/stage5/tables/stage5_candidate_correlation_spearman.csv \
+                  results/stage5/tables/stage5_high_correlation_pairs_pearson.csv \
+                  results/stage5/tables/stage5_high_correlation_pairs_spearman.csv \
+                  results/stage5/tables/stage5_candidate_vif.csv \
+                  results/stage5/tables/stage5_pre_som_gate_summary.json
+          if git diff --cached --quiet; then
+            echo 'No pre-SOM gate changes to commit.'
+          else
+            git commit -m 'Publish Stage 5 pre-SOM gate'
+            git push origin HEAD:stage4-mcdm
+          fi
