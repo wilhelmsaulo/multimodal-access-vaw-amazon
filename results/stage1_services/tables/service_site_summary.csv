@@ -1,0 +1,5 @@
+service_type,physical_sites,functional_records,label
+creas,138,138,CREAS
+health,71,71,Saúde especializada
+specialized_justice,6,9,Justiça especializada
+specialized_security,21,21,Segurança especializada

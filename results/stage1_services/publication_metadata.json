@@ -1,0 +1,25 @@
+{
+  "item": 1,
+  "status": "authoritative_published_visualization",
+  "source_service_inventory_run": 33021740349,
+  "source_artifact": "service-inventory-pa",
+  "functional_records": 239,
+  "physical_sites": 236,
+  "physical_sites_by_type": {
+    "creas": 138,
+    "health": 71,
+    "specialized_justice": 6,
+    "specialized_security": 21
+  },
+  "map_crs": "EPSG:5880",
+  "geographic_crs": "EPSG:4674",
+  "cartographic_elements": [
+    "title",
+    "legend",
+    "scale",
+    "north_arrow",
+    "geographic_coordinates",
+    "source_year",
+    "projection_and_crs"
+  ]
+}
