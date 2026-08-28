@@ -1,0 +1,34 @@
+{
+  "stage": "Stage 5 SOM female literacy acquisition audit",
+  "source": "IBGE Census 2022 literacy universe results via Aggregates/SIDRA table 9543",
+  "sidra_table": 9543,
+  "period": 2022,
+  "state": "Pará",
+  "territorial_level": "municipality",
+  "municipalities": 144,
+  "sex": "Mulheres",
+  "age_universe": "15 years or older (table universe; age category Total)",
+  "race_color_category": "Total",
+  "candidate_feature": "socio__female_literacy_rate_15plus",
+  "illiteracy_complement_role": "diagnostic_only_due_to_perfect_redundancy",
+  "missing_values": 0,
+  "literacy_rate_min": 0.7942,
+  "literacy_rate_median": 0.8975500000000001,
+  "literacy_rate_max": 0.9734,
+  "resolved_classifications": {
+    "sex": {
+      "classification_id": "2",
+      "category_id": "5"
+    },
+    "race_color": {
+      "classification_id": "86",
+      "category_id": "95251"
+    },
+    "age": {
+      "classification_id": "287",
+      "category_id": "100362"
+    }
+  },
+  "interpretation_warning": "Female literacy is a socioeconomic profile descriptor for SOM, not a violence-risk score.",
+  "request_url": "https://servicodados.ibge.gov.br/api/v3/agregados/9543/periodos/2022/variaveis?localidades=N6[N3[15]]&classificacao=2[5]|86[95251]|287[100362]"
+}
