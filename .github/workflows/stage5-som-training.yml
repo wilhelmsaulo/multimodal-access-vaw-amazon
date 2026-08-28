@@ -1,0 +1,67 @@
+name: Stage 5 SOM training
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-som-training.yml'
+      - 'src/analysis/train_stage5_som.py'
+      - 'results/stage5/tables/stage5_som_final_standardized_matrix.csv'
+      - 'results/stage5/tables/stage5_final_feature_gate.json'
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy
+
+      - name: Train and select SOM
+        run: python -m src.analysis.train_stage5_som
+
+      - name: Validate SOM audit
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+          a=json.load(open('results/stage5/tables/stage5_som_training_audit.json',encoding='utf-8'))
+          m=pd.read_csv('results/stage5/tables/stage5_som_selected_mapping.csv')
+          assert a['municipalities']==144
+          assert a['total_models']==30
+          assert a['selection_not_visual'] is True
+          assert len(m)==144
+          print(json.dumps(a,ensure_ascii=False,indent=2))
+          PY
+
+      - name: Commit Stage 5 SOM training outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage5/tables/stage5_som_training_runs.csv \
+                  results/stage5/tables/stage5_som_grid_selection.csv \
+                  results/stage5/tables/stage5_som_selected_grid_seed_selection.csv \
+                  results/stage5/tables/stage5_som_selected_mapping.csv \
+                  results/stage5/tables/stage5_som_selected_codebook.csv \
+                  results/stage5/tables/stage5_som_training_audit.json
+          if git diff --cached --quiet; then
+            echo 'No SOM training changes to commit.'
+          else
+            git commit -m 'Publish Stage 5 SOM training audit'
+            git push origin HEAD:stage4-mcdm
+          fi
