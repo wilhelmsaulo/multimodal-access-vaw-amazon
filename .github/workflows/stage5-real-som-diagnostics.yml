@@ -1,0 +1,85 @@
+name: Stage 5 real SOM diagnostics
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-real-som-diagnostics.yml'
+      - 'src/analysis/publish_stage5_real_som_diagnostics.py'
+      - 'results/stage5/tables/stage5_som_selected_codebook.csv'
+      - 'results/stage5/tables/stage5_som_node_profiles.csv'
+      - 'results/stage5/tables/stage5_som_municipal_profiles.csv'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy matplotlib
+
+      - name: Build real SOM diagnostics
+        run: python -m src.analysis.publish_stage5_real_som_diagnostics
+
+      - name: Validate outputs
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+          from pathlib import Path
+          a=json.load(open('results/stage5/tables/stage5_som_real_visual_audit.json',encoding='utf-8'))
+          d=pd.read_csv('results/stage5/tables/stage5_som_real_node_diagnostics.csv')
+          assert a['municipalities']==144
+          assert a['neurons']==25
+          assert a['feature_count']==10
+          assert a['model_retrained'] is False
+          assert a['profile_reclassification_performed'] is False
+          assert a['mcdm_feedback'] is False
+          assert a['all_visual_values_computed_from_frozen_som'] is True
+          assert len(d)==25
+          assert int(d['municipality_count'].sum())==144
+          assert set(d['som_profile'])=={1,2,3,4}
+          for p in a['outputs']:
+              assert Path(p).exists() and Path(p).stat().st_size>0, p
+          print(json.dumps(a,ensure_ascii=False,indent=2))
+          PY
+
+      - name: Commit real SOM diagnostics
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage5/tables/stage5_som_real_node_diagnostics.csv \
+                  results/stage5/tables/stage5_som_real_visual_audit.json \
+                  results/stage5/figures/stage5_som_real_umatrix.png \
+                  results/stage5/figures/stage5_som_real_umatrix.pdf \
+                  results/stage5/figures/stage5_som_real_hits.png \
+                  results/stage5/figures/stage5_som_real_hits.pdf \
+                  results/stage5/figures/stage5_som_real_macroprofiles.png \
+                  results/stage5/figures/stage5_som_real_macroprofiles.pdf \
+                  results/stage5/figures/stage5_som_real_component_planes.png \
+                  results/stage5/figures/stage5_som_real_component_planes.pdf \
+                  results/stage5/figures/stage5_som_real_diagnostic_panel.png \
+                  results/stage5/figures/stage5_som_real_diagnostic_panel.pdf
+          if git diff --cached --quiet; then
+            echo 'No real SOM diagnostic changes to commit.'
+          else
+            git commit -m 'Publish real Stage 5 SOM diagnostics'
+            git pull --rebase origin stage4-mcdm
+            git push origin HEAD:stage4-mcdm
+          fi
