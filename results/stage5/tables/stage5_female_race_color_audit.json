@@ -1,0 +1,32 @@
+{
+  "stage": "Stage 5 female race/color acquisition audit",
+  "source": "IBGE Census 2022 universe results via SIDRA table 9606",
+  "operational_route": "official SIDRA values API",
+  "sidra_table": 9606,
+  "period": 2022,
+  "municipalities": 144,
+  "female_specific": true,
+  "all_ages": true,
+  "universe_results": true,
+  "candidate_features": [
+    "socio__female_race_share_branca",
+    "socio__female_race_share_preta",
+    "socio__female_race_share_parda",
+    "socio__female_race_share_amarela",
+    "socio__female_race_share_indigena"
+  ],
+  "missing_share_cells": 0,
+  "zero_counts": {
+    "socio__female_race_share_branca": 0,
+    "socio__female_race_share_preta": 0,
+    "socio__female_race_share_parda": 0,
+    "socio__female_race_share_amarela": 4,
+    "socio__female_race_share_indigena": 4
+  },
+  "declared_share_sum_min": 0.9999999999999998,
+  "declared_share_sum_max": 1.0000000000000002,
+  "request_url": "https://apisidra.ibge.gov.br/values/t/9606/n6/in%20n3%2015/v/1000093/p/2022/c86/all/c2/5/c287/100362?formato=json",
+  "closure": "Shares are normalized over the five declared IBGE race/color categories returned by table 9606; no category is imputed.",
+  "replacement_decision": "Use female-specific table 9606 composition for Stage 5 SOM instead of total-population table 9605. Preserve 9605 only as an earlier audit artifact.",
+  "interpretation_warning": "Race/color composition is a descriptive municipal profile block, not a violence-risk score or normative hierarchy."
+}
