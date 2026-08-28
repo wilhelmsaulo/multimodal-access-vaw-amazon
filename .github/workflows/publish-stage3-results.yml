@@ -1,0 +1,79 @@
+name: publish-stage3-results
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - stage4-mcdm
+    paths:
+      - 'src/analysis/publish_stage3_results.py'
+      - '.github/workflows/publish-stage3-results.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install 'pandas>=2.2,<3' 'numpy>=2,<3' 'geopandas>=1.0,<2' 'pyogrio>=0.10,<1' 'shapely>=2,<3' 'matplotlib>=3.9,<4'
+
+      - name: Download authoritative Stage 3 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: stage3-corrected-after-network-fix
+          path: artifacts/stage3
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: 33090126353
+
+      - name: Build Stage 3 publication bundle
+        run: |
+          python src/analysis/publish_stage3_results.py \
+            --artifact-root artifacts/stage3 \
+            --out results/stage3
+
+      - name: Validate publication bundle
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+          import pandas as pd
+          p=Path('results/stage3')
+          m=pd.read_csv(p/'tables/municipal_analytical_matrix.csv', dtype={'municipality_code':str})
+          assert len(m)==144 and m['municipality_code'].nunique()==144
+          criteria=[c for c in m.columns if c.startswith('criterion__')]
+          assert len(criteria)==9, criteria
+          meta=json.loads((p/'publication_metadata.json').read_text())
+          assert meta['stage3_run']==33090126353
+          assert len(list((p/'figures/criterion_maps').glob('*.png')))==9
+          for f in [p/'figures/correlation_pearson.png',p/'figures/correlation_spearman.png',p/'figures/vif.png',p/'figures/missingness.png',p/'README.md']:
+              assert f.exists() and f.stat().st_size>0, f
+          PY
+
+      - name: Commit generated Stage 3 publication bundle
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/stage3
+          if git diff --cached --quiet; then
+            echo 'No Stage 3 publication changes to commit.'
+          else
+            git commit -m 'Publish Stage 3 audit tables maps and figures'
+            git pull --rebase origin stage4-mcdm
+            git push origin HEAD:stage4-mcdm
+          fi
