@@ -77,4 +77,20 @@ The following documents remain part of the reproducibility record and are linked
 
 ## Visual documentation standard
 
-Maps published as final documentation should contain at least: **title, legend, scale, north/orientation indicator, and source/year**. Where a map encodes model results, the method and interpretation direction must also be stated. PNG is used for convenient viewing and SVG/vector output is retained when available for manuscript production.
+Every map published as final documentation must contain:
+
+1. **Title** — what is mapped and, when applicable, the analytical method/scenario.
+2. **Legend** — meaning of colors, symbols, hatching, line styles and ranking direction.
+3. **Cartographic scale** — a metric scale bar, generated in an appropriate projected CRS.
+4. **Orientation** — north arrow or equivalent cartographic north indicator.
+5. **Geographic coordinates** — latitude/longitude graticule and coordinate labels, expressed in SIRGAS 2000 geographic coordinates when applicable.
+6. **Source and year** — source of the underlying geography/data and reference year/date of the analytical output.
+7. **Coordinate reference information** — projected CRS used for cartographic rendering and geographic CRS used for latitude/longitude labels.
+
+For the current statewide Pará maps, the standard is:
+
+- cartographic rendering and scale: **SIRGAS 2000 / Brazil Polyconic (EPSG:5880)**;
+- geographic coordinate labels/graticule: **SIRGAS 2000 geographic (EPSG:4674)**;
+- municipal boundary reference: **IBGE 2023**.
+
+Where a map encodes model results, the method, interpretation direction and any coverage limitation must also be stated. PNG is used for convenient viewing and SVG/vector output is retained when available for manuscript production.
