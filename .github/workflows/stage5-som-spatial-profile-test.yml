@@ -1,0 +1,72 @@
+name: Stage 5 SOM categorical spatial profile test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [stage4-mcdm]
+    paths:
+      - '.github/workflows/stage5-som-spatial-profile-test.yml'
+      - 'src/analysis/test_stage5_som_profile_spatial_pattern.py'
+      - 'results/stage5/tables/stage5_som_municipal_profiles.csv'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: stage4-mcdm
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy matplotlib httpx geopandas libpysal shapely pyogrio
+      - name: Run categorical spatial profile tests
+        run: python -m src.analysis.test_stage5_som_profile_spatial_pattern
+      - name: Validate outputs
+        run: |
+          python - <<'PY'
+          import json
+          import pandas as pd
+          a=json.load(open('results/spatial_profile_test/tables/stage5_som_spatial_profile_test_audit.json',encoding='utf-8'))
+          g=pd.read_csv('results/spatial_profile_test/tables/stage5_som_spatial_global_test.csv')
+          j=pd.read_csv('results/spatial_profile_test/tables/stage5_som_spatial_profile_join_tests.csv')
+          q=pd.read_csv('results/spatial_profile_test/tables/stage5_som_spatial_queen_graph_municipalities.csv')
+          assert a['municipalities']==144
+          assert a['profile_sizes']=={'P1':30,'P2':33,'P3':53,'P4':28}
+          assert a['profile_ids_treated_as_nominal'] is True
+          assert a['numeric_morans_i_on_profile_ids_used'] is False
+          assert a['permutations']==9999
+          assert len(g)==2
+          assert len(j)==4
+          assert len(q)==144
+          assert int(j['municipalities'].sum())==144
+          assert a['undirected_edge_count']>0
+          assert a['som_retrained'] is False
+          assert a['profiles_reclassified'] is False
+          print(json.dumps(a,ensure_ascii=False,indent=2))
+          PY
+          test -s results/spatial_profile_test/figures/stage5_som_spatial_assortativity_permutation.png
+          test -s results/spatial_profile_test/figures/stage5_som_spatial_assortativity_permutation.pdf
+          test -s results/spatial_profile_test/figures/stage5_som_spatial_profile_join_enrichment.png
+          test -s results/spatial_profile_test/figures/stage5_som_spatial_profile_join_enrichment.pdf
+      - name: Commit outputs
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add results/spatial_profile_test
+          if git diff --cached --quiet; then
+            echo 'No spatial profile test changes to commit.'
+          else
+            git commit -m 'Publish categorical SOM spatial profile tests'
+            git pull --rebase origin stage4-mcdm
+            git push origin HEAD:stage4-mcdm
+          fi
