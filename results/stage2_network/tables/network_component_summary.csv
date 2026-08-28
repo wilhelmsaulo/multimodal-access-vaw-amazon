@@ -1,0 +1,6 @@
+component,count,source
+corrected_road_directed_edges,7325505,corrected backbone
+added_evidence_backed_directed_edges,4,bounded correction
+hydro_final_directed_edges,16056,corrected backbone
+validated_original_intermodal_terminals,3,terminal split audit
+numeric_road_nodes_with_coordinates,3581543,norte-260824.osm.pbf

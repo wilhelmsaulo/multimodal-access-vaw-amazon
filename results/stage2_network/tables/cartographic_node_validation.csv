@@ -1,0 +1,2 @@
+osm_snapshot,numeric_final_road_nodes_requested,numeric_final_road_nodes_found,missing_numeric_final_road_nodes,coverage_fraction,complete_match
+norte-260824.osm.pbf,3581543,3581543,0,1.0,True

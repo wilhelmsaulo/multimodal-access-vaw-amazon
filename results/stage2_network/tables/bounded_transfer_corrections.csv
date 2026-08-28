@@ -1,0 +1,3 @@
+name,from_node,to_node,travel_time_min,mode,edge_role,evidence,bidirectional,waiting_time_included
+Colares - Penhalonga,3648185532,3678212692,10.0,ferry,evidence_backed_reopened_transfer,OSM ferry way 360220760 + documented local crossing duration approximately 10 min,True,False
+Belém - Santa Cruz do Arari,4799782642,7983414759,420.0,scheduled_passenger_hydro,evidence_backed_reopened_transfer,OSM ferry way 977036991 + official TRE-PA approximately 7 h launch reference,True,False

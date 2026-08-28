@@ -1,0 +1,31 @@
+{
+  "stage": "Stage 2 corrected multimodal temporal network publication",
+  "frozen_backbone_run_id": 32920014705,
+  "corrected_network_run_id": 33089335405,
+  "corrected_backbone_artifact": "pa-corrected-multimodal-backbone",
+  "hydro_topology_run_id": 32868022260,
+  "terminal_split_run_id": 32907985189,
+  "osm_snapshot_file": "norte-260824.osm.pbf",
+  "osm_snapshot_role": "cartographic coordinate reattachment only",
+  "road_node_coordinate_coverage_fraction": 1.0,
+  "road_nodes_missing_from_snapshot": 0,
+  "road_segments_rendered_statewide_directed": 7325501,
+  "map_crs": "EPSG:5880 — SIRGAS 2000 / Brazil Polyconic",
+  "geographic_crs": "EPSG:4674 — SIRGAS 2000",
+  "cartographic_elements": [
+    "title",
+    "legend",
+    "scale_bar",
+    "north_arrow",
+    "geographic_coordinates",
+    "source_and_year",
+    "crs"
+  ],
+  "routing_recomputed": false,
+  "travel_times_changed": false,
+  "new_speed_assumption_used": false,
+  "waiting_time_added": false,
+  "afua_synthetic_edge_added": false,
+  "hydro_audit_file": "hydro_topology_with_validated_snaps_audit.json",
+  "osm_snapshot_sha256": "564584828da30a267f5b523326f085703f4efd111a156002d52b4d37cef7b71f"
+}
