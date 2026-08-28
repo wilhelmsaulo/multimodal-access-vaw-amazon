@@ -13,11 +13,15 @@ flowchart LR
     C --> E
     D --> E
     E --> F[Origin-service OD matrix]
-    F --> G[Accessibility / E2SFCA]
-    G --> H[Municipal access indicators]
+
+    F --> G[Direct municipal network-access indicators]
+    F --> X[E2SFCA complementary accessibility model]
+    B --> X
+    C --> X
+
     A --> I[Institutional indicators]
     A --> J[Rural female share]
-    H --> K[Municipal analytical matrix]
+    G --> K[Municipal analytical matrix]
     I --> K
     J --> K
     K --> L[Stage 3 statistical audit]
@@ -30,9 +34,11 @@ flowchart LR
     P --> R
     Q --> R
     R --> S[SOM / socioeconomic profile analysis]
+
+    X -. complementary / separately parameterized .-> T[E2SFCA tables and maps when frozen]
 ```
 
-**Official data sources** → **census-sector origins and service destinations** → **multimodal temporal network** → **origin–service OD matrix** → **accessibility / E2SFCA layer** → **municipal indicators** → **statistical audit** → **PROMETHEE II + TOPSIS** → **robustness and sensitivity** → **SOM/profile analysis**.
+**Official data sources** → **census-sector origins and service destinations** → **multimodal temporal network** → **origin–service OD matrix**. From the corrected OD, the final MCDM uses **direct municipal network-access summaries**. The E2SFCA implementation is a **parallel complementary accessibility model** that adds demand/supply competition and must be separately parameterized before its empirical outputs are declared authoritative.
 
 The SOM stage is intentionally not documented as closed yet. Its page will be completed only after its input matrix, training specification and validation are frozen.
 
@@ -45,14 +51,48 @@ The SOM stage is intentionally not documented as closed yet. Its page will be co
 5. [Municipal indicator construction](05_municipal_indicators.md)
 6. [Statistical audit and criterion selection](06_statistical_audit.md)
 7. [MCDM, robustness and final Stage-4 results](07_mcdm_robustness_results.md)
+8. [Reproducibility and publication status](08_reproducibility_status.md)
 
-## Authoritative Stage-4 public results
+## Permanent visual/result bundles
+
+### Stage 2 — multimodal network
+
+- [`results/stage2_network/README.md`](../../results/stage2_network/README.md)
+- statewide corrected multimodal network map;
+- detailed Colares correction map;
+- detailed Belém–Santa Cruz do Arari correction map;
+- network-component, transfer-terminal and cartographic-validation tables.
+
+### Stage 2 — corrected OD matrix
+
+- [`results/stage2_od/README.md`](../../results/stage2_od/README.md)
+- reachability summaries by origin and service;
+- travel-time quantiles and diagnostic plots;
+- illustrative OD matrix;
+- full 2,851,425-pair matrix retained as the authoritative workflow artifact rather than duplicated in Git.
+
+### Stage 3 — municipal analytical matrix and audit
+
+- [`results/stage3/README.md`](../../results/stage3/README.md)
+- complete municipal matrix;
+- missingness/completeness diagnostics;
+- Pearson/Spearman correlation matrices;
+- VIF diagnostics;
+- municipal maps for the nine final MCDM criteria.
+
+### Stage 4 — MCDM
 
 - [`results/stage4/README.md`](../../results/stage4/README.md)
 - [`results/stage4/tables/promethee_ii_full_ranking.csv`](../../results/stage4/tables/promethee_ii_full_ranking.csv)
 - [`results/stage4/tables/topsis_full_ranking.csv`](../../results/stage4/tables/topsis_full_ranking.csv)
 - [`results/stage4/figures/promethee_ii_rank_map.png`](../../results/stage4/figures/promethee_ii_rank_map.png)
 - [`results/stage4/figures/topsis_rank_map.png`](../../results/stage4/figures/topsis_rank_map.png)
+
+## E2SFCA status
+
+The executable model is available at [`src/accessibility/e2sfca.py`](../../src/accessibility/e2sfca.py), and its mathematical specification is documented in [`04_accessibility_e2sfca.md`](04_accessibility_e2sfca.md).
+
+At present, code availability must **not** be confused with a frozen empirical E2SFCA result. The final corrected pipeline has not yet declared an authoritative combination of supply mode, catchment threshold, decay function/parameter and municipal aggregation. The exact status and required closure conditions are recorded in [`08_reproducibility_status.md`](08_reproducibility_status.md).
 
 ## Reproducibility policy
 
