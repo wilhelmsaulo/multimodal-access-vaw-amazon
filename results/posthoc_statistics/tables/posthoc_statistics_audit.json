@@ -1,0 +1,32 @@
+{
+  "stage": "Post-hoc statistical assessment of SOM profile associations",
+  "input": "results/integrated_synthesis/tables/integrated_municipal_e2sfca_mcdm_som.csv",
+  "municipalities": 144,
+  "profiles": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "primary_test": "Kruskal-Wallis",
+  "primary_global_multiple_testing": "Holm correction across seven outcome-level Kruskal-Wallis tests",
+  "pairwise_test": "Dunn test after significant global Kruskal-Wallis, Holm correction within each outcome",
+  "effect_size_continuous": "epsilon-squared",
+  "categorical_test": "Pearson chi-square for SOM profile x PROMETHEE top-quartile membership",
+  "categorical_effect_size": "Cramer V",
+  "sensitivity_test": "Welch one-way ANOVA",
+  "variance_diagnostic": "Brown-Forsythe/Levene test centered at median",
+  "som_training_variables_tested_as_independent_validation": false,
+  "som_retrained": false,
+  "promethee_reranked": false,
+  "e2sfca_recomputed": false,
+  "outputs": [
+    "results/posthoc_statistics/tables/posthoc_global_tests.csv",
+    "results/posthoc_statistics/tables/posthoc_dunn_holm.csv",
+    "results/posthoc_statistics/tables/posthoc_chi_square_top_quartile.csv",
+    "results/posthoc_statistics/tables/posthoc_group_descriptives.csv",
+    "results/posthoc_statistics/tables/posthoc_publication_summary.csv",
+    "results/posthoc_statistics/figures/posthoc_global_tests_effects.png",
+    "results/posthoc_statistics/posthoc_statistical_results.md"
+  ]
+}
